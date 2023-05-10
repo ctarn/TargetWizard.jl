@@ -40,8 +40,8 @@ prepare(args) = begin
     df = pLink.read_psm_full(args["psm"]).xl
     df.mod_a = pFind.modstr.(df.mod_a)
     df.mod_b = pFind.modstr.(df.mod_b)
-    fdr_min = parse(Float64, args["fdr_min"])
-    fdr_max = parse(Float64, args["fdr_max"])
+    fdr_min = parse(Float64, args["fdr_min"]) / 100
+    fdr_max = parse(Float64, args["fdr_max"]) / 100
     fdr_min_close = args["fdr_min_close"]
     fdr_max_close = args["fdr_max_close"]
     td = split(args["td_type"], ",") .|> strip .|> Symbol
@@ -109,11 +109,11 @@ main() = begin
             metavar = "PSM"
             required = true
         "--fdr_min"
-            help = "min. FDR"
+            help = "min. FDR (%)"
             metavar = "min"
             default = "-Inf"
         "--fdr_max"
-            help = "max. FDR"
+            help = "max. FDR (%)"
             metavar = "max"
             default = "Inf"
         "--fdr_min_close"

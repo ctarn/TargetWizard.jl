@@ -1,0 +1,237 @@
+import os
+import threading
+import tkinter as tk
+from tkinter import ttk, filedialog
+
+import meta
+import util
+
+handles = []
+running = False
+skip_rest = False
+
+path_autosave = os.path.join(meta.homedir, "autosave_select.task")
+
+main = ttk.Frame()
+main.pack(fill="both")
+
+if util.is_darwin:
+    path_mono = "/Library/Frameworks/Mono.framework/Versions/Current/Commands/mono"
+else:
+    path_mono = "mono"
+
+tds = ["TT", "TD", "DD"]
+pts = ["Inter", "Intra"]
+vars_spec = {
+    "data": {"type": tk.StringVar, "value": ""},
+    "psm": {"type": tk.StringVar, "value": ""},
+    "name": {"type": tk.StringVar, "value": "TargetWizard"},
+    "fdr_min": {"type": tk.StringVar, "value": "-Inf"},
+    "fdr_max": {"type": tk.StringVar, "value": "Inf"},
+    "fdr_min_close": {"type": tk.StringVar, "value": "≤"},
+    "fdr_max_close": {"type": tk.StringVar, "value": "≤"},
+    "batch": {"type": tk.StringVar, "value": "Inf"},
+    "rtime": {"type": tk.StringVar, "value": "240"},
+    "rtime_max": {"type": tk.StringVar, "value": "Inf"},
+    "out": {"type": tk.StringVar, "value": ""},
+    "targetselect": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "TargetSelect")},
+    "thermorawread": {"type": tk.StringVar, "value": util.get_content("ThermoRawRead", "ThermoRawRead.exe", shared=True)},
+    "mono": {"type": tk.StringVar, "value": path_mono},
+}
+for t in tds:
+    vars_spec[f"td_{t}"] = {"type": tk.IntVar, "value": 1}
+for t in pts:
+    vars_spec[f"pt_{t}"] = {"type": tk.IntVar, "value": 1}
+vars = {k: v["type"](value=v["value"]) for k, v in vars_spec.items()}
+util.load_task(path_autosave, vars)
+
+row = 0
+ttk.Label(main, width=20 if util.is_windows else 16).grid(column=0, row=row)
+ttk.Label(main, width=80 if util.is_windows else 60).grid(column=1, row=row)
+ttk.Label(main, width=12 if util.is_windows else 10).grid(column=2, row=row)
+
+def do_select_data():
+    filetypes = (("MS2", "*.ms2"), ("RAW", "*.raw"), ("All", "*.*"))
+    files = filedialog.askopenfilenames(filetypes=filetypes)
+    if len(files) == 0:
+        return None
+    elif len(files) > 1:
+        print("multiple data selected:")
+        for file in files: print(">>", file)
+    vars["data"].set(";".join(files))
+    if len(vars["data"].get()) > 0 and len(vars["out"].get()) == 0:
+        vars["out"].set(os.path.join(os.path.dirname(files[0]), "out"))
+
+ttk.Label(main, text="MS Data:").grid(column=0, row=row, sticky="W")
+ttk.Entry(main, textvariable=vars["data"]).grid(column=1, row=row, **util.sty_entry)
+ttk.Button(main, text="Select", command=do_select_data).grid(column=2, row=row, **util.sty_button)
+row += 1
+
+def do_select_ipv():
+    path = filedialog.askopenfilename(filetypes=(("PSM", "*.csv"), ("All", "*.*")))
+    if len(path) > 0: vars["psm"].set(path)
+
+ttk.Label(main, text="PSM:").grid(column=0, row=row, sticky="W")
+ttk.Entry(main, textvariable=vars["psm"]).grid(column=1, row=row, **util.sty_entry)
+ttk.Button(main, text="Select", command=do_select_ipv).grid(column=2, row=row, **util.sty_button)
+row += 1
+
+ttk.Label(main, text="Task Name:").grid(column=0, row=row, sticky="W")
+ttk.Entry(main, textvariable=vars["name"]).grid(column=1, row=row, **util.sty_entry)
+row += 1
+
+ttk.Label(main, text="FDR Range:").grid(column=0, row=row, sticky="W")
+frm_charge = ttk.Frame(main)
+frm_charge.grid(column=1, row=row, **util.sty_entry)
+ttk.Entry(frm_charge, textvariable=vars["fdr_min"]).pack(side="left", fill="x", expand=True)
+ttk.Label(frm_charge, text="% ").pack(side="left")
+ttk.Combobox(frm_charge, textvariable=vars["fdr_min_close"], values=("<", "≤"), state="readonly", justify="center", width=2).pack(side="left")
+ttk.Label(frm_charge, text=" FDR ").pack(side="left")
+ttk.Combobox(frm_charge, textvariable=vars["fdr_max_close"], values=("<", "≤"), state="readonly", justify="center", width=2).pack(side="left")
+ttk.Entry(frm_charge, textvariable=vars["fdr_max"]).pack(side="left", fill="x", expand=True)
+ttk.Label(main, text="%").grid(column=2, row=row, sticky="W")
+row += 1
+
+ttk.Label(main, text="Target / Decoy Type:").grid(column=0, row=row, sticky="W")
+frm_format = ttk.Frame(main)
+frm_format.grid(column=1, row=row, pady=6)
+for i, t in enumerate(tds):
+    ttk.Checkbutton(frm_format, text=t, variable=vars[f"td_{t}"]).grid(column=i, row=0, padx=6)
+row += 1
+
+ttk.Label(main, text="Inter / Intra Type:").grid(column=0, row=row, sticky="W")
+frm_format = ttk.Frame(main)
+frm_format.grid(column=1, row=row, pady=6)
+for i, t in enumerate(pts):
+    ttk.Checkbutton(frm_format, text=t, variable=vars[f"pt_{t}"]).grid(column=i, row=0, padx=6)
+row += 1
+
+ttk.Label(main, text="Batch Size:").grid(column=0, row=row, sticky="W")
+ttk.Entry(main, textvariable=vars["batch"]).grid(column=1, row=row, **util.sty_entry)
+row += 1
+
+ttk.Label(main, text="RTime Window:").grid(column=0, row=row, sticky="W")
+ttk.Entry(main, textvariable=vars["rtime"]).grid(column=1, row=row, **util.sty_entry)
+ttk.Label(main, text="sec").grid(column=2, row=row, sticky="W")
+row += 1
+
+ttk.Label(main, text="LC Length:").grid(column=0, row=row, sticky="W")
+ttk.Entry(main, textvariable=vars["rtime_max"]).grid(column=1, row=row, **util.sty_entry)
+ttk.Label(main, text="min").grid(column=2, row=row, sticky="W")
+row += 1
+
+def do_select_out():
+    path = filedialog.askdirectory()
+    if len(path) > 0: vars["out"].set(path)
+
+ttk.Label(main, text="Output Directory:").grid(column=0, row=row, sticky="W")
+ttk.Entry(main, textvariable=vars["out"]).grid(column=1, row=row, **util.sty_entry)
+ttk.Button(main, text="Select", command=do_select_out).grid(column=2, row=row, **util.sty_button)
+row += 1
+
+def run_thermorawread(data, out):
+    cmd = [vars["thermorawread"].get(), data, out]
+    if not util.is_windows:
+        cmd = [vars["mono"].get()] + cmd
+    util.run_cmd(cmd, handles, skip_rest)
+    return os.path.join(out, os.path.splitext(os.path.basename(data))[0] + ".ms1")
+
+def run_targetselect(paths):
+    cmd = [
+        vars["targetselect"].get(),
+        "--name", vars["name"].get(),
+        "--psm", vars["psm"].get(),
+        "--fdr_min", vars["fdr_min"].get(),
+        "--fdr_max", vars["fdr_max"].get(),
+        *(["--fdr_min_close"] if vars["fdr_min_close"].get() == "≤" else []),
+        *(["--fdr_max_close"] if vars["fdr_max_close"].get() == "≤" else []),
+        "--td_type", ",".join([t for t in tds if vars[f"td_{t}"].get()]),
+        "--prot_type", ",".join([t for t in pts if vars[f"pt_{t}"].get()]),
+        "--batch", vars["batch"].get(),
+        "--rtime", vars["rtime"].get(),
+        "--rtime_max", vars["rtime_max"].get(),
+        "--out", vars["out"].get(),
+        *paths,
+    ]
+    util.run_cmd(cmd, handles, skip_rest)
+
+def do_load():
+    path = filedialog.askopenfilename(filetypes=(("Configuration", "*.task"), ("All", "*.*")))
+    if len(path) > 0: util.load_task(path, vars)
+
+def do_save():
+    util.save_task(path_autosave, {k: v for k, v in vars.items() if v.get() != vars_spec[k]["value"]})
+    path = vars["out"].get()
+    if len(path) > 0:
+        os.makedirs(path, exist_ok=True)
+        util.save_task(os.path.join(path, "TargetSelect.task"), vars)
+    else:
+        print("`Output Directory` is required")
+
+def do_run():
+    btn_run.config(state="disabled")
+    global handles, running, skip_rest
+    running = True
+    skip_rest = False
+    do_save()
+    paths = []
+    for p in vars["data"].get().split(";"):
+        ext = os.path.splitext(p)[1].lower()
+        if ext == ".raw":
+            p = run_thermorawread(p, vars["out"].get())
+        paths.append(p)
+    run_targetselect(paths)
+    running = False
+    btn_run.config(state="normal")
+
+def do_stop():
+    global handles, running, skip_rest
+    skip_rest = True
+    for job in handles:
+        if job.poll() is None:
+            job.terminate()
+    running = False
+    handles.clear()
+    btn_run.config(state="normal")
+    print("TargetSelect stopped.")
+
+frm_btn = ttk.Frame(main)
+frm_btn.grid(column=0, row=row, columnspan=3)
+ttk.Button(frm_btn, text="Load Task", command=do_load).grid(column=0, row=0, padx=16, pady=8)
+ttk.Button(frm_btn, text="Save Task", command=do_save).grid(column=1, row=0, padx=16, pady=8)
+btn_run = ttk.Button(frm_btn, text="Run Task", command=lambda: threading.Thread(target=do_run).start())
+btn_run.grid(column=2, row=0, padx=16, pady=8)
+ttk.Button(frm_btn, text="Stop Task", command=lambda: threading.Thread(target=do_stop).start()).grid(column=3, row=0, padx=16, pady=8)
+row += 1
+
+ttk.Separator(main, orient=tk.HORIZONTAL).grid(column=0, row=row, columnspan=3, sticky="WE")
+ttk.Label(main, text="Advanced Configuration").grid(column=0, row=row, columnspan=3)
+row += 1
+
+def do_select_targetselect():
+    path = filedialog.askopenfilename()
+    if len(path) > 0: vars["targetselect"].set(path)
+
+ttk.Label(main, text="TargetSelect:").grid(column=0, row=row, sticky="W")
+ttk.Entry(main, textvariable=vars["targetselect"]).grid(column=1, row=row, **util.sty_entry)
+ttk.Button(main, text="Select", command=do_select_targetselect).grid(column=2, row=row, **util.sty_button)
+row += 1
+
+def do_select_thermorawread():
+    path = filedialog.askopenfilename()
+    if len(path) > 0: vars["thermorawread"].set(path)
+
+ttk.Label(main, text="ThermoRawRead:").grid(column=0, row=row, sticky="W")
+ttk.Entry(main, textvariable=vars["thermorawread"]).grid(column=1, row=row, **util.sty_entry)
+ttk.Button(main, text="Select", command=do_select_thermorawread).grid(column=2, row=row, **util.sty_button)
+row += 1
+
+def do_select_mono():
+    path = filedialog.askopenfilename()
+    if len(path) > 0: vars["mono"].set(path)
+
+if not util.is_windows:
+    ttk.Label(main, text="Mono Runtime:").grid(column=0, row=row, sticky="W")
+    ttk.Entry(main, textvariable=vars["mono"]).grid(column=1, row=row, **util.sty_entry)
+    ttk.Button(main, text="Select", command=do_select_mono).grid(column=2, row=row, **util.sty_button)
+    row += 1
