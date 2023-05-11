@@ -86,14 +86,14 @@ target_select(paths; name, df, fdr_min, fdr_max, fdr_min_close, fdr_max_close, t
     @info "$(size(df, 1)) features splitting into $(n_batch) batches"
 
     path_pre = joinpath(out, name)
-    MesMS.safe_save(p -> CSV.write(p, df), "$(path_pre).generic.all.aims.xeek.csv", "AIMS list")
+    MesMS.safe_save(p -> CSV.write(p, df), "$(path_pre).generic.all.aims.tw.csv", "AIMS list")
 
     for i in 1:n_batch
         df_ = df[df.batch .== i, :]
         @info "batch $(i): $(size(df_, 1))"
-        MesMS.safe_save(p -> CSV.write(p, df_), "$(path_pre).generic.batch$(i).aims.xeek.csv", "AIMS list")
-        MesMS.safe_save(p -> CSV.write(p, build_target_lumos(df_)), "$(path_pre).lumos.batch$(i).aims.xeek.csv", "AIMS (Lumos) list")
-        MesMS.safe_save(p -> CSV.write(p, build_target_hf(df_)), "$(path_pre).hf.batch$(i).aims.xeek.csv", "AIMS (HF) list")
+        MesMS.safe_save(p -> CSV.write(p, df_), "$(path_pre).generic.batch$(i).aims.tw.csv", "AIMS list")
+        MesMS.safe_save(p -> CSV.write(p, build_target_lumos(df_)), "$(path_pre).lumos.batch$(i).aims.tw.csv", "AIMS (Lumos) list")
+        MesMS.safe_save(p -> CSV.write(p, build_target_hf(df_)), "$(path_pre).hf.batch$(i).aims.tw.csv", "AIMS (HF) list")
     end
 end
 
