@@ -99,7 +99,7 @@ for i, t in enumerate(tds):
     ttk.Checkbutton(frm_format, text=t, variable=vars[f"td_{t}"]).grid(column=i, row=0, padx=6)
 row += 1
 
-ttk.Label(main, text="Inter / Intra Type:").grid(column=0, row=row, sticky="W")
+ttk.Label(main, text="Inter- / Intra-Protein:").grid(column=0, row=row, sticky="W")
 frm_format = ttk.Frame(main)
 frm_format.grid(column=1, row=row, pady=6)
 for i, t in enumerate(pts):
