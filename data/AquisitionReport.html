@@ -1,0 +1,116 @@
+<h2>Acquisition Speed</h2>
+<canvas id="speed" width="600" height="400"></canvas>
+<div class="opts">
+<div class="opt">
+    <span class="name">Bin Size:</span>
+    <span class="value">
+        <input class="input" type="number" id="speed_bin" value="60", onchange="plot_speed()">
+        <span class="unit">sec</span>
+    </span>
+</div>
+</div>
+
+<h2>Activation Center (MS1 ⇒ MS2)</h2>
+<canvas id="mz" width="600" height="400"></canvas>
+
+<h2>Ion Injection Time</h2>
+<canvas id="it" width="600" height="400"></canvas>
+<div class="opts">
+<div class="opt">
+    <span class="name">Min. RT:</span>
+    <span class="value">
+        <input class="input" type="number" id="it_min_rt" value="0", onchange="plot_it()">
+        <span class="unit">min</span>
+    </span>
+</div>
+<div class="opt">
+    <span class="name">Max. RT:</span>
+    <span class="value">
+        <input class="input" type="number" id="it_max_rt" value="1", onchange="plot_it()">
+        <span class="unit">min</span>
+    </span>
+</div>
+<div class="opt">
+    <span class="name">Bin Size:</span>
+    <span class="value">
+        <input class="input" type="number" id="it_bin" value="10", onchange="plot_it()">
+        <span class="unit">ms</span>
+    </span>
+</div>
+</div>
+
+<h2>Total Ion Current (TIC)</h2>
+<canvas id="tic" width="600" height="400"></canvas>
+<div class="opts">
+<div class="opt">
+    <span class="name">Min. RT:</span>
+    <span class="value">
+        <input class="input" type="number" id="tic_min_rt" value="0", onchange="plot_tic()">
+        <span class="unit">min</span>
+    </span>
+</div>
+<div class="opt">
+    <span class="name">Max. RT:</span>
+    <span class="value">
+        <input class="input" type="number" id="tic_max_rt" value="1", onchange="plot_tic()">
+        <span class="unit">min</span>
+    </span>
+</div>
+<div class="opt">
+    <span class="name">Bin Size:</span>
+    <span class="value">
+        <input class="input" type="number" id="tic_bin" value="0.1", onchange="plot_tic()">
+    </span>
+</div>
+</div>
+
+<h2>Base Peak Intensity (BPI)</h2>
+<canvas id="bpi" width="600" height="400"></canvas>
+<div class="opts">
+<div class="opt">
+    <span class="name">Min. RT:</span>
+    <span class="value">
+        <input class="input" type="number" id="bpi_min_rt" value="0", onchange="plot_bpi()">
+        <span class="unit">min</span>
+    </span>
+</div>
+<div class="opt">
+    <span class="name">Max. RT:</span>
+    <span class="value">
+        <input class="input" type="number" id="bpi_max_rt" value="1", onchange="plot_bpi()">
+        <span class="unit">min</span>
+    </span>
+</div>
+<div class="opt">
+    <span class="name">Bin Size:</span>
+    <span class="value">
+        <input class="input" type="number" id="bpi_bin" value="0.1", onchange="plot_bpi()">
+    </span>
+</div>
+</div>
+
+<h2>Base Peak Mass (BPM)</h2>
+<canvas id="bpm" width="600" height="400"></canvas>
+<div class="opts">
+<div class="opt">
+    <span class="name">Min. RT:</span>
+    <span class="value">
+        <input class="input" type="number" id="bpm_min_rt" value="0", onchange="plot_bpm()">
+        <span class="unit">min</span>
+    </span>
+</div>
+<div class="opt">
+    <span class="name">Max. RT:</span>
+    <span class="value">
+        <input class="input" type="number" id="bpm_max_rt" value="1", onchange="plot_bpm()">
+        <span class="unit">min</span>
+    </span>
+</div>
+<div class="opt">
+    <span class="name">Bin Size:</span>
+    <span class="value">
+        <input class="input" type="number" id="bpm_bin" value="25", onchange="plot_bpm()">
+        <span class="unit">Th</span>
+    </span>
+</div>
+</div>

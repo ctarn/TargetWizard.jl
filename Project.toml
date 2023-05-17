@@ -9,6 +9,7 @@ CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 MesMS = "0da6f6f1-6857-4856-ba89-6a679ab95268"
 MesUtil = "f93118ae-a11b-4124-a8dd-198981c00471"
+RelocatableFolders = "05181044-ff0b-4ac5-8273-598c1e38db00"
 
 [compat]
 julia = "1"
