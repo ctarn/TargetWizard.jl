@@ -39,9 +39,10 @@ threading.Thread(target=lambda: util.show_headline(headline, meta.server)).start
 import TargetSelect
 notebook.add(TargetSelect.main, text="Target Selection")
 
-notebook.add(ttk.Frame(), text="Target Acquisition")
+import TargetReport
+notebook.add(TargetReport.main, text="Report Generation")
 
-notebook.add(ttk.Frame(), text="Target Visualization")
+notebook.add(ttk.Frame(), text="Visualization")
 
 mods = [TargetSelect]
 
