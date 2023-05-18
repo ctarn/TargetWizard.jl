@@ -72,6 +72,7 @@ bpm_max = $(max(maximum(bpm1), maximum(bpm2)))
     )
     path_out = joinpath(out, name * ".AquisitionReport.html")
     MesMS.safe_save(io -> write(io, html), path_out)
+    MesMS.open_url(path_out)
 end
 
 main() = begin
