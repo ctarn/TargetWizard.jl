@@ -13,6 +13,7 @@ const chart_speed = new Chart(document.getElementById("speed").getContext("2d"),
             y: {
                 title: {display: true, text: "acquisition speed (Hz)"},
                 ticks: {callback: (v, i, t) => v + " Hz"},
+                beginAtZero: true,
             },
         },
     },
@@ -53,7 +54,7 @@ const chart_it = new Chart(document.getElementById("it").getContext("2d"), {
     options: {
         scales: {
             x: {title: {display: true, text: "ion injection time (ms)"}},
-            y: {title: {display: true, text: "#scan"}},
+            y: {title: {display: true, text: "#scan"}, beginAtZero: true},
         },
     },
 })
@@ -78,7 +79,7 @@ const chart_tic = new Chart(document.getElementById("tic").getContext("2d"), {
     options: {
         scales: {
             x: {title: {display: true, text: "log₁₀(total ion current + 1)"}},
-            y: {title: {display: true, text: "#scan"}},
+            y: {title: {display: true, text: "#scan"}, beginAtZero: true},
         },
     },
 })
@@ -104,7 +105,7 @@ const chart_bpi = new Chart(document.getElementById("bpi").getContext("2d"), {
     options: {
         scales: {
             x: {title: {display: true, text: "log₁₀(base peak intensity + 1)"}},
-            y: {title: {display: true, text: "#scan"}},
+            y: {title: {display: true, text: "#scan"}, beginAtZero: true},
         },
     },
 })
@@ -130,7 +131,7 @@ const chart_bpm = new Chart(document.getElementById("bpm").getContext("2d"), {
     options: {
         scales: {
             x: {title: {display: true, text: "base peak mass (Th)"}},
-            y: {title: {display: true, text: "#scan"}},
+            y: {title: {display: true, text: "#scan"}, beginAtZero: true},
         },
     },
 })
