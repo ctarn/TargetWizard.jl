@@ -44,7 +44,7 @@ notebook.add(TargetReport.main, text="Report Generation")
 
 notebook.add(ttk.Frame(), text="Visualization")
 
-mods = [TargetSelect]
+mods = [TargetSelect, TargetReport]
 
 def on_exit():
     if (not any([m.running for m in mods]) or
