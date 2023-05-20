@@ -15,20 +15,20 @@ function plot_z_rt(c=chart_z_rt) {
     c.data.labels = Array(n_bin).fill(0).map((_, i) => parseFloat((i * bin / 60).toFixed(4)))
     c.data.datasets = []
     for (var z = Z_MIN; z <= Z_MAX; z++) {
-        var f = Array(n_bin).fill(0)
+        var y = Array(n_bin).fill(0)
         if (plot_type == "range") {
             Z.forEach((v, i) => {
                 if (v == z)
                     for (j = Math.floor(RT_START[i] / bin); j <= Math.ceil(RT_STOP[i] / bin); j++)
-                        f[j] += 1
+                        y[j] += 1
             })
         } else if (plot_type == "center") {
             Z.forEach((v, i) => {
                 if (v == z)
-                    f[Math.floor((RT[i]) / bin)] += 1
+                    y[Math.floor((RT[i]) / bin)] += 1
             })
         }
-        c.data.datasets.push({type: "bar", data: f, label: `z=${z}`, stack: "1"})
+        c.data.datasets.push({type: "bar", data: y, label: `z=${z}`, stack: "1"})
     }
     c.update()
 }
@@ -48,10 +48,10 @@ function plot_z_hist(c=chart_z_hist) {
     var max_rt = document.getElementById("z_hist_max_rt").value * 60
     var n_bin = Z_MAX + 1 - Z_MIN
     c.data.labels = Array(n_bin).fill(0).map((_, i) => i + Z_MIN)
-    var f = Array(n_bin).fill(0)
-    Z.forEach((v, i) => {if (RT_START[i] >= min_rt && RT_STOP[i] <= max_rt) f[v - Z_MIN] += 1})
-    c.data.datasets[0].data = f
-    c.data.datasets[0].label = `total: ${f.reduce((a, b) => a + b, 0)}`
+    var y = Array(n_bin).fill(0)
+    Z.forEach((v, i) => {if (RT_START[i] >= min_rt && RT_STOP[i] <= max_rt) y[v - Z_MIN] += 1})
+    c.data.datasets[0].data = y
+    c.data.datasets[0].label = `total: ${y.reduce((a, b) => a + b, 0)}`
     c.update()
 }
 
@@ -77,11 +77,11 @@ function plot_mass_rt(c=chart_mass_rt) {
         c.options.scales.y.title.text = "m/z (Th)"
     }
     for (var z = Z_MIN; z <= Z_MAX; z++) {
-        var f = []
+        var y = []
         for (var i = 0; i < RT.length; i++) {
-            if (Z[i] == z) f.push({x: RT[i] / 60, y: vs[i]})
+            if (Z[i] == z) y.push({x: RT[i] / 60, y: vs[i]})
         }
-        c.data.datasets.push({type: "scatter", data: f, label: `z=${z}: ${f.length}`})
+        c.data.datasets.push({type: "scatter", data: y, label: `z=${z}: ${y.length}`})
     }
     c.update()
 }
@@ -117,12 +117,12 @@ function plot_mass_hist(c=chart_mass_hist) {
     c.data.datasets = []
     c.data.labels = Array(n_bin).fill(0).map((_, i) => parseFloat(((i + xmin) * bin).toFixed(4)))
     for (var z = Z_MIN; z <= Z_MAX; z++) {
-        var f = Array(n_bin).fill(0)
+        var y = Array(n_bin).fill(0)
         Z.forEach((v, i) => {
             if (v == z && RT_START[i] >= min_rt && RT_STOP[i] <= max_rt)
-                f[Math.floor(vs[i] / bin) - xmin] += 1
+                y[Math.floor(vs[i] / bin) - xmin] += 1
         })
-        c.data.datasets.push({type: "bar", data: f, label: `z=${z}: ${f.reduce((a, b) => a + b, 0)}`, stack: "1"})
+        c.data.datasets.push({type: "bar", data: y, label: `z=${z}: ${y.reduce((a, b) => a + b, 0)}`, stack: "1"})
     }
     c.update()
 }
