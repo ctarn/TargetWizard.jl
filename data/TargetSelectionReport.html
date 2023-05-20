@@ -1,17 +1,17 @@
-<h2>Charge State Distribution</h2>
-<canvas id="z_rt" width="600" height="400"></canvas>
+<h2>Acquisition Load</h2>
+<canvas id="load" width="600" height="400"></canvas>
 <div class="opts">
 <div class="opt">
     <span class="name">Bin Size:</span>
     <span class="value">
-        <input class="input" type="number" id="z_rt_bin" value="60", onchange="plot_z_rt()">
+        <input class="input" type="number" id="load_bin" value="60", onchange="plot_load()">
         <span class="unit">sec</span>
     </span>
 </div>
 <div class="opt">
     <span class="name">Plot By:</span>
     <span class="value">
-        <select class="input", id="z_rt_type", onchange="plot_z_rt()">
+        <select class="input", id="load_type", onchange="plot_load()">
             <option value="range">Range of RT Window</option>
             <option value="center">Center of RT Window</option>
         </select>
@@ -19,6 +19,7 @@
 </div>
 </div>
 
+<h2>Charge State Distribution</h2>
 <canvas id="z_hist" width="600" height="400"></canvas>
 <div class="opts">
 <div class="opt">
@@ -51,7 +52,7 @@
     </div>
 </div>
 
-<canvas id="mass_hist" width="600" height="300"></canvas>
+<canvas id="mass_hist" width="600" height="400"></canvas>
 <div class="opts">
 <div class="opt">
     <span class="name">Type:</span>

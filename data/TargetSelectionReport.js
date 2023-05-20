@@ -1,4 +1,4 @@
-const chart_z_rt = new Chart(document.getElementById("z_rt").getContext("2d"), {
+const chart_load = new Chart(document.getElementById("load").getContext("2d"), {
     data: {datasets: [{type: "bar", label: "z=..."}]},
     options: {
         scales: {
@@ -8,9 +8,9 @@ const chart_z_rt = new Chart(document.getElementById("z_rt").getContext("2d"), {
     },
 })
 
-function plot_z_rt(c=chart_z_rt) {
-    var bin = document.getElementById("z_rt_bin").value
-    var plot_type = document.getElementById("z_rt_type").value
+function plot_load(c=chart_load) {
+    var bin = document.getElementById("load_bin").value
+    var plot_type = document.getElementById("load_type").value
     var n_bin = Math.ceil(RT_MAX / bin) + 1
     c.data.labels = Array(n_bin).fill(0).map((_, i) => parseFloat((i * bin / 60).toFixed(4)))
     c.data.datasets = []
@@ -130,7 +130,7 @@ function plot_mass_hist(c=chart_mass_hist) {
 document.getElementById("z_hist_max_rt").value = Math.ceil(RT_STOP_MAX / 60)
 document.getElementById("mass_hist_max_rt").value = Math.ceil(RT_STOP_MAX / 60)
 
-plot_z_rt()
+plot_load()
 plot_z_hist()
 plot_mass_rt()
 plot_mass_hist()
