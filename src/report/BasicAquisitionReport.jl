@@ -15,12 +15,8 @@ prepare(args) = begin
 end
 
 plot(path; out) = begin
-    fname_m1 = splitext(path)[1] * ".ms1"
-    @info "MS1 loading from " * fname_m1
-    M1 = MesMS.read_ms1(fname_m1)
-    fname_m2 = splitext(path)[1] * ".ms2"
-    @info "MS2 loading from " * fname_m2
-    M2 = MesMS.read_ms2(fname_m2)
+    M1 = MesMS.read_ms1(splitext(path)[1] * ".ms1")
+    M2 = MesMS.read_ms2(splitext(path)[1] * ".ms2")
     name = splitext(basename(path))[1]
 
     rt1 = map(m -> m.retention_time, M1)
