@@ -8,7 +8,7 @@ cfg = TOML.parsefile("Project.toml")
 
 dir = "tmp/$(Sys.ARCH).$(Sys.iswindows() ? "Windows" : Sys.KERNEL)/$(cfg["name"])"
 
-exes = ["TargetSelect", "AquisitionReport"]
+exes = ["TargetSelect", "AquisitionReport", "TargetReport"]
 deps = ["../MesMS.jl", "../MesUtil.jl"]
 Pkg.develop([Pkg.PackageSpec(path=dep) for dep in deps])
 Pkg.resolve()
