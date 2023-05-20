@@ -98,7 +98,7 @@ target_select(paths; name, df, fdr_min, fdr_max, fdr_min_close, fdr_max_close, t
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="XeekAIMS")
+    settings = ArgParse.ArgParseSettings(prog="TargetSelect")
     ArgParse.@add_arg_table! settings begin
         "--name"
             help = "task name"
