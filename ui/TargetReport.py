@@ -31,7 +31,7 @@ vars_spec = {
     "psm": {"type": tk.StringVar, "value": ""},
     "report": {"type": tk.StringVar, "value": BAReport},
     "out": {"type": tk.StringVar, "value": ""},
-    "aquisitionreport": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "AquisitionReport")},
+    "basicaquisitionreport": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "BasicAquisitionReport")},
     "targetselectionreport": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "TargetSelectionReport")},
     "targetaquisitionreport": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "TargetAquisitionReport")},
     "identificationreport": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "IdentificationReport")},
@@ -71,14 +71,14 @@ def run_thermorawread(data, out):
     util.run_cmd(cmd, handles, skip_rest)
     return os.path.join(out, os.path.splitext(os.path.basename(data))[0] + ".ms2")
 
-def run_aquisitionreport():
+def run_basicaquisitionreport():
     paths = []
     for p in vars["ms"].get().split(";"):
         ext = os.path.splitext(p)[1].lower()
         if ext == ".raw":
             p = run_thermorawread(p, vars["out"].get())
         paths.append(p)
-    cmd = [vars["aquisitionreport"].get(), "--out", vars["out"].get(), *paths]
+    cmd = [vars["basicaquisitionreport"].get(), "--out", vars["out"].get(), *paths]
     util.run_cmd(cmd, handles, skip_rest)
 
 def run_targetselectionreport():
@@ -110,7 +110,7 @@ def do_run():
     skip_rest = False
     do_save()
     if vars["report"].get() == BAReport:
-        run_aquisitionreport()
+        run_basicaquisitionreport()
     elif vars["report"].get() == TSReport:
         run_targetselectionreport()
     elif vars["report"].get() == TAReport:
@@ -146,9 +146,9 @@ ttk.Separator(main, orient=tk.HORIZONTAL).grid(column=0, row=row, columnspan=3, 
 ttk.Label(main, text="Advanced Configuration").grid(column=0, row=row, columnspan=3)
 row += 1
 
-ttk.Label(main, text="AquisitionReport:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["aquisitionreport"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(main, text="Select", command=util.askfile(vars["aquisitionreport"])).grid(column=2, row=row, **util.sty_button)
+ttk.Label(main, text="BasicAquisitionReport:").grid(column=0, row=row, sticky="W")
+ttk.Entry(main, textvariable=vars["basicaquisitionreport"]).grid(column=1, row=row, **util.sty_entry)
+ttk.Button(main, text="Select", command=util.askfile(vars["basicaquisitionreport"])).grid(column=2, row=row, **util.sty_button)
 row += 1
 
 ttk.Label(main, text="TargetSelectionReport:").grid(column=0, row=row, sticky="W")

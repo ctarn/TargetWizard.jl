@@ -1,4 +1,4 @@
-module TargetReport
+module TargetSelectionReport
 
 import ArgParse
 import CSV
@@ -6,7 +6,7 @@ import DataFrames
 import MesMS
 import RelocatableFolders: @path
 
-const DIR_DATA = @path joinpath(@__DIR__, "../data")
+const DIR_DATA = @path joinpath(@__DIR__, "../../data")
 
 parse_target_list!(df, fmt) = begin
     if fmt == :auto
@@ -78,18 +78,18 @@ const RT_STOP_MAX = $(maximum(df.stop))
     html = replace(read(joinpath(DIR_DATA, "base.html"), String),
         "{{ title }}" => "TargetWizard Target Report",
         "{{ subtitle }}" => basename(path),
-        "{{ main }}" => read(joinpath(DIR_DATA, "TargetReport.html"), String),
+        "{{ main }}" => read(joinpath(DIR_DATA, "TargetSelectionReport.html"), String),
         "{{ lib }}" => read(joinpath(DIR_DATA, "lib", "chartjs-4.2.1.js"), String),
         "{{ data }}" => data,
-        "{{ script }}" => read(joinpath(DIR_DATA, "TargetReport.js"), String),
+        "{{ script }}" => read(joinpath(DIR_DATA, "TargetSelectionReport.js"), String),
     )
-    path_out = joinpath(out, basename(path) * ".TargetReport.html")
+    path_out = joinpath(out, basename(path) * ".TargetSelectionReport.html")
     MesMS.safe_save(io -> write(io, html), path_out)
     MesMS.open_url(path_out)
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="TargetReport")
+    settings = ArgParse.ArgParseSettings(prog="TargetSelectionReport")
     ArgParse.@add_arg_table! settings begin
         "--fmt", "-f"
             help = "target list format: auto, generic, lumos, hf"

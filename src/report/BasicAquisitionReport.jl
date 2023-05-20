@@ -1,4 +1,4 @@
-module AquisitionReport
+module BasicAquisitionReport
 
 import ArgParse
 import CSV
@@ -7,7 +7,7 @@ import MesMS
 import MesUtil: pFind, pLink
 import RelocatableFolders: @path
 
-const DIR_DATA = @path joinpath(@__DIR__, "../data")
+const DIR_DATA = @path joinpath(@__DIR__, "../../data")
 
 prepare(args) = begin
     out = mkpath(args["out"])
@@ -65,18 +65,18 @@ bpm_max = $(max(maximum(bpm1), maximum(bpm2)))
     html = replace(read(joinpath(DIR_DATA, "base.html"), String),
         "{{ title }}" => "TargetWizard Data Aquisition Report",
         "{{ subtitle }}" => name,
-        "{{ main }}" => read(joinpath(DIR_DATA, "AquisitionReport.html"), String),
+        "{{ main }}" => read(joinpath(DIR_DATA, "BasicAquisitionReport.html"), String),
         "{{ lib }}" => read(joinpath(DIR_DATA, "lib", "chartjs-4.2.1.js"), String),
         "{{ data }}" => data,
-        "{{ script }}" => read(joinpath(DIR_DATA, "AquisitionReport.js"), String),
+        "{{ script }}" => read(joinpath(DIR_DATA, "BasicAquisitionReport.js"), String),
     )
-    path_out = joinpath(out, name * ".AquisitionReport.html")
+    path_out = joinpath(out, name * ".BasicAquisitionReport.html")
     MesMS.safe_save(io -> write(io, html), path_out)
     MesMS.open_url(path_out)
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="AquisitionReport")
+    settings = ArgParse.ArgParseSettings(prog="BasicAquisitionReport")
     ArgParse.@add_arg_table! settings begin
         "--out", "-o"
             help = "output directory"
