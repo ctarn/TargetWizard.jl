@@ -25,9 +25,11 @@ TSReport = "Target Selection Report"
 TAReport = "Target Aquisition Report"
 IDReport = "Identification Report"
 reports = [BAReport, TSReport, TAReport, IDReport]
+target_fmts = ["auto", "generic", "lumos", "hf"]
 vars_spec = {
     "ms": {"type": tk.StringVar, "value": ""},
     "target": {"type": tk.StringVar, "value": ""},
+    "target_fmt": {"type": tk.StringVar, "value": target_fmts[0]},
     "psm": {"type": tk.StringVar, "value": ""},
     "report": {"type": tk.StringVar, "value": BAReport},
     "out": {"type": tk.StringVar, "value": ""},
@@ -82,7 +84,14 @@ def run_basicaquisitionreport():
     util.run_cmd(cmd, handles, skip_rest)
 
 def run_targetselectionreport():
-    pass
+    paths = vars["ms"].get().split(";")
+    cmd = [
+        vars["basicaquisitionreport"].get(),
+        "--fmt", vars["target_fmt"].get(),
+        "--out", vars["out"].get(),
+        *paths,
+    ]
+    util.run_cmd(cmd, handles, skip_rest)
 
 def run_targetaquisitionreport():
     pass
@@ -222,12 +231,13 @@ row += 1
 
 f = fs[TSReport]
 row = 0
-ttk.Label(f, text=f"{TSReport} Not Available").grid(column=0, row=row, columnspan=3)
-row += 1
-
 ttk.Label(f, text="Target List:").grid(column=0, row=row, sticky="W")
 ttk.Entry(f, textvariable=vars["target"]).grid(column=1, row=row, **util.sty_entry)
 ttk.Button(f, text="Select", command=do_select_target).grid(column=2, row=row, **util.sty_button)
+row += 1
+
+ttk.Label(f, text="Target Format:").grid(column=0, row=row, sticky="W")
+ttk.Combobox(f, textvariable=vars["target_fmt"], values=target_fmts, state="readonly", justify="center").grid(column=1, row=row, **util.sty_entry)
 row += 1
 
 f = fs[TAReport]
