@@ -6,10 +6,14 @@ version = "0.0.0"
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+Dash = "1b08a953-4be3-4667-9a23-3db579824955"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 MesMS = "0da6f6f1-6857-4856-ba89-6a679ab95268"
 MesUtil = "f93118ae-a11b-4124-a8dd-198981c00471"
+PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
+ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 RelocatableFolders = "05181044-ff0b-4ac5-8273-598c1e38db00"
+Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
 
 [compat]
 julia = "1"
