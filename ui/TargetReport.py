@@ -84,9 +84,9 @@ def run_basicaquisitionreport():
     util.run_cmd(cmd, handles, skip_rest)
 
 def run_targetselectionreport():
-    paths = vars["ms"].get().split(";")
+    paths = vars["target"].get().split(";")
     cmd = [
-        vars["basicaquisitionreport"].get(),
+        vars["targetselectionreport"].get(),
         "--fmt", vars["target_fmt"].get(),
         "--out", vars["out"].get(),
         *paths,
