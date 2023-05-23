@@ -1,4 +1,4 @@
-module TargetView
+module TargetXView
 
 using Sockets
 
@@ -43,7 +43,7 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
     df_tg_tb = DataFrames.select(df_tg, filter(n -> !endswith(n, "_"), names(df_tg)))
     app = dash()
     app.layout = html_div() do
-        html_h1("TargetView", style=Dict("text-align"=>"center")),
+        html_h1("TargetXView", style=Dict("text-align"=>"center")),
         dash_datatable(
             id="tg_table",
             style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
@@ -297,7 +297,7 @@ report(path; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path_
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="TargetView")
+    settings = ArgParse.ArgParseSettings(prog="TargetXView")
     ArgParse.@add_arg_table! settings begin
         "--host"
             help = "hostname"

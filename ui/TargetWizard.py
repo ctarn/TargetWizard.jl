@@ -42,7 +42,8 @@ notebook.add(TargetSelect.main, text="Target Selection")
 import TargetReport
 notebook.add(TargetReport.main, text="Report Generation")
 
-notebook.add(ttk.Frame(), text="Visualization")
+import TargetView
+notebook.add(TargetView.main, text="Visualization")
 
 mods = [TargetSelect, TargetReport]
 
