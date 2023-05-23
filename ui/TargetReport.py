@@ -33,10 +33,7 @@ vars_spec = {
     "psm": {"type": tk.StringVar, "value": ""},
     "report": {"type": tk.StringVar, "value": BAReport},
     "out": {"type": tk.StringVar, "value": ""},
-    "basicaquisitionreport": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "BasicAquisitionReport")},
-    "targetselectionreport": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "TargetSelectionReport")},
-    "targetaquisitionreport": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "TargetAquisitionReport")},
-    "identificationreport": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "IdentificationReport")},
+    "generators": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin")},
     "thermorawread": {"type": tk.StringVar, "value": util.get_content("ThermoRawRead", "ThermoRawRead.exe", shared=True)},
     "mono": {"type": tk.StringVar, "value": path_mono},
 }
@@ -61,9 +58,7 @@ fs = {r: util.init_form(ttk.Frame(main)) for r in reports}
 row_fs = row
 row += 1
 
-ttk.Label(main, text="Output Directory:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["out"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(main, text="Select", command=util.askdir(vars["out"])).grid(column=2, row=row, **util.sty_button)
+util.add_entry(main, row, "Output Directory:", vars["out"], "Select", util.askdir(vars["out"]))
 row += 1
 
 def run_thermorawread(data, out):
@@ -80,13 +75,13 @@ def run_basicaquisitionreport():
         if ext == ".raw":
             p = run_thermorawread(p, vars["out"].get())
         paths.append(p)
-    cmd = [vars["basicaquisitionreport"].get(), "--out", vars["out"].get(), *paths]
+    cmd = [os.path.join(vars["generators"].get(), "BasicAquisitionReport"), "--out", vars["out"].get(), *paths]
     util.run_cmd(cmd, handles, skip_rest)
 
 def run_targetselectionreport():
     paths = vars["target"].get().split(";")
     cmd = [
-        vars["targetselectionreport"].get(),
+        os.path.join(vars["generators"].get(), "TargetSelectionReport"),
         "--fmt", vars["target_fmt"].get(),
         "--out", vars["out"].get(),
         *paths,
@@ -155,35 +150,14 @@ ttk.Separator(main, orient=tk.HORIZONTAL).grid(column=0, row=row, columnspan=3, 
 ttk.Label(main, text="Advanced Configuration").grid(column=0, row=row, columnspan=3)
 row += 1
 
-ttk.Label(main, text="BasicAquisitionReport:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["basicaquisitionreport"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(main, text="Select", command=util.askfile(vars["basicaquisitionreport"])).grid(column=2, row=row, **util.sty_button)
+util.add_entry(main, row, "Generators:", vars["generators"], "Select", util.askdir(vars["generators"]))
 row += 1
 
-ttk.Label(main, text="TargetSelectionReport:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["targetselectionreport"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(main, text="Select", command=util.askfile(vars["targetselectionreport"])).grid(column=2, row=row, **util.sty_button)
-row += 1
-
-ttk.Label(main, text="TargetAquisitionReport:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["targetaquisitionreport"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(main, text="Select", command=util.askfile(vars["targetaquisitionreport"])).grid(column=2, row=row, **util.sty_button)
-row += 1
-
-ttk.Label(main, text="IdentificationReport:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["identificationreport"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(main, text="Select", command=util.askfile(vars["identificationreport"])).grid(column=2, row=row, **util.sty_button)
-row += 1
-
-ttk.Label(main, text="ThermoRawRead:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["thermorawread"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(main, text="Select", command=util.askfile(vars["thermorawread"])).grid(column=2, row=row, **util.sty_button)
+util.add_entry(main, row, "ThermoRawRead:", vars["thermorawread"], "Select", util.askfile(vars["thermorawread"]))
 row += 1
 
 if not util.is_windows:
-    ttk.Label(main, text="Mono Runtime:").grid(column=0, row=row, sticky="W")
-    ttk.Entry(main, textvariable=vars["mono"]).grid(column=1, row=row, **util.sty_entry)
-    ttk.Button(main, text="Select", command=util.askfile(vars["mono"])).grid(column=2, row=row, **util.sty_button)
+    util.add_entry(main, row, "Mono Runtime:", vars["mono"], "Select", util.askfile(vars["mono"]))
     row += 1
 
 def do_select_ms():
@@ -224,20 +198,15 @@ def do_select_psm():
 
 f = fs[BAReport]
 row = 0
-ttk.Label(f, text="MS Data:").grid(column=0, row=row, sticky="W")
-ttk.Entry(f, textvariable=vars["ms"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(f, text="Select", command=do_select_ms).grid(column=2, row=row, **util.sty_button)
+util.add_entry(f, row, "MS Data:", vars["ms"], "Select", do_select_ms)
 row += 1
 
 f = fs[TSReport]
 row = 0
-ttk.Label(f, text="Target List:").grid(column=0, row=row, sticky="W")
-ttk.Entry(f, textvariable=vars["target"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(f, text="Select", command=do_select_target).grid(column=2, row=row, **util.sty_button)
+util.add_entry(f, row, "Target List:", vars["target"], "Select", do_select_target)
 row += 1
 
-ttk.Label(f, text="Target Format:").grid(column=0, row=row, sticky="W")
-ttk.Combobox(f, textvariable=vars["target_fmt"], values=target_fmts, state="readonly", justify="center").grid(column=1, row=row, **util.sty_entry)
+util.add_entry(f, row, "Target Format:", ttk.Combobox(f, textvariable=vars["target_fmt"], values=target_fmts, state="readonly", justify="center"))
 row += 1
 
 f = fs[TAReport]
@@ -245,14 +214,10 @@ row = 0
 ttk.Label(f, text=f"{TAReport} Not Available").grid(column=0, row=row, columnspan=3)
 row += 1
 
-ttk.Label(f, text="Target List:").grid(column=0, row=row, sticky="W")
-ttk.Entry(f, textvariable=vars["target"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(f, text="Select", command=do_select_target).grid(column=2, row=row, **util.sty_button)
+util.add_entry(f, row, "Target List:", vars["target"], "Select", do_select_target)
 row += 1
 
-ttk.Label(f, text="MS Data:").grid(column=0, row=row, sticky="W")
-ttk.Entry(f, textvariable=vars["ms"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(f, text="Select", command=do_select_ms).grid(column=2, row=row, **util.sty_button)
+util.add_entry(f, row, "MS Data:", vars["ms"], "Select", do_select_ms)
 row += 1
 
 f = fs[IDReport]
@@ -261,9 +226,7 @@ ttk.Label(f, text=f"{IDReport} Not Available").grid(column=0, row=row, columnspa
 row += 1
 
 t = (("PSM", "*.csv"), ("All", "*.*"))
-ttk.Label(f, text="PSM:").grid(column=0, row=row, sticky="W")
-ttk.Entry(f, textvariable=vars["psm"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(f, text="Select", command=util.askfile(vars["psm"], filetypes=t)).grid(column=2, row=row, **util.sty_button)
+util.add_entry(f, row, "PSM:", vars["psm"], "Select", util.askfile(vars["psm"], filetypes=t))
 row += 1
 
 select_report(None, False)
