@@ -6,7 +6,7 @@ import DataFrames
 import MesMS
 import MesUtil: pFind, pLink
 
-build_target_hf(df) = begin
+build_target_TmQE(df) = begin
     return DataFrames.DataFrame(
         Symbol("Mass [m/z]") => df.mz,
         Symbol("Formula [M]") => "",
@@ -23,7 +23,7 @@ build_target_hf(df) = begin
     )
 end
 
-build_target_lumos(df) = begin
+build_target_TmFu(df) = begin
     return DataFrames.DataFrame(
         Symbol("Compound") => "",
         Symbol("Formula") => "",
@@ -42,26 +42,27 @@ prepare(args) = begin
     df.mod_b = pFind.modstr.(df.mod_b)
     fdr_min = parse(Float64, args["fdr_min"]) / 100
     fdr_max = parse(Float64, args["fdr_max"]) / 100
-    fdr_min_close = args["fdr_min_close"]
-    fdr_max_close = args["fdr_max_close"]
-    td = split(args["td_type"], ",") .|> strip .|> Symbol
-    pt = split(args["prot_type"], ",") .|> strip .|> Symbol
+    fdr_ge = args["fdr_ge"]
+    fdr_le = args["fdr_le"]
+    td = split(args["td"], ",") .|> strip .|> Symbol
+    pt = split(args["pt"], ",") .|> strip .|> Symbol
     batch_size = parse(Float64, args["batch"])
     rt = parse(Float64, args["rtime"])
-    rt_max = parse(Float64, args["rtime_max"])
+    lc = parse(Float64, args["lc"])
+    fmt = split(args["fmt"], ",") .|> strip .|> Symbol
     out = mkpath(args["out"])
-    return (; name, df, fdr_min, fdr_max, fdr_min_close, fdr_max_close, td, pt, batch_size, rt, rt_max, out)
+    return (; name, df, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt, out)
 end
 
-target_select(paths; name, df, fdr_min, fdr_max, fdr_min_close, fdr_max_close, td, pt, batch_size, rt, rt_max, out) = begin
+target_select(paths; name, df, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt, out) = begin
     Ms = map(paths) do path
-        return MesMS.mapvalue(MesMS.dict_by_id, MesMS.read_all(MesMS.read_ms2, path))
+        return MesMS.mapvalue(MesMS.dict_by_id, MesMS.read_all(MesMS.read_ms2, path; verbose=false))
     end
     M = reduce(merge, Ms)
 
     s = trues(size(df, 1))
-    s .&= fdr_min_close ? (df.fdr .≥ fdr_min) : (df.fdr .> fdr_min)
-    s .&= fdr_max_close ? (df.fdr .≤ fdr_max) : (df.fdr .< fdr_max)
+    s .&= fdr_ge ? (df.fdr .≥ fdr_min) : (df.fdr .> fdr_min)
+    s .&= fdr_le ? (df.fdr .≤ fdr_max) : (df.fdr .< fdr_max)
     s .&= reduce(.|, [df.td .== t for t in td])
     s .&= reduce(.|, [df.prot_type .== t for t in pt])
 
@@ -75,8 +76,8 @@ target_select(paths; name, df, fdr_min, fdr_max, fdr_min_close, fdr_max_close, t
 
     df.rt = [M[r.raw][r.scan].retention_time for r in eachrow(df)]
 
-    df.start = min.(rt_max * 60, max.(0, df.rt .- (rt / 2)))
-    df.stop = min.(rt_max * 60, max.(0, df.rt .+ (rt / 2)))
+    df.start = min.(lc * 60, max.(0, df.rt .- (rt / 2)))
+    df.stop = min.(lc * 60, max.(0, df.rt .+ (rt / 2)))
 
     n_batch = isinf(batch_size) ? 1 : ceil(Int, size(df, 1) / batch_size)
     df = sort(df, :rt)
@@ -85,15 +86,18 @@ target_select(paths; name, df, fdr_min, fdr_max, fdr_min_close, fdr_max_close, t
 
     @info "$(size(df, 1)) features splitting into $(n_batch) batches"
 
-    path_pre = joinpath(out, name)
-    MesMS.safe_save(p -> CSV.write(p, df), "$(path_pre).generic.all.aims.tw.csv", "AIMS list")
+    tw = :TW ∈ fmt
+    tmqe = :TmQE ∈ fmt
+    tmfu = :TmFu ∈ fmt
+    p = joinpath(out, name)
+    tw && MesMS.safe_save(p -> CSV.write(p, df), "$(p).all.TW.target.csv", "list")
 
     for i in 1:n_batch
         df_ = df[df.batch .== i, :]
         @info "batch $(i): $(size(df_, 1))"
-        MesMS.safe_save(p -> CSV.write(p, df_), "$(path_pre).generic.batch$(i).aims.tw.csv", "AIMS list")
-        MesMS.safe_save(p -> CSV.write(p, build_target_lumos(df_)), "$(path_pre).lumos.batch$(i).aims.tw.csv", "AIMS (Lumos) list")
-        MesMS.safe_save(p -> CSV.write(p, build_target_hf(df_)), "$(path_pre).hf.batch$(i).aims.tw.csv", "AIMS (HF) list")
+        tw && MesMS.safe_save(p -> CSV.write(p, df_), "$(p).batch$(i).TW.target.csv", "list")
+        tmqe && MesMS.safe_save(p -> CSV.write(p, build_target_TmQE(df_)), "$(p).batch$(i).TmQE.target.csv", "list (Thermo Q Exactive)")
+        tmfu && MesMS.safe_save(p -> CSV.write(p, build_target_TmFu(df_)), "$(p).batch$(i).TmFu.target.csv", "list (Thermo Fusion)")
     end
 end
 
@@ -116,35 +120,39 @@ main() = begin
             help = "max. FDR (%)"
             metavar = "max"
             default = "Inf"
-        "--fdr_min_close"
+        "--fdr_ge"
             help = "include min. FDR (compared with `≥ min` instead of `> min`)"
             action = :store_true
-        "--fdr_max_close"
+        "--fdr_le"
             help = "include max. FDR (compared with `≤ max` instead of `< max`)"
             action = :store_true
-        "--td_type"
+        "--td"
             help = "target/decoy types (split by `,`)"
-            metavar = "td"
+            metavar = "TT,TD,DD"
             default = "TT,TD,DD"
-        "--prot_type"
-            help = "inter/intra types (split by `,`)"
-            metavar = "pt"
+        "--pt"
+            help = "inter/intra-protein types (split by `,`)"
+            metavar = "Inter,Intra"
             default = "Inter,Intra"
-        "--batch", "-b"
+        "--batch"
             help = "batch size"
             metavar = "num"
             default = "Inf"
-        "--rtime", "-t"
-            help = "retention time window"
+        "--rtime"
+            help = "retention time window (sec)"
             metavar = "sec"
             default = "240"
-        "--rtime_max"
-            help = "max. retention time"
+        "--lc"
+            help = "LC gradient length (min)"
             metavar = "min"
             default = "Inf"
+        "--fmt"
+            help = "format(s) of target list (split by `,`)        TW: TargetWizard, TmQE: Thermo Q Exactive, TmFu: Thermo Fusion"
+            metavar = "TW,TmQE,TmFu"
+            default = "TW,TmQE,TmFu"
         "--out", "-o"
             help = "output directory"
-            metavar = "output"
+            metavar = "./out/"
             default = "./out/"
         "data"
             help = "list of .MS2 files"
