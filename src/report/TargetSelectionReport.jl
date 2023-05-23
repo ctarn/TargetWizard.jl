@@ -10,29 +10,29 @@ const DIR_DATA = @path joinpath(@__DIR__, "../../data")
 
 parse_target_list!(df, fmt) = begin
     if fmt == :auto
-        cols_generic = ["mz", "z", "start", "stop"]
-        cols_lumos = ["m/z", "z", "t start (min)", "t stop (min)"]
-        cols_hf = ["Mass [m/z]", "CS [z]", "Start [min]", "End [min]"]
-        if all(n -> n ∈ names(df), cols_generic)
-            @info "list treated as generic format based on following columns: $(cols_generic)"
-            fmt = :generic
-        elseif all(n -> n ∈ names(df), cols_lumos)
-            @info "list treated as lumos format based on following columns: $(cols_lumos)"
-            fmt = :lumos
-        elseif all(n -> n ∈ names(df), cols_hf)
-            @info "list treated as hf format based on following columns: $(cols_hf)"
-            fmt = :hf
+        cols_TW = ["mz", "z", "start", "stop"]
+        cols_TmQE = ["Mass [m/z]", "CS [z]", "Start [min]", "End [min]"]
+        cols_TmFu = ["m/z", "z", "t start (min)", "t stop (min)"]
+        if all(n -> n ∈ names(df), cols_TW)
+            @info "list treated as `TargetWizard` format based on following columns: $(cols_TW)"
+            fmt = :TW
+        elseif all(n -> n ∈ names(df), cols_TmQE)
+            @info "list treated as `Thermo Q Exactive` format based on following columns: $(cols_TmQE)"
+            fmt = :TmQE
+        elseif all(n -> n ∈ names(df), cols_TmFu)
+            @info "list treated as `Thermo Fusion` format based on following columns: $(cols_TmFu)"
+            fmt = :TmFu
         else
             @error "failed to detect list format"
             fmt = :unknown
         end
     end
-    if fmt == :lumos
-        DataFrames.rename!(df, "m/z" => "mz", "t start (min)" => "start", "t stop (min)" => "stop")
+    if fmt == :TmQE
+        DataFrames.rename!(df, "Mass [m/z]" => "mz", "CS [z]" => "z", "Start [min]" => "start", "End [min]" => "stop")
         df.start = df.start .* 60
         df.stop = df.stop .* 60
-    elseif fmt == :hf
-        DataFrames.rename!(df, "Mass [m/z]" => "mz", "CS [z]" => "z", "Start [min]" => "start", "End [min]" => "stop")
+    elseif fmt == :TmFu
+        DataFrames.rename!(df, "m/z" => "mz", "t start (min)" => "start", "t stop (min)" => "stop")
         df.start = df.start .* 60
         df.stop = df.stop .* 60
     end
@@ -92,12 +92,12 @@ main() = begin
     settings = ArgParse.ArgParseSettings(prog="TargetSelectionReport")
     ArgParse.@add_arg_table! settings begin
         "--fmt", "-f"
-            help = "target list format: auto, generic, lumos, hf"
-            metavar = "format"
+            help = "target list format: auto, TW, TmQE, TmFu"
+            metavar = "auto|TW|TmQE|TmFu"
             default = "auto"
         "--out", "-o"
             help = "output directory"
-            metavar = "output"
+            metavar = "./out/"
             default = "./out/"
         "data"
             help = "list of target files"
@@ -105,7 +105,7 @@ main() = begin
             required = true
     end
     args = ArgParse.parse_args(settings)
-    paths = (sort∘unique∘reduce)(vcat, MesMS.match_path.(args["data"], ".aims.tw.csv"); init=String[])
+    paths = (sort∘unique∘reduce)(vcat, MesMS.match_path.(args["data"], ".target.csv"); init=String[])
     @info "file paths of selected data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
     sess = prepare(args)

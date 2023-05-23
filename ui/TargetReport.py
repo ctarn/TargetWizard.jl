@@ -25,11 +25,11 @@ TSReport = "Target Selection Report"
 TAReport = "Target Aquisition Report"
 IDReport = "Identification Report"
 reports = [BAReport, TSReport, TAReport, IDReport]
-target_fmts = ["auto", "generic", "lumos", "hf"]
+target_fmts = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
 vars_spec = {
     "ms": {"type": tk.StringVar, "value": ""},
     "target": {"type": tk.StringVar, "value": ""},
-    "target_fmt": {"type": tk.StringVar, "value": target_fmts[0]},
+    "target_fmt": {"type": tk.StringVar, "value": "Auto Detect"},
     "psm": {"type": tk.StringVar, "value": ""},
     "report": {"type": tk.StringVar, "value": BAReport},
     "out": {"type": tk.StringVar, "value": ""},
@@ -82,7 +82,7 @@ def run_targetselectionreport():
     paths = vars["target"].get().split(";")
     cmd = [
         os.path.join(vars["generators"].get(), "TargetSelectionReport"),
-        "--fmt", vars["target_fmt"].get(),
+        "--fmt", target_fmts[vars["target_fmt"].get()],
         "--out", vars["out"].get(),
         *paths,
     ]
@@ -206,7 +206,7 @@ row = 0
 util.add_entry(f, row, "Target List:", vars["target"], "Select", do_select_target)
 row += 1
 
-util.add_entry(f, row, "Target Format:", ttk.Combobox(f, textvariable=vars["target_fmt"], values=target_fmts, state="readonly", justify="center"))
+util.add_entry(f, row, "List Format:", ttk.Combobox(f, textvariable=vars["target_fmt"], values=list(target_fmts.keys()), state="readonly", justify="center"))
 row += 1
 
 f = fs[TAReport]
