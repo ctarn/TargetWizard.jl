@@ -27,11 +27,11 @@ IDReport = "Identification Report"
 reports = [BAReport, TSReport, TAReport, IDReport]
 target_fmts = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
 vars_spec = {
+    "report": {"type": tk.StringVar, "value": BAReport},
     "ms": {"type": tk.StringVar, "value": ""},
     "target": {"type": tk.StringVar, "value": ""},
     "target_fmt": {"type": tk.StringVar, "value": "Auto Detect"},
     "psm": {"type": tk.StringVar, "value": ""},
-    "report": {"type": tk.StringVar, "value": BAReport},
     "out": {"type": tk.StringVar, "value": ""},
     "generators": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin")},
     "thermorawread": {"type": tk.StringVar, "value": util.get_content("ThermoRawRead", "ThermoRawRead.exe", shared=True)},
