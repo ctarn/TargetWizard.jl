@@ -40,19 +40,14 @@ vars_spec = {
     "thermorawread": {"type": tk.StringVar, "value": util.get_content("ThermoRawRead", "ThermoRawRead.exe", shared=True)},
     "mono": {"type": tk.StringVar, "value": path_mono},
 }
-for t in tds:
-    vars_spec[f"td_{t}"] = {"type": tk.IntVar, "value": 1}
-for t in pts:
-    vars_spec[f"pt_{t}"] = {"type": tk.IntVar, "value": 1}
-for t in fmts:
-    vars_spec[f"fmt_{t}"] = {"type": tk.IntVar, "value": t == "TW"}
+for t in tds: vars_spec[f"td_{t}"] = {"type": tk.IntVar, "value": 1}
+for t in pts: vars_spec[f"pt_{t}"] = {"type": tk.IntVar, "value": 1}
+for t in fmts: vars_spec[f"fmt_{t}"] = {"type": tk.IntVar, "value": t == "TW"}
 vars = {k: v["type"](value=v["value"]) for k, v in vars_spec.items()}
 util.load_task(path_autosave, vars)
 
 row = 0
-ttk.Label(main, width=20 if util.is_windows else 16).grid(column=0, row=row)
-ttk.Label(main, width=80 if util.is_windows else 60).grid(column=1, row=row)
-ttk.Label(main, width=12 if util.is_windows else 10).grid(column=2, row=row)
+util.init_form(main)
 
 def do_select_data():
     filetypes = (("MS2", "*.ms2"), ("RAW", "*.raw"), ("All", "*.*"))
@@ -66,74 +61,50 @@ def do_select_data():
     if len(vars["data"].get()) > 0 and len(vars["out"].get()) == 0:
         vars["out"].set(os.path.join(os.path.dirname(files[0]), "out"))
 
-ttk.Label(main, text="MS Data:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["data"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(main, text="Select", command=do_select_data).grid(column=2, row=row, **util.sty_button)
+util.add_entry(main, row, "MS Data:", vars["data"], "Select", do_select_data)
 row += 1
 
 def do_select_ipv():
     path = filedialog.askopenfilename(filetypes=(("PSM", "*.csv"), ("All", "*.*")))
     if len(path) > 0: vars["psm"].set(path)
 
-ttk.Label(main, text="PSM:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["psm"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(main, text="Select", command=do_select_ipv).grid(column=2, row=row, **util.sty_button)
+util.add_entry(main, row, "PSM:", vars["psm"], "Select", do_select_ipv)
 row += 1
 
-ttk.Label(main, text="Task Name:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["name"]).grid(column=1, row=row, **util.sty_entry)
+util.add_entry(main, row, "Task Name:", vars["name"])
 row += 1
 
-ttk.Label(main, text="FDR Range:").grid(column=0, row=row, sticky="W")
-frm_charge = ttk.Frame(main)
-frm_charge.grid(column=1, row=row, **util.sty_entry)
-ttk.Entry(frm_charge, textvariable=vars["fdr_min"]).pack(side="left", fill="x", expand=True)
-ttk.Label(frm_charge, text="% ").pack(side="left")
-ttk.Combobox(frm_charge, textvariable=vars["fdr_ge"], values=("<", "≤"), state="readonly", justify="center", width=2).pack(side="left")
-ttk.Label(frm_charge, text=" FDR ").pack(side="left")
-ttk.Combobox(frm_charge, textvariable=vars["fdr_le"], values=("<", "≤"), state="readonly", justify="center", width=2).pack(side="left")
-ttk.Entry(frm_charge, textvariable=vars["fdr_max"]).pack(side="left", fill="x", expand=True)
-ttk.Label(main, text="%").grid(column=2, row=row, sticky="W")
+_, f, _ = util.add_entry(main, row, "FDR Range:", ttk.Frame(main), "%")
+ttk.Entry(f, textvariable=vars["fdr_min"]).pack(side="left", fill="x", expand=True)
+ttk.Label(f, text="% ").pack(side="left")
+ttk.Combobox(f, textvariable=vars["fdr_ge"], values=("<", "≤"), state="readonly", justify="center", width=2).pack(side="left")
+ttk.Label(f, text=" FDR ").pack(side="left")
+ttk.Combobox(f, textvariable=vars["fdr_le"], values=("<", "≤"), state="readonly", justify="center", width=2).pack(side="left")
+ttk.Entry(f, textvariable=vars["fdr_max"]).pack(side="left", fill="x", expand=True)
 row += 1
 
-ttk.Label(main, text="Target / Decoy Type:").grid(column=0, row=row, sticky="W")
-frm = ttk.Frame(main)
-frm.grid(column=1, row=row, pady=6)
-for i, t in enumerate(tds):
-    ttk.Checkbutton(frm, text=t, variable=vars[f"td_{t}"]).grid(column=i, row=0, padx=6)
+_, f, _ = util.add_entry(main, row, "Target / Decoy Type:", ttk.Frame(main))
+for t in tds: ttk.Checkbutton(f, text=t, variable=vars[f"td_{t}"]).pack(side="left", expand=True)
 row += 1
 
-ttk.Label(main, text="Inter- / Intra-Protein:").grid(column=0, row=row, sticky="W")
-frm = ttk.Frame(main)
-frm.grid(column=1, row=row, pady=6)
-for i, t in enumerate(pts):
-    ttk.Checkbutton(frm, text=t, variable=vars[f"pt_{t}"]).grid(column=i, row=0, padx=6)
+_, f, _ = util.add_entry(main, row, "Inter- / Intra-Protein:", ttk.Frame(main))
+for t in pts: ttk.Checkbutton(f, text=t, variable=vars[f"pt_{t}"]).pack(side="left", expand=True)
 row += 1
 
-ttk.Label(main, text="Batch Size:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["batch"]).grid(column=1, row=row, **util.sty_entry)
+util.add_entry(main, row, "Batch Size:", vars["batch"])
 row += 1
 
-ttk.Label(main, text="RTime Window:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["rtime"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Label(main, text="sec").grid(column=2, row=row, sticky="W")
+util.add_entry(main, row, "RT Window:", vars["rtime"], "sec")
 row += 1
 
-ttk.Label(main, text="LC Length:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["lc"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Label(main, text="min").grid(column=2, row=row, sticky="W")
+util.add_entry(main, row, "LC Length:", vars["lc"], "min")
 row += 1
 
-ttk.Label(main, text="List Format:").grid(column=0, row=row, sticky="W")
-frm = ttk.Frame(main)
-frm.grid(column=1, row=row, pady=6)
-for i, t in enumerate(fmts):
-    ttk.Checkbutton(frm, text=fmts_name[i], variable=vars[f"fmt_{t}"]).grid(column=i, row=0, padx=6)
+_, f, _ = util.add_entry(main, row, "List Format:", ttk.Frame(main))
+for t, n in zip(fmts, fmts_name): ttk.Checkbutton(f, text=n, variable=vars[f"fmt_{t}"]).pack(side="left", expand=True)
 row += 1
 
-ttk.Label(main, text="Output Directory:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["out"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(main, text="Select", command=util.askdir(vars["out"])).grid(column=2, row=row, **util.sty_button)
+util.add_entry(main, row, "Output Directory:", vars["out"], "Select", util.askdir(vars["out"]))
 row += 1
 
 def run_thermorawread(data, out):
@@ -216,18 +187,12 @@ ttk.Separator(main, orient=tk.HORIZONTAL).grid(column=0, row=row, columnspan=3, 
 ttk.Label(main, text="Advanced Configuration").grid(column=0, row=row, columnspan=3)
 row += 1
 
-ttk.Label(main, text="TargetSelect:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["targetselect"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(main, text="Select", command=util.askfile(vars["targetselect"])).grid(column=2, row=row, **util.sty_button)
+util.add_entry(main, row, "TargetSelect:", vars["targetselect"], "Select", util.askfile(vars["targetselect"]))
 row += 1
 
-ttk.Label(main, text="ThermoRawRead:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["thermorawread"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(main, text="Select", command=util.askfile(vars["thermorawread"])).grid(column=2, row=row, **util.sty_button)
+util.add_entry(main, row, "ThermoRawRead:", vars["thermorawread"], "Select", util.askfile(vars["thermorawread"]))
 row += 1
 
 if not util.is_windows:
-    ttk.Label(main, text="Mono Runtime:").grid(column=0, row=row, sticky="W")
-    ttk.Entry(main, textvariable=vars["mono"]).grid(column=1, row=row, **util.sty_entry)
-    ttk.Button(main, text="Select", command=util.askfile(vars["mono"])).grid(column=2, row=row, **util.sty_button)
+    util.add_entry(main, row, "Mono Runtime:", vars["mono"], "Select", util.askfile(vars["mono"]))
     row += 1
