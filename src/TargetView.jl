@@ -154,8 +154,8 @@ prepare(args) = begin
     path_ft = args["ft"]
     path_tg = args["tg"]
     path_psm = args["psm"]
-    fdr = parse(Float64, args["fdr"]) / 100
     path_psm_pf = args["psm_pf"]
+    fdr = parse(Float64, args["fdr"]) / 100
     cfg = args["cfg"]
     cfg_pf = args["cfg_pf"]
     ε = parse(Float64, args["error"]) * 1.0e-6
@@ -321,7 +321,7 @@ main() = begin
             help = "default linker"
             default = "DSSO"
         "--xl"
-            help = "candidate ion list"
+            help = "candidate xl list"
             default = ""
         "--ft"
             help = "feature list"
@@ -332,12 +332,12 @@ main() = begin
         "--psm"
             help = "pLink PSM path"
             required = true
-        "--fdr"
-            help = "FDR threshold (%)"
-            default = "Inf"
         "--psm_pf"
             help = "pFind PSM path"
             default = ""
+        "--fdr"
+            help = "FDR threshold (%)"
+            default = "Inf"
         "data"
             help = ".ms2 file; .ms1 files should be in the same directory"
             required = true
