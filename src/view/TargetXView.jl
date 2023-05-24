@@ -8,9 +8,12 @@ import DataFrames
 import MesMS
 import MesUtil: pFind, pLink
 import ProgressMeter: @showprogress
+import RelocatableFolders: @path
 
 using Dash
 using PlotlyBase
+
+const DIR_DATA = @path joinpath(@__DIR__, "../../data/dash")
 
 Δ = 1.00335
 
@@ -41,7 +44,7 @@ end
 
 build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, mod_plink, xl_plink, ele_pfind, aa_pfind, mod_pfind, ε) = begin
     df_tg_tb = DataFrames.select(df_tg, filter(n -> !endswith(n, "_"), names(df_tg)))
-    app = dash()
+    app = dash(; assets_folder=DIR_DATA)
     app.layout = html_div() do
         html_h1("TargetXView", style=Dict("text-align"=>"center")),
         dash_datatable(
