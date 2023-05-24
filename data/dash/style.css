@@ -80,3 +80,7 @@ div.opt .input {
 div.opt .unit {
     margin-left: 2px;
 }
+
+.column-header-name {
+    padding: 0px 12px;
+}
