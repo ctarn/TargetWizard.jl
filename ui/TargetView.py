@@ -21,9 +21,11 @@ CView = "Comparative Linear Peptide View"
 RXView = "Regular Cross-linked Peptide View"
 CXView = "Comparative Cross-linked Peptide View"
 views = [RView, CView, RXView, CXView]
+target_fmts = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
 vars_spec = {
     "view": {"type": tk.StringVar, "value": RXView},
     "tg": {"type": tk.StringVar, "value": ""},
+    "target_fmt": {"type": tk.StringVar, "value": "Auto Detect"},
     "xl": {"type": tk.StringVar, "value": ""},
     "ms": {"type": tk.StringVar, "value": ""},
     "ms_": {"type": tk.StringVar, "value": ""},
@@ -74,6 +76,7 @@ def run_dualview():
 def run_xview():
     cmd = [
         os.path.join(vars["targetview"].get(), "TargetXView"),
+        "--fmt", target_fmts[vars["target_fmt"].get()],
         "--error", vars["error"].get(),
         "--cfg", vars["cfg_pl"].get(),
         "--cfg_pf", vars["cfg_pf"].get(),
@@ -94,6 +97,7 @@ def run_xview():
 def run_xdualview():
     cmd = [
         os.path.join(vars["targetview"].get(), "TargetXDualView"),
+        "--fmt", target_fmts[vars["target_fmt"].get()],
         "--error", vars["error"].get(),
         "--cfg", vars["cfg_pl"].get(),
         "--linker", vars["linker"].get(),
@@ -206,6 +210,9 @@ row = 0
 util.add_entry(f, row, "Target List:", vars["tg"], "Select", do_select_data)
 row += 1
 
+util.add_entry(f, row, "List Format:", ttk.Combobox(f, textvariable=vars["target_fmt"], values=list(target_fmts.keys()), state="readonly", justify="center"))
+row += 1
+
 t = (("Candidate XL List", "*.csv"), ("All", "*.*"))
 util.add_entry(f, row, "Candidate XL List:", vars["xl"], "Select", util.askfile(vars["xl"], filetypes=t))
 row += 1
@@ -244,6 +251,9 @@ row += 1
 f = F[CXView]
 row = 0
 util.add_entry(f, row, "Target List:", vars["tg"], "Select", do_select_data)
+row += 1
+
+util.add_entry(f, row, "List Format:", ttk.Combobox(f, textvariable=vars["target_fmt"], values=list(target_fmts.keys()), state="readonly", justify="center"))
 row += 1
 
 t = (("Candidate XL List", "*.csv"), ("All", "*.*"))

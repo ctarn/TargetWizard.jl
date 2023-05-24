@@ -10,10 +10,12 @@ import MesUtil: pLink
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
 
-const DIR_DATA = @path joinpath(@__DIR__, "../../data/dash")
-
 using Dash
 using PlotlyBase
+
+include("../util.jl")
+
+const DIR_DATA = @path joinpath(@__DIR__, "../../data/dash")
 
 Δ = 1.00335
 
@@ -305,9 +307,7 @@ report(path; host, port, ε, cfg, linker, path_xl, path_ms, path_ft, path_psm, f
     @info "Target loading from " * path
     df_tg = DataFrames.DataFrame(CSV.File(path))
     df_tg.id = Vector(1:DataFrames.nrow(df_tg))
-    DataFrames.rename!(df_tg, "m/z" => "mz", "t start (min)" => "start", "t stop (min)" => "stop")
-    df_tg.start .*= 60
-    df_tg.stop .*= 60
+    parse_target_list!(df, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
     df_tg.start = round.(df_tg.start; digits=2)
     df_tg.stop = round.(df_tg.stop; digits=2)
@@ -382,6 +382,10 @@ end
 main() = begin
     settings = ArgParse.ArgParseSettings(prog="TargetXDualView")
     ArgParse.@add_arg_table! settings begin
+        "--fmt", "-f"
+            help = "target list format: auto, TW, TmQE, TmFu"
+            metavar = "auto|TW|TmQE|TmFu"
+            default = "auto"
         "--host"
             help = "hostname"
             metavar = "hostname"

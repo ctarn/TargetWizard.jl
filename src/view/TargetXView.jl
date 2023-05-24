@@ -13,6 +13,8 @@ import RelocatableFolders: @path
 using Dash
 using PlotlyBase
 
+include("../util.jl")
+
 const DIR_DATA = @path joinpath(@__DIR__, "../../data/dash")
 
 Δ = 1.00335
@@ -248,9 +250,7 @@ report(path; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path_
     @info "Target loading from " * path_tg
     df_tg = CSV.File(path_tg) |> DataFrames.DataFrame
     df_tg.id = Vector(1:DataFrames.nrow(df_tg))
-    DataFrames.rename!(df_tg, "m/z" => "mz", "t start (min)" => "start", "t stop (min)" => "stop")
-    df_tg.start .*= 60
-    df_tg.stop .*= 60
+    parse_target_list!(df, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
 
     @info "XL Candidtes mapping"
@@ -305,6 +305,10 @@ end
 main() = begin
     settings = ArgParse.ArgParseSettings(prog="TargetXView")
     ArgParse.@add_arg_table! settings begin
+        "--fmt", "-f"
+            help = "target list format: auto, TW, TmQE, TmFu"
+            metavar = "auto|TW|TmQE|TmFu"
+            default = "auto"
         "--host"
             help = "hostname"
             metavar = "hostname"
