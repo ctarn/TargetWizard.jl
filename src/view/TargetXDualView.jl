@@ -38,6 +38,14 @@ plot_lc(tg, dfs_ft, dfs_m1, dfs_m2, ε) = begin
         customdata=[(:B, i)], mode="markers", marker_size=4 * (1 + length(dfs_m2[2].psm[i])), marker_symbol="diamond"
     ) for i in tg.m2_all_b_])
     append!(ls, [scatter(;
+        x=dfs_m2[1].rt[i:i], y=[0], name="A Ext. MS2#$(dfs_m2[1].id[i])",
+        customdata=[(:A, i)], mode="markers", marker_size=4 * (1 + length(dfs_m2[1].psm[i])), marker_symbol="circle"
+    ) for i in tg.m2_ext_all_a_])
+    append!(ls, [scatter(
+        x=dfs_m2[2].rt[i:i], y=[0], name="B Ext. MS2#$(dfs_m2[2].id[i])",
+        customdata=[(:B, i)], mode="markers", marker_size=4 * (1 + length(dfs_m2[2].psm[i])), marker_symbol="diamond"
+    ) for i in tg.m2_ext_all_b_])
+    append!(ls, [scatter(;
         x=[dfs_ft[1][i, :rtime_start], dfs_ft[1][i, :rtime_stop]], y=ε*2/3 .* ones(2), name="A FT#$(i)",
         mode="lines", line_color="green",
     ) for i in tg.ft_a_])
@@ -101,7 +109,7 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
             page_size=10,
         ),
         dcc_graph(id="lc_graph"),
-        html_h4("PSM List of Data A"),
+        html_h4("PSM List of Selected Data A MS2(s) (may differ from the selected target)"),
         dash_datatable(
             id="psm_table_a",
             style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
@@ -114,7 +122,7 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
             page_action="native",
             page_size=4,
         ),
-        html_h4("PSM List of Data B"),
+        html_h4("PSM List of Selected Data B MS2(s) (may differ from the selected target)"),
         dash_datatable(
             id="psm_table_b",
             style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
@@ -319,6 +327,20 @@ report(path; host, port, ε, cfg, linker, path_xl, path_ms, path_ft, path_psm, f
     df_tg.n_ft_a = length.(df_tg.ft_a_)
     df_tg.n_ft_b = length.(df_tg.ft_b_)
 
+    @info "PSM mapping"
+    df_tg.psm_all_a_, df_tg.psm_all_b_ = map(dfs_psm) do df_psm
+        tmp = sort!([(x.mz::Float64, x.id::Int) for x in eachrow(df_psm)])
+        mzs = map(x -> x[1], tmp)
+        ids = map(x -> x[2], tmp)
+        return [sort(filter(x -> df_psm[x, :z] == r.z, ids[MesMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
+    end
+    df_tg.psm_a_ = [filter(i -> r.start ≤ dfs_psm[1].rt[i] ≤ r.stop, r.psm_all_a_) for r in eachrow(df_tg)]
+    df_tg.psm_b_ = [filter(i -> r.start ≤ dfs_psm[2].rt[i] ≤ r.stop, r.psm_all_b_) for r in eachrow(df_tg)]
+    df_tg.n_psm_all_a = length.(df_tg.psm_all_a_)
+    df_tg.n_psm_all_b = length.(df_tg.psm_all_b_)
+    df_tg.n_psm_a = length.(df_tg.psm_a_)
+    df_tg.n_psm_b = length.(df_tg.psm_b_)
+
     @info "MS2 mapping"
     df_tg.m2_all_a_, df_tg.m2_all_b_ = map(zip(dfs_m2, M2Is)) do (df_m2, M2I)
         tmp = sort!([(x.mz::Float64, x.id::Int) for x in eachrow(df_m2)])
@@ -332,16 +354,16 @@ report(path; host, port, ε, cfg, linker, path_xl, path_ms, path_ft, path_psm, f
     df_tg.n_m2_all_b = length.(df_tg.m2_all_b_)
     df_tg.n_m2_a = length.(df_tg.m2_a_)
     df_tg.n_m2_b = length.(df_tg.m2_b_)
-
-    @info "PSM mapping"
-    df_tg.psm_all_a_ = [reduce(vcat, dfs_m2[1][r.m2_all_a_, :psm]; init=Int[]) for r in eachrow(df_tg)]
-    df_tg.psm_all_b_ = [reduce(vcat, dfs_m2[2][r.m2_all_b_, :psm]; init=Int[]) for r in eachrow(df_tg)]
-    df_tg.psm_a_= [reduce(vcat, dfs_m2[1][r.m2_a_, :psm]; init=Int[]) for r in eachrow(df_tg)] # TODO: check mz&z
-    df_tg.psm_b_= [reduce(vcat, dfs_m2[2][r.m2_b_, :psm]; init=Int[]) for r in eachrow(df_tg)]
-    df_tg.n_psm_all_a = length.(df_tg.psm_all_a_)
-    df_tg.n_psm_all_b = length.(df_tg.psm_all_b_)
-    df_tg.n_psm_a = length.(df_tg.psm_a_)
-    df_tg.n_psm_b = length.(df_tg.psm_b_)
+    df_tg.m2_ext_all_a_ = [map(x -> M2Is[1][x], sort(unique(dfs_psm[1][r.psm_all_a_, :scan]))) for r in eachrow(df_tg)]
+    df_tg.m2_ext_all_b_ = [map(x -> M2Is[2][x], sort(unique(dfs_psm[2][r.psm_all_b_, :scan]))) for r in eachrow(df_tg)]
+    df_tg.m2_ext_all_a_ = setdiff.(df_tg.m2_ext_all_a_, df_tg.m2_all_a_)
+    df_tg.m2_ext_all_b_ = setdiff.(df_tg.m2_ext_all_b_, df_tg.m2_all_b_)
+    df_tg.m2_ext_a_ = [filter(i -> r.start ≤ dfs_m2[1].rt[i] ≤ r.stop, r.m2_ext_all_a_) for r in eachrow(df_tg)]
+    df_tg.m2_ext_b_ = [filter(i -> r.start ≤ dfs_m2[2].rt[i] ≤ r.stop, r.m2_ext_all_b_) for r in eachrow(df_tg)]
+    df_tg.n_m2_ext_all_a = length.(df_tg.m2_ext_all_a_)
+    df_tg.n_m2_ext_all_b = length.(df_tg.m2_ext_all_b_)
+    df_tg.n_m2_ext_a = length.(df_tg.m2_ext_a_)
+    df_tg.n_m2_ext_b = length.(df_tg.m2_ext_b_)
 
     ns = filter(n -> !endswith(n, '_'), names(df_tg))
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
