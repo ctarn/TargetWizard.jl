@@ -231,10 +231,11 @@ prepare(args) = begin
     path_ft = args["ft"]
     path_psm = args["psm"]
     fdr = parse(Float64, args["fdr"]) / 100
-    return (; host, port, ε, cfg, linker, path_xl, path_ms, path_ft, path_psm, fdr)
+    out = mkpath(args["out"])
+    return (; host, port, ε, cfg, linker, path_xl, path_ms, path_ft, path_psm, fdr, out)
 end
 
-report(path; host, port, ε, cfg, linker, path_xl, path_ms, path_ft, path_psm, fdr) = begin
+report(path; host, port, ε, cfg, linker, path_xl, path_ms, path_ft, path_psm, fdr, out) = begin
     dfs_m1 = map(path_ms) do p
         map(MesMS.read_ms1(splitext(p)[1] * ".ms1")) do m
             (; m.id, rt=m.retention_time, m.peaks)
@@ -367,7 +368,9 @@ report(path; host, port, ε, cfg, linker, path_xl, path_ms, path_ft, path_psm, f
 
     ns = filter(n -> !endswith(n, '_'), names(df_tg))
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
-    
+
+    MesMS.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path)[1])).TargetXDualView.csv"))
+
     @async begin
         sleep(4)
         MesMS.open_url("http://$(host):$(port)")
@@ -416,6 +419,10 @@ main() = begin
         "--fdr"
             help = "FDR threshold (%)"
             default = "Inf"
+        "--out"
+            help = "output directory"
+            default = "./out/"
+            metavar = "./out/"
         "target"
             help = "target list"
             required = true

@@ -162,10 +162,11 @@ prepare(args) = begin
     cfg = args["cfg"]
     cfg_pf = args["cfg_pf"]
     ε = parse(Float64, args["error"]) * 1.0e-6
-    return (; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path_psm_pf, cfg, cfg_pf, ε)
+    out = mkpath(args["out"])
+    return (; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path_psm_pf, cfg, cfg_pf, ε, out)
 end
 
-report(path; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path_psm_pf, cfg, cfg_pf, ε) = begin
+report(path; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path_psm_pf, cfg, cfg_pf, ε, out) = begin
     path_ms1 = splitext(path)[1] * ".ms1"
     path_ms2 = splitext(path)[1] * ".ms2"
     df_m1 = map(MesMS.read_ms1(path_ms1)) do m
@@ -290,6 +291,8 @@ report(path; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path_
 
     ns = filter(n -> !endswith(n, '_'), names(df_tg))
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
+
+    MesMS.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path)[1])).TargetXView.csv"))
     
     @async begin
         sleep(4)
@@ -326,12 +329,12 @@ main() = begin
         "--xl"
             help = "candidate xl list"
             default = ""
+        "--ms"
+            help = ".ms2 file; .ms1 files should be in the same directory"
+            required = true
         "--ft"
             help = "feature list"
             default = ""
-        "--tg"
-            help = "target list"
-            required = true
         "--psm"
             help = "pLink PSM path"
             required = true
@@ -341,8 +344,12 @@ main() = begin
         "--fdr"
             help = "FDR threshold (%)"
             default = "Inf"
-        "data"
-            help = ".ms2 file; .ms1 files should be in the same directory"
+        "--out"
+            help = "output directory"
+            default = "./out/"
+            metavar = "./out/"
+        "target"
+            help = "target list"
             required = true
     end
     args = ArgParse.parse_args(settings)
