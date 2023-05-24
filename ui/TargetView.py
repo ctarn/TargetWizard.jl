@@ -23,12 +23,15 @@ CXView = "Comparative Cross-linked Peptide View"
 views = [RView, CView, RXView, CXView]
 vars_spec = {
     "view": {"type": tk.StringVar, "value": RXView},
-    "data": {"type": tk.StringVar, "value": ""},
-    "ft": {"type": tk.StringVar, "value": ""},
     "tg": {"type": tk.StringVar, "value": ""},
     "xl": {"type": tk.StringVar, "value": ""},
+    "ms": {"type": tk.StringVar, "value": ""},
+    "ms_": {"type": tk.StringVar, "value": ""},
+    "ft": {"type": tk.StringVar, "value": ""},
+    "ft_": {"type": tk.StringVar, "value": ""},
     "psm": {"type": tk.StringVar, "value": ""},
     "psm_xl": {"type": tk.StringVar, "value": ""},
+    "psm_xl_": {"type": tk.StringVar, "value": ""},
     "fdr": {"type": tk.StringVar, "value": "Inf"},
     "error": {"type": tk.StringVar, "value": "20.0"},
     "linker": {"type": tk.StringVar, "value": "DSSO"},
@@ -76,19 +79,35 @@ def run_xview():
         "--cfg_pf", vars["cfg_pf"].get(),
         "--linker", vars["linker"].get(),
         "--xl", vars["xl"].get(),
+        "--ms", vars["ms"].get(),
         "--ft", vars["ft"].get(),
-        "--tg", vars["tg"].get(),
         "--psm", vars["psm_xl"].get(),
         "--psm_pf", vars["psm"].get(),
         "--fdr", vars["fdr"].get(),
         "--host", vars["url"].get().split(":")[0],
         "--port", vars["url"].get().split(":")[1],
-        vars["data"].get(),
+        "--out", vars["out"].get(),
+        vars["tg"].get(),
     ]
     util.run_cmd(cmd, handles, skip_rest)
 
 def run_xdualview():
-    pass
+    cmd = [
+        os.path.join(vars["targetview"].get(), "TargetXDualView"),
+        "--error", vars["error"].get(),
+        "--cfg", vars["cfg_pl"].get(),
+        "--linker", vars["linker"].get(),
+        "--xl", vars["xl"].get(),
+        "--ms", vars["ms"].get(), vars["ms_"].get(),
+        "--ft", vars["ft"].get(), vars["ft_"].get(),
+        "--psm", vars["psm_xl"].get(), vars["psm_xl_"].get(),
+        "--fdr", vars["fdr"].get(),
+        "--host", vars["url"].get().split(":")[0],
+        "--port", vars["url"].get().split(":")[1],
+        "--out", vars["out"].get(),
+        vars["tg"].get(),
+    ]
+    util.run_cmd(cmd, handles, skip_rest)
 
 def do_load():
     path = filedialog.askopenfilename(filetypes=(("Configuration", "*.task"), ("All", "*.*")))
@@ -164,15 +183,12 @@ ttk.Button(main, text="New Port", command=do_new_port).grid(column=2, row=row, *
 row += 1
 
 def do_select_data():
-    filetypes = (("MS2", "*.ms2"), ("All", "*.*"))
-    files = filedialog.askopenfilenames(filetypes=filetypes)
+    filetypes = (("Target List", "*.csv"), ("All", "*.*"))
+    files = filedialog.askopenfilename(filetypes=filetypes)
     if len(files) == 0:
         return None
-    elif len(files) > 1:
-        print("multiple data selected:")
-        for file in files: print(">>", file)
-    vars["data"].set(";".join(files))
-    if len(vars["data"].get()) > 0 and len(vars["out"].get()) == 0:
+    vars["tg"].set(";".join(files))
+    if len(vars["tg"].get()) > 0 and len(vars["out"].get()) == 0:
         vars["out"].set(os.path.join(os.path.dirname(files[0]), "out"))
 
 f = F[RView]
@@ -187,19 +203,19 @@ row += 1
 
 f = F[RXView]
 row = 0
-util.add_entry(f, row, "MS Data:", vars["data"], "Select", do_select_data)
-row += 1
-
-t = (("Peptide Feature List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, row, "Feature List:", vars["ft"], "Select", util.askfile(vars["ft"], filetypes=t))
-row += 1
-
-t = (("Target List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, row, "Target List:", vars["tg"], "Select", util.askfile(vars["tg"], filetypes=t))
+util.add_entry(f, row, "Target List:", vars["tg"], "Select", do_select_data)
 row += 1
 
 t = (("Candidate XL List", "*.csv"), ("All", "*.*"))
 util.add_entry(f, row, "Candidate XL List:", vars["xl"], "Select", util.askfile(vars["xl"], filetypes=t))
+row += 1
+
+t = (("MS2 file", "*.ms2"), ("All", "*.*"))
+util.add_entry(f, row, "MS Data:", vars["ms"], "Select", util.askfile(vars["ms"], filetypes=t))
+row += 1
+
+t = (("Peptide Feature List", "*.csv"), ("All", "*.*"))
+util.add_entry(f, row, "Feature List:", vars["ft"], "Select", util.askfile(vars["ft"], filetypes=t))
 row += 1
 
 t = (("XL PSM", "*.csv"), ("All", "*.*"))
@@ -227,7 +243,58 @@ row += 1
 
 f = F[CXView]
 row = 0
-ttk.Label(f, text=f"{CXView} Not Available").grid(column=0, row=row, columnspan=3)
+util.add_entry(f, row, "Target List:", vars["tg"], "Select", do_select_data)
+row += 1
+
+t = (("Candidate XL List", "*.csv"), ("All", "*.*"))
+util.add_entry(f, row, "Candidate XL List:", vars["xl"], "Select", util.askfile(vars["xl"], filetypes=t))
+row += 1
+
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=row, sticky="WE", padx=12)
+ttk.Label(f, text="Data A").grid(column=0, row=row)
+row += 1
+
+t = (("MS2 file", "*.ms2"), ("All", "*.*"))
+util.add_entry(f, row, "MS Data:", vars["ms"], "Select", util.askfile(vars["ms"], filetypes=t))
+row += 1
+
+t = (("Peptide Feature List", "*.csv"), ("All", "*.*"))
+util.add_entry(f, row, "Feature List:", vars["ft"], "Select", util.askfile(vars["ft"], filetypes=t))
+row += 1
+
+t = (("XL PSM", "*.csv"), ("All", "*.*"))
+util.add_entry(f, row, "XL PSM:", vars["psm_xl"], "Select", util.askfile(vars["psm_xl"], filetypes=t))
+row += 1
+
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=row, sticky="WE", padx=12)
+ttk.Label(f, text="Data B").grid(column=0, row=row)
+row += 1
+
+t = (("MS2 file", "*.ms2"), ("All", "*.*"))
+util.add_entry(f, row, "MS Data:", vars["ms_"], "Select", util.askfile(vars["ms_"], filetypes=t))
+row += 1
+
+t = (("Peptide Feature List", "*.csv"), ("All", "*.*"))
+util.add_entry(f, row, "Feature List:", vars["ft_"], "Select", util.askfile(vars["ft_"], filetypes=t))
+row += 1
+
+t = (("XL PSM", "*.csv"), ("All", "*.*"))
+util.add_entry(f, row, "XL PSM:", vars["psm_xl_"], "Select", util.askfile(vars["psm_xl_"], filetypes=t))
+row += 1
+
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=row, sticky="WE", padx=12)
+row += 1
+
+util.add_entry(f, row, "FDR:", vars["fdr"], "%")
+row += 1
+
+util.add_entry(f, row, "MS1 Mass Error:", vars["error"], "ppm")
+row += 1
+
+util.add_entry(f, row, "Default Linker:", vars["linker"])
+row += 1
+
+util.add_entry(f, row, "pLink Cfg. Directory:", vars["cfg_pl"], "Select", util.askdir(vars["cfg_pl"]))
 row += 1
 
 select_view(None, False)
