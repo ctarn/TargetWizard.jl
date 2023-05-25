@@ -180,7 +180,7 @@ btn_run.grid(column=2, row=0, padx=16, pady=8)
 ttk.Button(frm_btn, text="Stop Task", command=lambda: threading.Thread(target=do_stop).start()).grid(column=3, row=0, padx=16, pady=8)
 row += 1
 
-ttk.Separator(main, orient=tk.HORIZONTAL).grid(column=0, row=row, columnspan=3, sticky="WE")
+ttk.Separator(main, orient=tk.HORIZONTAL).grid(column=0, row=row, columnspan=3, sticky="EW")
 ttk.Label(main, text="Advanced Configuration").grid(column=0, row=row, columnspan=3)
 row += 1
 
