@@ -7,37 +7,6 @@ h1, h2, h3, h4, h5, h6 {
     color: purple;
 }
 
-div.wrapper {
-    width: 800px;
-    margin: 16px auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-header {
-    width: 100%;
-    text-align: center;
-    margin: 16px auto;
-}
-
-main {
-    width: 100%;
-    min-height: 520px;
-    margin: 16px auto;
-}
-
-footer {
-    width: 100%;
-    margin: 16px auto;
-    display: flex;
-    justify-content: space-around;
-}
-
-canvas {
-    width: 100%;
-}
-
 div.opts {
     width: 100%;
     display: flex;
