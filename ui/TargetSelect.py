@@ -64,11 +64,8 @@ def do_select_data():
 util.add_entry(main, row, "MS Data:", vars["data"], "Select", do_select_data)
 row += 1
 
-def do_select_ipv():
-    path = filedialog.askopenfilename(filetypes=(("PSM", "*.csv"), ("All", "*.*")))
-    if len(path) > 0: vars["psm"].set(path)
-
-util.add_entry(main, row, "PSM:", vars["psm"], "Select", do_select_ipv)
+t = (("PSM", "*.csv"), ("All", "*.*"))
+util.add_entry(main, row, "PSM:", vars["psm"], "Select", util.askfile(vars["psm"], filetypes=t))
 row += 1
 
 util.add_entry(main, row, "Task Name:", vars["name"])

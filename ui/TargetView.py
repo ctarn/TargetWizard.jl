@@ -168,22 +168,20 @@ btn_run.grid(column=2, row=0, padx=16, pady=8)
 ttk.Button(frm_btn, text="Stop Task", command=lambda: threading.Thread(target=do_stop).start()).grid(column=3, row=0, padx=16, pady=8)
 row += 1
 
-ttk.Separator(main, orient=tk.HORIZONTAL).grid(column=0, row=row, columnspan=3, sticky="WE")
+ttk.Separator(main, orient=tk.HORIZONTAL).grid(column=0, row=row, columnspan=3, sticky="EW")
 ttk.Label(main, text="Advanced Configuration").grid(column=0, row=row, columnspan=3)
 row += 1
 
 util.add_entry(main, row, "TargetView:", vars["targetview"], "Select", util.askfile(vars["targetview"]))
 row += 1
 
-def do_new_port():
+def new_port():
     p = str(random.randint(49152, 65535))
     host = vars["url"].get().split(":")[0]
     vars["url"].set(host + ":" + p)
 
-do_new_port()
-ttk.Label(main, text="URL:").grid(column=0, row=row, sticky="W")
-ttk.Entry(main, textvariable=vars["url"]).grid(column=1, row=row, **util.sty_entry)
-ttk.Button(main, text="New Port", command=do_new_port).grid(column=2, row=row, **util.sty_button)
+new_port()
+util.add_entry(main, row, "URL:", vars["url"], "New Port", new_port)
 row += 1
 
 def do_select_data():
@@ -260,7 +258,7 @@ t = (("Candidate XL List", "*.csv"), ("All", "*.*"))
 util.add_entry(f, row, "Candidate XL List:", vars["xl"], "Select", util.askfile(vars["xl"], filetypes=t))
 row += 1
 
-ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=row, sticky="WE", padx=12)
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=row, sticky="EW", padx=12)
 ttk.Label(f, text="Data A").grid(column=0, row=row)
 row += 1
 
@@ -276,7 +274,7 @@ t = (("XL PSM", "*.csv"), ("All", "*.*"))
 util.add_entry(f, row, "XL PSM:", vars["psm_xl"], "Select", util.askfile(vars["psm_xl"], filetypes=t))
 row += 1
 
-ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=row, sticky="WE", padx=12)
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=row, sticky="EW", padx=12)
 ttk.Label(f, text="Data B").grid(column=0, row=row)
 row += 1
 
@@ -292,7 +290,7 @@ t = (("XL PSM", "*.csv"), ("All", "*.*"))
 util.add_entry(f, row, "XL PSM:", vars["psm_xl_"], "Select", util.askfile(vars["psm_xl_"], filetypes=t))
 row += 1
 
-ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=row, sticky="WE", padx=12)
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=row, sticky="EW", padx=12)
 row += 1
 
 util.add_entry(f, row, "FDR:", vars["fdr"], "%")
