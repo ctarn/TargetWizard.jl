@@ -70,11 +70,11 @@ target_select(paths; name, df, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_s
 
     gd = DataFrames.groupby(df, [:pep_a, :pep_b, :site_a, :site_b, :mod_a, :mod_b, :z])
     df = DataFrames.combine(gd,
-        [:td, :prot_type, :score, :mz, :mz_calc, :scan, :raw] .=> first,
+        [:td, :prot_type, :score, :mz, :mz_calc, :scan, :file] .=> first,
         renamecols=false,
     )
 
-    df.rt = [M[r.raw][r.scan].retention_time for r in eachrow(df)]
+    df.rt = [M[r.file][r.scan].retention_time for r in eachrow(df)]
 
     df.start = min.(lc * 60, max.(0, df.rt .- (rt / 2)))
     df.stop = min.(lc * 60, max.(0, df.rt .+ (rt / 2)))

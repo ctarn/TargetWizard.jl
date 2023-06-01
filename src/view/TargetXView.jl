@@ -192,7 +192,7 @@ report(path; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path_
     DataFrames.select!(df_psm, DataFrames.Not(filter(x -> x ∈ names(df_psm), ns)))
     ns = [
         "engine", "mh", "mz", "z", "pep_a", "pep_b", "mod_a", "mod_b", "site_a", "site_b",
-        "prot_a", "prot_b", "error", "title", "raw", "scan", "idx_pre",
+        "prot_a", "prot_b", "error", "title", "file", "scan", "idx_pre",
     ]
     DataFrames.select!(df_psm, ns, DataFrames.Not(ns))
     ("linker" ∉ names(df_psm)) && (df_psm.linker .= linker)
