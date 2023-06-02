@@ -41,12 +41,7 @@ task = util.Task("TargetReport", vars_spec, path=meta.homedir)
 V = task.vars
 
 def run_basicaquisitionreport():
-    paths = []
-    for p in V["ms"].get().split(";"):
-        ext = os.path.splitext(p)[1].lower()
-        if ext == ".raw": p = run_thermorawread(p, V["out"].get())
-        paths.append(p)
-    task.call(os.path.join(V["generators"].get(), "BasicAquisitionReport"), *paths, "--out", V["out"].get())
+    task.call(os.path.join(V["generators"].get(), "BasicAquisitionReport"), *(V["ms"].get().split(";")), "--out", V["out"].get())
 
 def run_targetselectionreport():
     task.call(os.path.join(V["generators"].get(), "TargetSelectionReport"),
@@ -61,22 +56,13 @@ def run_identificationreport():
     pass
 
 def run_crosslinkedpeptidecoveragereport():
-    paths = []
-    for p in V["ms"].get().split(";"):
-        ext = os.path.splitext(p)[1].lower()
-        if ext == ".raw": p = run_thermorawread(p, V["out"].get())
-        paths.append(p)
-    task.call(os.path.join(V["generators"].get(), "XLCoverageReport"), V["psm"].get(), *paths,
+    task.call(os.path.join(V["generators"].get(), "XLCoverageReport"), V["psm"].get(), *(V["ms"].get().split(";")),
         "--out", V["out"].get(),
         "--error", V["error2"].get(),
         "--ions", ",".join([t for t in ion_types if V[f"ion_{t}"].get()]),
         "--linker", V["linker"].get(),
         "--cfg", V["cfg_pl"].get(),
     )
-
-def run_thermorawread(data, out):
-    task.call(*([] if util.is_windows else [V["mono"].get()]), V["thermorawread"].get(), "mes", data, out)
-    return os.path.join(out, os.path.splitext(os.path.basename(data))[0] + ".mes")
 
 def run():
     if V["report"].get() == BAReport: run_basicaquisitionreport()
@@ -110,13 +96,8 @@ ttk.Label(main, text="Advanced Configuration").grid(column=0, row=I, columnspan=
 I += 1
 util.add_entry(main, I, "Generators:", V["generators"], "Select", util.askdir(V["generators"]))
 I += 1
-util.add_entry(main, I, "ThermoRawRead:", V["thermorawread"], "Select", util.askfile(V["thermorawread"]))
-I += 1
-if not util.is_windows:
-    util.add_entry(main, I, "Mono Runtime:", V["mono"], "Select", util.askfile(V["mono"]))
-    I += 1
 
-t_ms = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("RAW file", "*.raw"), ("All", "*.*"))
+t_ms = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 t_target = (("Target List", "*.csv"), ("All", "*.*"))
 t_psm = (("PSM", "*.psm"), ("All", "*.*"))
 

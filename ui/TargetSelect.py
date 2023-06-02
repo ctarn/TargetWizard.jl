@@ -30,8 +30,6 @@ vars_spec = {
     "lc": {"type": tk.StringVar, "value": "Inf"},
     "out": {"type": tk.StringVar, "value": ""},
     "targetselect": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "TargetSelect")},
-    "thermorawread": {"type": tk.StringVar, "value": util.get_content("ThermoRawRead", "ThermoRawRead.exe", shared=True)},
-    "mono": {"type": tk.StringVar, "value": path_mono},
 }
 for t in tds: vars_spec[f"td_{t}"] = {"type": tk.IntVar, "value": 1}
 for t in pts: vars_spec[f"pt_{t}"] = {"type": tk.IntVar, "value": 1}
@@ -39,18 +37,8 @@ for t in fmts: vars_spec[f"fmt_{t}"] = {"type": tk.IntVar, "value": t == "TW"}
 task = util.Task("TargetSelect", vars_spec, path=meta.homedir)
 V = task.vars
 
-def run_thermorawread(data, out):
-    task.call(*([] if util.is_windows else [V["mono"].get()]), V["thermorawread"].get(), "mes", data, out)
-    return os.path.join(out, os.path.splitext(os.path.basename(data))[0] + ".mes")
-
 def run():
-    paths = []
-    for p in V["data"].get().split(";"):
-        ext = os.path.splitext(p)[1].lower()
-        if ext == ".raw":
-            p = run_thermorawread(p, V["out"].get())
-        paths.append(p)
-    task.call(V["targetselect"].get(), *paths, "--out", V["out"].get(),
+    task.call(V["targetselect"].get(), *(V["data"].get().split(";")), "--out", V["out"].get(),
         "--name", V["name"].get(),
         "--psm", V["psm"].get(),
         "--fdr_min", V["fdr_min"].get(),
@@ -107,8 +95,3 @@ ttk.Label(main, text="Advanced Configuration").grid(column=0, row=I, columnspan=
 I += 1
 util.add_entry(main, I, "TargetSelect:", V["targetselect"], "Select", util.askfile(V["targetselect"]))
 I += 1
-util.add_entry(main, I, "ThermoRawRead:", V["thermorawread"], "Select", util.askfile(V["thermorawread"]))
-I += 1
-if not util.is_windows:
-    util.add_entry(main, I, "Mono Runtime:", V["mono"], "Select", util.askfile(V["mono"]))
-    I += 1
