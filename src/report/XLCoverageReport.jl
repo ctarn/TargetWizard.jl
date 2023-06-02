@@ -146,7 +146,7 @@ main() = begin
             metavar = "ppm"
             default = "20.0"
         "--ion"
-            help = "fragment ion type: a, b, c, x, y, z, a_NH3, b_NH3, y_NH3, a_H2O, b_H2O, y_H2O,"
+            help = "fragment ion type: a, b, c, x, y, z, a_NH3, b_NH3, y_NH3, a_H2O, b_H2O, y_H2O"
             metavar = "b,y,b_NH3,b_H2O,y_NH3,y_H2O"
             default = "b,y,b_NH3,b_H2O,y_NH3,y_H2O"
         "--linker"
