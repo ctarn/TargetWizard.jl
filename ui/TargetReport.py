@@ -21,7 +21,7 @@ XPCReport = "Cross-linked Peptide Coverage Report"
 reports = [BAReport, TSReport, TAReport, IDReport, XPCReport]
 target_fmts = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
 ion_types = ["a", "b", "c", "x", "y", "z", "a_NH3", "b_NH3", "y_NH3", "a_H2O", "b_H2O", "y_H2O"]
-ion_names = ["a", "b", "c", "x", "y", "z", "a-NH3", "b-NH3", "y-NH3", "a-H2O", "b-H2O", "y-H2O"]
+ion_names = ["a", "b", "c", "x", "y", "z", "a-NH₃", "b-NH₃", "y-NH₃", "a-H₂O", "b-H₂O", "y-H₂O"]
 vars_spec = {
     "report": {"type": tk.StringVar, "value": BAReport},
     "ms": {"type": tk.StringVar, "value": ""},
