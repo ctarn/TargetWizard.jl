@@ -169,10 +169,9 @@ main() = begin
     end
     args = ArgParse.parse_args(settings)
     paths = (sort∘unique∘reduce)(vcat, MesMS.match_path.(args["ms"], ".mes"); init=String[])
-    @info "file paths of selected MS data:"
+    @info "file paths of selected data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
-    sess = prepare(args)
-    process(args["psm"], paths; sess...)
+    process(args["psm"], paths; prepare(args)...)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

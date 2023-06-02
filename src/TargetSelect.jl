@@ -54,7 +54,7 @@ prepare(args) = begin
     return (; name, df, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt, out)
 end
 
-target_select(paths; name, df, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt, out) = begin
+process(paths; name, df, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt, out) = begin
     M = map(p -> splitext(basename(p))[1] => MesMS.dict_by_id(MesMS.read_ms(p).MS2), paths) |> Dict
 
     s = trues(size(df, 1))
@@ -158,10 +158,9 @@ main() = begin
     end
     args = ArgParse.parse_args(settings)
     paths = (sort∘unique∘reduce)(vcat, MesMS.match_path.(args["data"], ".mes"); init=String[])
-    @info "file paths of selected MS data:"
+    @info "file paths of selected data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
-    sess = prepare(args)
-    target_select(paths; sess...)
+    process(paths; prepare(args)...)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

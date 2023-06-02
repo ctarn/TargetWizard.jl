@@ -17,7 +17,7 @@ prepare(args) = begin
     return (; fmt, out)
 end
 
-plot(path; fmt, out) = begin
+process(path; fmt, out) = begin
     @info "reading " * path
     df = DataFrames.DataFrame(CSV.File(path))
     parse_target_list!(df, fmt)
@@ -76,8 +76,7 @@ main() = begin
     paths = (sort∘unique∘reduce)(vcat, MesMS.match_path.(args["data"], ".target.csv"); init=String[])
     @info "file paths of selected data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
-    sess = prepare(args)
-    plot.(paths; sess...)
+    process.(paths; prepare(args)...)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

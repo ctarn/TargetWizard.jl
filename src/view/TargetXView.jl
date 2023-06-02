@@ -158,7 +158,7 @@ prepare(args) = begin
     return (; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path_psm_pf, cfg, cfg_pf, ε, out)
 end
 
-report(path; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path_psm_pf, cfg, cfg_pf, ε, out) = begin
+process(path; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path_psm_pf, cfg, cfg_pf, ε, out) = begin
     M = MesMS.read_ms(path)
     df_m1 = map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1) |> DataFrames.DataFrame
     df_m2 = map(m -> (; m.id, mz=m.activation_center, rt=m.retention_time, m.peaks), M.MS2) |> DataFrames.DataFrame
@@ -340,8 +340,7 @@ main() = begin
             required = true
     end
     args = ArgParse.parse_args(settings)
-    sess = prepare(args)
-    report(args["data"]; sess...)
+    process(args["data"]; prepare(args)...)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

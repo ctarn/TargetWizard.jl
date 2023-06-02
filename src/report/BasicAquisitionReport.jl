@@ -14,7 +14,7 @@ prepare(args) = begin
     return (; out)
 end
 
-plot(path; out) = begin
+process(path; out) = begin
     name = splitext(basename(path))[1]
     M = MesMS.read_ms(path)
     rt1 = map(m -> m.retention_time, M.MS1)
@@ -83,10 +83,9 @@ main() = begin
     end
     args = ArgParse.parse_args(settings)
     paths = (sort∘unique∘reduce)(vcat, MesMS.match_path.(args["data"], ".mes"); init=String[])
-    @info "file paths of selected MS data:"
+    @info "file paths of selected data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
-    sess = prepare(args)
-    plot.(paths; sess...)
+    process.(paths; prepare(args)...)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

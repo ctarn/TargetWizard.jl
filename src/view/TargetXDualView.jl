@@ -231,7 +231,7 @@ prepare(args) = begin
     return (; host, port, ε, cfg, linker, path_xl, path_ms, path_ft, path_psm, fdr, out)
 end
 
-report(path; host, port, ε, cfg, linker, path_xl, path_ms, path_ft, path_psm, fdr, out) = begin
+process(path; host, port, ε, cfg, linker, path_xl, path_ms, path_ft, path_psm, fdr, out) = begin
     Ms = map(MesMS.read_ms, path_ms)
     dfs_m1 = map(Ms) do M
         map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1)
@@ -420,8 +420,7 @@ main() = begin
             required = true
     end
     args = ArgParse.parse_args(settings)
-    sess = prepare(args)
-    report(args["target"]; sess...)
+    process(args["target"]; prepare(args)...)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
