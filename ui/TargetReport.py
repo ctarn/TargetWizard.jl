@@ -59,7 +59,7 @@ def run_crosslinkedpeptidecoveragereport():
     task.call(os.path.join(V["generators"].get(), "XLCoverageReport"), V["psm"].get(), *(V["ms"].get().split(";")),
         "--out", V["out"].get(),
         "--error", V["error2"].get(),
-        "--ions", ",".join([t for t in ion_types if V[f"ion_{t}"].get()]),
+        "--ion", ",".join([t for t in ion_types if V[f"ion_{t}"].get()]),
         "--linker", V["linker"].get(),
         "--cfg", V["cfg_pl"].get(),
     )
