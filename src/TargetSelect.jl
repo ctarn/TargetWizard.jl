@@ -55,10 +55,7 @@ prepare(args) = begin
 end
 
 target_select(paths; name, df, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt, out) = begin
-    Ms = map(paths) do path
-        return MesMS.mapvalue(MesMS.dict_by_id, MesMS.read_all(MesMS.read_ms2, path; verbose=false))
-    end
-    M = reduce(merge, Ms)
+    M = map(p -> splitext(basename(p))[1] => MesMS.dict_by_id(MesMS.read_ms(p).MS2), paths) |> Dict
 
     s = trues(size(df, 1))
     s .&= fdr_ge ? (df.fdr .≥ fdr_min) : (df.fdr .> fdr_min)
@@ -155,13 +152,13 @@ main() = begin
             metavar = "./out/"
             default = "./out/"
         "data"
-            help = "list of .MS2 files"
+            help = "list of .mes or .ms1/2 files"
             nargs = '+'
             required = true
     end
     args = ArgParse.parse_args(settings)
-    paths = (sort∘unique∘reduce)(vcat, MesMS.match_path.(args["data"], ".ms2"); init=String[])
-    @info "file paths of selected data:"
+    paths = (sort∘unique∘reduce)(vcat, MesMS.match_path.(args["data"], ".mes"); init=String[])
+    @info "file paths of selected MS data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
     sess = prepare(args)
     target_select(paths; sess...)

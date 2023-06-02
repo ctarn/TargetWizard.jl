@@ -27,9 +27,7 @@ end
 process(path, paths_ms; ε, ion_syms, linker, cfg, out) = begin
     ion_types = map(i -> getfield(Plot, Symbol("ion_$(i)")), ion_syms)
     df = pLink.read_psm_full(path).xl
-    M = map(paths_ms) do p
-        splitext(basename(p))[1] => MesMS.dict_by_id(MesMS.read_ms(p).MS2)
-    end |> Dict
+    M = map(p -> splitext(basename(p))[1] => MesMS.dict_by_id(MesMS.read_ms(p).MS2), paths_ms) |> Dict
 
     if isempty(cfg)
         tab_ele = pLink.read_element() |> NamedTuple

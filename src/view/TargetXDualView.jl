@@ -232,20 +232,14 @@ prepare(args) = begin
 end
 
 report(path; host, port, ε, cfg, linker, path_xl, path_ms, path_ft, path_psm, fdr, out) = begin
-    dfs_m1 = map(path_ms) do p
-        map(MesMS.read_ms1(splitext(p)[1] * ".ms1")) do m
-            (; m.id, rt=m.retention_time, m.peaks)
-        end |> DataFrames.DataFrame
-    end
-    dfs_m2 = map(path_ms) do p
-        map(MesMS.read_ms2(splitext(p)[1] * ".ms2")) do m
-            (; m.id, mz=m.activation_center, rt=m.retention_time, m.peaks)
-        end |> DataFrames.DataFrame
-    end
-
-    M2Is = map(dfs_m2) do df_m2
-        map(m -> m[2] => m[1], enumerate(df_m2.id)) |> Dict
-    end
+    Ms = map(MesMS.read_ms, path_ms)
+    dfs_m1 = map(Ms) do M
+        map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1)
+    end .|> DataFrames.DataFrame
+    dfs_m2 = map(Ms) do M
+        map(m -> (; m.id, mz=m.activation_center, rt=m.retention_time, m.peaks), M.MS2)
+    end .|> DataFrames.DataFrame
+    M2Is = map(df -> map(x -> x[2] => x[1], enumerate(df.id)), dfs_m2) .|> Dict
 
     dfs_psm = map(zip(path_psm, dfs_m2, M2Is)) do (p, df_m2, M2I)
         df_psm = pLink.read_psm_full(p).xl
@@ -403,7 +397,7 @@ main() = begin
             help = "corresponding candidate xl list of targets"
             default = ""
         "--ms"
-            help = "two .ms2 file; .ms1 files should be in the same directory"
+            help = "two .mes or .ms1/2 files; .ms2/1 files should be in the same directory for .ms1/2"
             required = true
             nargs = 2
         "--ft"

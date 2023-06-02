@@ -54,8 +54,8 @@ def run_identificationreport():
     pass
 
 def run_thermorawread(data, out):
-    task.call(*([] if util.is_windows else [V["mono"].get()]), V["thermorawread"].get(), data, out)
-    return os.path.join(out, os.path.splitext(os.path.basename(data))[0] + ".ms2")
+    task.call(*([] if util.is_windows else [V["mono"].get()]), V["thermorawread"].get(), "mes", data, out)
+    return os.path.join(out, os.path.splitext(os.path.basename(data))[0] + ".mes")
 
 def run():
     if V["report"].get() == BAReport: run_basicaquisitionreport()
@@ -94,7 +94,7 @@ if not util.is_windows:
     util.add_entry(main, I, "Mono Runtime:", V["mono"], "Select", util.askfile(V["mono"]))
     I += 1
 
-t_ms = (("MS2", "*.ms2"), ("RAW", "*.raw"), ("All", "*.*"))
+t_ms = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 t_target = (("Target List", "*.csv"), ("All", "*.*"))
 t_psm = (("PSM", "*.psm"), ("All", "*.*"))
 

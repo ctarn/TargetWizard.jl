@@ -142,7 +142,7 @@ I += 1
 t = (("Candidate XL List", "*.csv"), ("All", "*.*"))
 util.add_entry(f, I, "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=t))
 I += 1
-t = (("MS2 file", "*.ms2"), ("All", "*.*"))
+t = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
 I += 1
 t = (("Peptide Feature List", "*.csv"), ("All", "*.*"))
@@ -177,7 +177,7 @@ I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 ttk.Label(f, text="Data A").grid(column=0, row=I)
 I += 1
-t = (("MS2 file", "*.ms2"), ("All", "*.*"))
+t = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
 I += 1
 t = (("Peptide Feature List", "*.csv"), ("All", "*.*"))
@@ -189,7 +189,7 @@ I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 ttk.Label(f, text="Data B").grid(column=0, row=I)
 I += 1
-t = (("MS2 file", "*.ms2"), ("All", "*.*"))
+t = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 util.add_entry(f, I, "MS Data:", V["ms_"], "Select", util.askfile(V["ms_"], filetypes=t))
 I += 1
 t = (("Peptide Feature List", "*.csv"), ("All", "*.*"))

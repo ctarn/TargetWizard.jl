@@ -159,17 +159,10 @@ prepare(args) = begin
 end
 
 report(path; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path_psm_pf, cfg, cfg_pf, ε, out) = begin
-    path_ms1 = splitext(path)[1] * ".ms1"
-    path_ms2 = splitext(path)[1] * ".ms2"
-    df_m1 = map(MesMS.read_ms1(path_ms1)) do m
-        (; m.id, rt=m.retention_time, m.peaks)
-    end |> DataFrames.DataFrame
-    df_m2 = map(MesMS.read_ms2(path_ms2)) do m
-        (; m.id, mz=m.activation_center, rt=m.retention_time, m.peaks)
-    end |> DataFrames.DataFrame
-
-    M1I = map(m -> m[2].id => m[1], enumerate(eachrow(df_m1))) |> Dict
-    M2I = map(m -> m[2].id => m[1], enumerate(eachrow(df_m2))) |> Dict
+    M = MesMS.read_ms(path)
+    df_m1 = map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1) |> DataFrames.DataFrame
+    df_m2 = map(m -> (; m.id, mz=m.activation_center, rt=m.retention_time, m.peaks), M.MS2) |> DataFrames.DataFrame
+    M2I = map(x -> x[2] => x[1], enumerate(df_m2.id)) |> Dict
 
     df_psm = pLink.read_psm_full(path_psm).xl
     df_psm = df_psm[df_psm.fdr .≤ fdr, :]
@@ -324,7 +317,7 @@ main() = begin
             help = "candidate xl list"
             default = ""
         "--ms"
-            help = ".ms2 file; .ms1 files should be in the same directory"
+            help = ".mes or .ms1/2 file; .ms2/1 files should be in the same directory for .ms1/2"
             required = true
         "--ft"
             help = "feature list"

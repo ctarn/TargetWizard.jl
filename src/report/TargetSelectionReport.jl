@@ -21,7 +21,6 @@ plot(path; fmt, out) = begin
     @info "reading " * path
     df = DataFrames.DataFrame(CSV.File(path))
     parse_target_list!(df, fmt)
-    name = basename(path)
 
     data = """
 const M = [$(join(string.(df.m), ","))]

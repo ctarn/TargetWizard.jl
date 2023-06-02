@@ -40,8 +40,8 @@ task = util.Task("TargetSelect", vars_spec, path=meta.homedir)
 V = task.vars
 
 def run_thermorawread(data, out):
-    task.call(*([] if util.is_windows else [V["mono"].get()]), V["thermorawread"].get(), data, out)
-    return os.path.join(out, os.path.splitext(os.path.basename(data))[0] + ".ms2")
+    task.call(*([] if util.is_windows else [V["mono"].get()]), V["thermorawread"].get(), "mes", data, out)
+    return os.path.join(out, os.path.splitext(os.path.basename(data))[0] + ".mes")
 
 def run():
     paths = []
@@ -67,7 +67,7 @@ def run():
 
 util.init_form(main)
 I = 0
-t = (("MS2", "*.ms2"), ("RAW", "*.raw"), ("All", "*.*"))
+t = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 util.add_entry(main, I, "Data:", V["data"], "Select", util.askfiles(V["data"], V["out"], filetypes=t))
 t = (("PSM", "*.csv"), ("All", "*.*"))
 util.add_entry(main, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))

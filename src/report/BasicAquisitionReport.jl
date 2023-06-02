@@ -15,29 +15,27 @@ prepare(args) = begin
 end
 
 plot(path; out) = begin
-    M1 = MesMS.read_ms1(splitext(path)[1] * ".ms1")
-    M2 = MesMS.read_ms2(splitext(path)[1] * ".ms2")
     name = splitext(basename(path))[1]
-
-    rt1 = map(m -> m.retention_time, M1)
-    rt2 = map(m -> m.retention_time, M2)
+    M = MesMS.read_ms(path)
+    rt1 = map(m -> m.retention_time, M.MS1)
+    rt2 = map(m -> m.retention_time, M.MS2)
     rt_max = ceil(Int, max(maximum(rt1; init=0.0), maximum(rt2; init=0.0)))
-    mz2 = map(m -> m.activation_center, M2)
-    it1 = map(m -> m.injection_time, M1)
-    it2 = map(m -> m.injection_time, M2)
-    tic1 = log10.(map(m -> m.total_ion_current, M1) .+ 1)
-    tic2 = log10.(map(m -> m.total_ion_current, M2) .+ 1)
-    bpi1 = log10.(map(m -> m.base_peak_intensity, M1) .+ 1)
-    bpi2 = log10.(map(m -> m.base_peak_intensity, M2) .+ 1)
-    bpm1 = map(m -> m.base_peak_mass, M1)
-    bpm2 = map(m -> m.base_peak_mass, M2)
+    mz2 = map(m -> m.activation_center, M.MS2)
+    it1 = map(m -> m.injection_time, M.MS1)
+    it2 = map(m -> m.injection_time, M.MS2)
+    tic1 = log10.(map(m -> m.total_ion_current, M.MS1) .+ 1)
+    tic2 = log10.(map(m -> m.total_ion_current, M.MS2) .+ 1)
+    bpi1 = log10.(map(m -> m.base_peak_intensity, M.MS1) .+ 1)
+    bpi2 = log10.(map(m -> m.base_peak_intensity, M.MS2) .+ 1)
+    bpm1 = map(m -> m.base_peak_mass, M.MS1)
+    bpm2 = map(m -> m.base_peak_mass, M.MS2)
 
     data = """
 const RT1 = [$(join(string.(rt1), ","))]
 const RT2 = [$(join(string.(rt2), ","))]
 const RT_MAX = $(rt_max)
-const F1_MEAN = $(length(M1) / rt_max)
-const F2_MEAN = $(length(M2) / rt_max)
+const F1_MEAN = $(length(M.MS1) / rt_max)
+const F2_MEAN = $(length(M.MS2) / rt_max)
 const MZ2 = [$(join(string.(mz2), ","))]
 const MZ2_MIN = $(minimum(mz2))
 const MZ2_MAX = $(maximum(mz2))
@@ -84,8 +82,8 @@ main() = begin
             required = true
     end
     args = ArgParse.parse_args(settings)
-    paths = (sort∘unique∘reduce)(vcat, MesMS.match_path.(args["data"], ".ms1"); init=String[])
-    @info "file paths of selected data:"
+    paths = (sort∘unique∘reduce)(vcat, MesMS.match_path.(args["data"], ".mes"); init=String[])
+    @info "file paths of selected MS data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
     sess = prepare(args)
     plot.(paths; sess...)
