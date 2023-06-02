@@ -69,6 +69,7 @@ util.init_form(main)
 I = 0
 t = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 util.add_entry(main, I, "Data:", V["data"], "Select", util.askfiles(V["data"], V["out"], filetypes=t))
+I += 1
 t = (("PSM", "*.csv"), ("All", "*.*"))
 util.add_entry(main, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))
 I += 1
