@@ -152,7 +152,7 @@ main() = begin
             metavar = "./out/"
             default = "./out/"
         "data"
-            help = "list of .mes or .ms1/2 files"
+            help = "list of .mes or .ms1/2 files; .ms2/1 files should be in the same directory for .ms1/2"
             nargs = '+'
             required = true
     end
