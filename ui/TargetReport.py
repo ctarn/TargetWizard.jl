@@ -17,19 +17,26 @@ BAReport = "Basic Aquisition Report"
 TSReport = "Target Selection Report"
 TAReport = "Target Aquisition Report"
 IDReport = "Identification Report"
-reports = [BAReport, TSReport, TAReport, IDReport]
+XPCReport = "Cross-linked Peptide Coverage Report"
+reports = [BAReport, TSReport, TAReport, IDReport, XPCReport]
 target_fmts = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
+ion_types = ["a", "b", "c", "x", "y", "z", "a_NH3", "b_NH3", "y_NH3", "a_H2O", "b_H2O", "y_H2O"]
+ion_names = ["a", "b", "c", "x", "y", "z", "a-NH3", "b-NH3", "y-NH3", "a-H2O", "b-H2O", "y-H2O"]
 vars_spec = {
     "report": {"type": tk.StringVar, "value": BAReport},
     "ms": {"type": tk.StringVar, "value": ""},
+    "error2": {"type": tk.StringVar, "value": "20.0"},
     "target": {"type": tk.StringVar, "value": ""},
     "target_fmt": {"type": tk.StringVar, "value": "Auto Detect"},
     "psm": {"type": tk.StringVar, "value": ""},
+    "linker": {"type": tk.StringVar, "value": "DSSO"},
+    "cfg_pl": {"type": tk.StringVar, "value": ""},
     "out": {"type": tk.StringVar, "value": ""},
     "generators": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin")},
     "thermorawread": {"type": tk.StringVar, "value": util.get_content("ThermoRawRead", "ThermoRawRead.exe", shared=True)},
     "mono": {"type": tk.StringVar, "value": path_mono},
 }
+for t in ion_types: vars_spec[f"ion_{t}"] = {"type": tk.IntVar, "value": 1}
 task = util.Task("TargetReport", vars_spec, path=meta.homedir)
 V = task.vars
 
@@ -53,6 +60,20 @@ def run_targetaquisitionreport():
 def run_identificationreport():
     pass
 
+def run_crosslinkedpeptidecoveragereport():
+    paths = []
+    for p in V["ms"].get().split(";"):
+        ext = os.path.splitext(p)[1].lower()
+        if ext == ".raw": p = run_thermorawread(p, V["out"].get())
+        paths.append(p)
+    task.call(os.path.join(V["generators"].get(), "XLCoverageReport"), V["psm"].get(), *paths,
+        "--out", V["out"].get(),
+        "--error", V["error2"].get(),
+        "--ions", ",".join([t for t in ion_types if V[f"ion_{t}"].get()]),
+        "--linker", V["linker"].get(),
+        "--cfg", V["cfg_pl"].get(),
+    )
+
 def run_thermorawread(data, out):
     task.call(*([] if util.is_windows else [V["mono"].get()]), V["thermorawread"].get(), "mes", data, out)
     return os.path.join(out, os.path.splitext(os.path.basename(data))[0] + ".mes")
@@ -62,6 +83,7 @@ def run():
     elif V["report"].get() == TSReport: run_targetselectionreport()
     elif V["report"].get() == TAReport: run_targetaquisitionreport()
     elif V["report"].get() == IDReport: run_identificationreport()
+    elif V["report"].get() == XPCReport: run_crosslinkedpeptidecoveragereport()
     else: print("Unknown Report Type:", V["report"].get())
 
 def select_report(_=None, verbose=True):
@@ -94,7 +116,7 @@ if not util.is_windows:
     util.add_entry(main, I, "Mono Runtime:", V["mono"], "Select", util.askfile(V["mono"]))
     I += 1
 
-t_ms = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
+t_ms = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("RAW file", "*.raw"), ("All", "*.*"))
 t_target = (("Target List", "*.csv"), ("All", "*.*"))
 t_psm = (("PSM", "*.psm"), ("All", "*.*"))
 
@@ -125,6 +147,28 @@ ttk.Label(f, text=f"{IDReport} Not Available").grid(column=0, row=I, columnspan=
 I += 1
 t = (("PSM", "*.csv"), ("All", "*.*"))
 util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))
+I += 1
+
+f = F[XPCReport]
+I = 0
+util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=t_ms))
+I += 1
+t = (("PSM", "*.csv"), ("All", "*.*"))
+util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))
+I += 1
+_, f_ion, _ = util.add_entry(f, I, "Ion Type:", ttk.Frame(f, height=24))
+f_ion1 = ttk.Frame(f_ion)
+f_ion2 = ttk.Frame(f_ion)
+f_ion1.pack(fill="x")
+f_ion2.pack(fill="x")
+for n, t in zip(ion_names[0:6], ion_types[0:6]): ttk.Checkbutton(f_ion1, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
+for n, t in zip(ion_names[6:], ion_types[6:]): ttk.Checkbutton(f_ion2, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
+I += 1
+util.add_entry(f, I, "Fragment Mass Error:", V["error2"], "ppm")
+I += 1
+util.add_entry(f, I, "Default Linker:", V["linker"])
+I += 1
+util.add_entry(f, I, "pLink Cfg. Directory:", V["cfg_pl"], "Select", util.askdir(V["cfg_pl"]))
 I += 1
 
 select_report(None, False)
