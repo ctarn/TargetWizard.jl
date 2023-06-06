@@ -31,12 +31,12 @@ process(path, paths_ms; ε, ion_syms, linker, cfg, out) = begin
 
     if isempty(cfg)
         tab_ele = pLink.read_element() |> NamedTuple
-        tab_aa = map(x -> MesMS.calc_mass(x, tab_ele), pLink.read_amino_acid() |> NamedTuple)
+        tab_aa = map(x -> MesMS.mass(x, tab_ele), pLink.read_amino_acid() |> NamedTuple)
         tab_mod = MesMS.mapvalue(x -> x.mass, pLink.read_mod())
         tab_xl = pLink.read_linker() |> NamedTuple
     else
         tab_ele = pLink.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
-        tab_aa = map(x -> MesMS.calc_mass(x, tab_ele), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
+        tab_aa = map(x -> MesMS.mass(x, tab_ele), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
         tab_mod = MesMS.mapvalue(x -> x.mass, pLink.read_mod(joinpath(cfg, "modification.ini")))
         tab_xl = pLink.read_linker(joinpath(cfg, "xlink.ini")) |> NamedTuple
     end

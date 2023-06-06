@@ -198,23 +198,23 @@ process(path; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path
 
     if isempty(cfg)
         ele_plink = pLink.read_element() |> NamedTuple
-        aa_plink = map(x -> MesMS.calc_mass(x, ele_plink), pLink.read_amino_acid() |> NamedTuple)
+        aa_plink = map(x -> MesMS.mass(x, ele_plink), pLink.read_amino_acid() |> NamedTuple)
         mod_plink = MesMS.mapvalue(x -> x.mass, pLink.read_mod())
         xl_plink = pLink.read_linker() |> NamedTuple
     else
         ele_plink = pLink.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
-        aa_plink = map(x -> MesMS.calc_mass(x, ele_plink), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
+        aa_plink = map(x -> MesMS.mass(x, ele_plink), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
         mod_plink = MesMS.mapvalue(x -> x.mass, pLink.read_mod(joinpath(cfg, "modification.ini")))
         xl_plink = pLink.read_linker(joinpath(cfg, "xlink.ini")) |> NamedTuple
     end
 
     if isempty(cfg_pf)
         ele_pfind = pFind.read_element() |> NamedTuple
-        aa_pfind = map(x -> MesMS.calc_mass(x, ele_pfind), pFind.read_amino_acid() |> NamedTuple)
+        aa_pfind = map(x -> MesMS.mass(x, ele_pfind), pFind.read_amino_acid() |> NamedTuple)
         mod_pfind = MesMS.mapvalue(x -> x.mass, pFind.read_mod())
     else
         ele_pfind = pFind.read_element(joinpath(cfg_pf, "element.ini")) |> NamedTuple
-        aa_pfind = map(x -> MesMS.calc_mass(x, ele_pfind), pFind.read_amino_acid(joinpath(cfg_pf, "aa.ini")) |> NamedTuple)
+        aa_pfind = map(x -> MesMS.mass(x, ele_pfind), pFind.read_amino_acid(joinpath(cfg_pf, "aa.ini")) |> NamedTuple)
         mod_pfind = MesMS.mapvalue(x -> x.mass, pFind.read_mod(joinpath(cfg_pf, "modification.ini")))
     end
 
