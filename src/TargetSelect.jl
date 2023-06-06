@@ -4,36 +4,7 @@ import ArgParse
 import CSV
 import DataFrames
 import MesMS
-import MesUtil: pFind, pLink
-
-build_target_TmQE(df) = begin
-    return DataFrames.DataFrame(
-        Symbol("Mass [m/z]") => df.mz,
-        Symbol("Formula [M]") => "",
-        Symbol("Formula type") => "",
-        Symbol("Species") => "",
-        Symbol("CS [z]") => df.z,
-        Symbol("Polarity") => "Positive",
-        Symbol("Start [min]") => df.start ./ 60,
-        Symbol("End [min]") => df.stop ./ 60,
-        Symbol("(N)CE") => "",
-        Symbol("(N)CE type") => "",
-        Symbol("MSX ID") => "",
-        Symbol("Comment") => "",
-    )
-end
-
-build_target_TmFu(df) = begin
-    return DataFrames.DataFrame(
-        Symbol("Compound") => "",
-        Symbol("Formula") => "",
-        Symbol("Adduct") => "",
-        Symbol("m/z") => df.mz,
-        Symbol("z") => df.z,
-        Symbol("t start (min)") => df.start ./ 60,
-        Symbol("t stop (min)") => df.stop ./ 60,
-    )
-end
+import MesUtil: TMS, pFind, pLink
 
 prepare(args) = begin
     name = args["name"]
@@ -93,8 +64,8 @@ process(paths; name, df, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, r
         df_ = df[df.batch .== i, :]
         @info "batch $(i): $(size(df_, 1))"
         tw && MesMS.safe_save(p -> CSV.write(p, df_), "$(p).batch$(i).TW.target.csv", "list")
-        tmqe && MesMS.safe_save(p -> CSV.write(p, build_target_TmQE(df_)), "$(p).batch$(i).TmQE.target.csv", "list (Thermo Q Exactive)")
-        tmfu && MesMS.safe_save(p -> CSV.write(p, build_target_TmFu(df_)), "$(p).batch$(i).TmFu.target.csv", "list (Thermo Fusion)")
+        tmqe && MesMS.safe_save(p -> CSV.write(p, TMS.build_target_TmQE(df_)), "$(p).batch$(i).TmQE.target.csv", "list (Thermo Q Exactive)")
+        tmfu && MesMS.safe_save(p -> CSV.write(p, TMS.build_target_TmFu(df_)), "$(p).batch$(i).TmFu.target.csv", "list (Thermo Fusion)")
     end
 end
 
