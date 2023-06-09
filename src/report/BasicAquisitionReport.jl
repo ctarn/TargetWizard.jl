@@ -72,17 +72,17 @@ end
 main() = begin
     settings = ArgParse.ArgParseSettings(prog="BasicAquisitionReport")
     ArgParse.@add_arg_table! settings begin
-        "--out", "-o"
-            help = "output directory"
-            metavar = "output"
-            default = "./out/"
         "data"
             help = "list of .mes or .ms1/2 files; .ms2/1 files should be in the same directory for .ms1/2"
             nargs = '+'
             required = true
+        "--out", "-o"
+            help = "output directory"
+            metavar = "./out/"
+            default = "./out/"
     end
     args = ArgParse.parse_args(settings)
-    paths = (sort∘unique∘reduce)(vcat, MesMS.match_path.(args["data"], ".mes"); init=String[])
+    paths = reduce(vcat, MesMS.match_path.(args["data"], ".mes")) |> unique |> sort
     @info "file paths of selected data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
     process.(paths; prepare(args)...)

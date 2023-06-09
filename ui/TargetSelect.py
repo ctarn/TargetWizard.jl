@@ -20,6 +20,7 @@ fmts_name = ["TargetWizard", "Thermo Q Exactive", "Thermo Fusion"]
 vars_spec = {
     "data": {"type": tk.StringVar, "value": ""},
     "psm": {"type": tk.StringVar, "value": ""},
+    "out": {"type": tk.StringVar, "value": ""},
     "name": {"type": tk.StringVar, "value": "TargetWizard"},
     "fdr_min": {"type": tk.StringVar, "value": "-Inf"},
     "fdr_max": {"type": tk.StringVar, "value": "Inf"},
@@ -28,7 +29,6 @@ vars_spec = {
     "batch": {"type": tk.StringVar, "value": "Inf"},
     "rtime": {"type": tk.StringVar, "value": "240"},
     "lc": {"type": tk.StringVar, "value": "Inf"},
-    "out": {"type": tk.StringVar, "value": ""},
     "targetselect": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "TargetSelect")},
 }
 for t in tds: vars_spec[f"td_{t}"] = {"type": tk.IntVar, "value": 1}
@@ -38,9 +38,10 @@ task = util.Task("TargetSelect", vars_spec, path=meta.homedir)
 V = task.vars
 
 def run():
-    task.call(V["targetselect"].get(), *(V["data"].get().split(";")), "--out", V["out"].get(),
-        "--name", V["name"].get(),
+    task.call(V["targetselect"].get(), *(V["data"].get().split(";")),
         "--psm", V["psm"].get(),
+        "--out", V["out"].get(),
+        "--name", V["name"].get(),
         "--fdr_min", V["fdr_min"].get(),
         "--fdr_max", V["fdr_max"].get(),
         *(["--fdr_ge"] if V["fdr_ge"].get() == "≤" else []),

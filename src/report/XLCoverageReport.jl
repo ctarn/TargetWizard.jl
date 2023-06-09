@@ -15,16 +15,16 @@ const DIR_DATA = @path joinpath(@__DIR__, "../../data")
 include("../util.jl")
 
 prepare(args) = begin
+    out = mkpath(args["out"])
+    linker = Symbol(args["linker"])
     ε = parse(Float64, args["error"]) * 1.0e-6
     ion_syms = split(args["ion"], ",") .|> strip 
     @info "selected fragment ion type: $(join(ion_syms, ", "))"
-    linker = Symbol(args["linker"])
     cfg = args["cfg"]
-    out = mkpath(args["out"])
-    return (; ε, ion_syms, linker, cfg, out)
+    return (; out, linker, ε, ion_syms, cfg)
 end
 
-process(path, paths_ms; ε, ion_syms, linker, cfg, out) = begin
+process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
     ion_types = map(i -> getfield(Plot, Symbol("ion_$(i)")), ion_syms)
     df = pLink.read_psm_full(path).xl
     M = map(p -> splitext(basename(p))[1] => MesMS.dict_by_id(MesMS.read_ms(p).MS2), paths_ms) |> Dict
@@ -141,6 +141,20 @@ end
 main() = begin
     settings = ArgParse.ArgParseSettings(prog="XLCoverageReport")
     ArgParse.@add_arg_table! settings begin
+        "data"
+            help = "pLink PSM path"
+            required = true
+        "--ms"
+            help = "list of .mes or .ms2 files"
+            nargs = '+'
+            required = true
+        "--out", "-o"
+            help = "output directory"
+            metavar = "./out/"
+            default = "./out/"
+        "--linker"
+            help = "default linker"
+            default = "DSSO"
         "--error"
             help = "m/z error"
             metavar = "ppm"
@@ -149,29 +163,15 @@ main() = begin
             help = "fragment ion type: a, b, c, x, y, z, a_NH3, b_NH3, y_NH3, a_H2O, b_H2O, y_H2O"
             metavar = "b,y,b_NH3,b_H2O,y_NH3,y_H2O"
             default = "b,y,b_NH3,b_H2O,y_NH3,y_H2O"
-        "--linker"
-            help = "default linker"
-            default = "DSSO"
         "--cfg"
             help = "pLink config directory"
             default = ""
-        "--out", "-o"
-            help = "output directory"
-            metavar = "./out/"
-            default = "./out/"
-        "psm"
-            help = "pLink PSM path"
-            required = true
-        "ms"
-            help = "list of .mes or .ms2 files"
-            nargs = '+'
-            required = true
     end
     args = ArgParse.parse_args(settings)
-    paths = (sort∘unique∘reduce)(vcat, MesMS.match_path.(args["ms"], ".mes"); init=String[])
+    paths = reduce(vcat, MesMS.match_path.(args["ms"], ".mes")) |> unique |> sort
     @info "file paths of selected data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
-    process(args["psm"], paths; prepare(args)...)
+    process(args["data"], paths; prepare(args)...)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

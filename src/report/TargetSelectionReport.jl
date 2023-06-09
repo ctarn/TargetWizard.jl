@@ -11,13 +11,13 @@ const DIR_DATA = @path joinpath(@__DIR__, "../../data")
 include("../util.jl")
 
 prepare(args) = begin
+    out = mkpath(args["out"])
     fmt = Symbol(args["fmt"])
     @info "specified format: $(fmt)"
-    out = mkpath(args["out"])
-    return (; fmt, out)
+    return (; out, fmt)
 end
 
-process(path; fmt, out) = begin
+process(path; out, fmt) = begin
     @info "reading " * path
     df = DataFrames.DataFrame(CSV.File(path))
     parse_target_list!(df, fmt)
@@ -59,21 +59,21 @@ end
 main() = begin
     settings = ArgParse.ArgParseSettings(prog="TargetSelectionReport")
     ArgParse.@add_arg_table! settings begin
-        "--fmt", "-f"
-            help = "target list format: auto, TW, TmQE, TmFu"
-            metavar = "auto|TW|TmQE|TmFu"
-            default = "auto"
-        "--out", "-o"
-            help = "output directory"
-            metavar = "./out/"
-            default = "./out/"
         "data"
             help = "list of target files"
             nargs = '+'
             required = true
+        "--out", "-o"
+            help = "output directory"
+            metavar = "./out/"
+            default = "./out/"
+        "--fmt", "-f"
+            help = "target list format: auto, TW, TmQE, TmFu"
+            metavar = "auto|TW|TmQE|TmFu"
+            default = "auto"
     end
     args = ArgParse.parse_args(settings)
-    paths = (sort∘unique∘reduce)(vcat, MesMS.match_path.(args["data"], ".target.csv"); init=String[])
+    paths = reduce(vcat, MesMS.match_path.(args["data"], ".target.csv")) |> unique |> sort
     @info "file paths of selected data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
     process.(paths; prepare(args)...)

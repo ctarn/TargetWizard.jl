@@ -142,24 +142,25 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
 end
 
 prepare(args) = begin
-    linker = Symbol(args["linker"])
-    host = parse(IPAddr, args["host"])
-    port = parse(Int, args["port"])
+    path_tg = args["target"]
+    path_ms = args["ms"]
+    path_psm = args["psm"]
+    out = mkpath(args["out"])
     path_xl = args["xl"]
     path_ft = args["ft"]
-    path_tg = args["tg"]
-    path_psm = args["psm"]
     path_psm_pf = args["psm_pf"]
+    linker = Symbol(args["linker"])
+    ε = parse(Float64, args["error"]) * 1.0e-6
     fdr = parse(Float64, args["fdr"]) / 100
     cfg = args["cfg"]
     cfg_pf = args["cfg_pf"]
-    ε = parse(Float64, args["error"]) * 1.0e-6
-    out = mkpath(args["out"])
-    return (; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path_psm_pf, cfg, cfg_pf, ε, out)
+    host = parse(IPAddr, args["host"])
+    port = parse(Int, args["port"])
+    return (; path_tg, path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, linker, ε, fdr, cfg, cfg_pf, host, port)
 end
 
-process(path; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path_psm_pf, cfg, cfg_pf, ε, out) = begin
-    M = MesMS.read_ms(path)
+process(; path_tg, path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, linker, ε, fdr, cfg, cfg_pf, host, port) = begin
+    M = MesMS.read_ms(path_ms)
     df_m1 = map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1) |> DataFrames.DataFrame
     df_m2 = map(m -> (; m.id, mz=m.activation_center, rt=m.retention_time, m.peaks), M.MS2) |> DataFrames.DataFrame
     M2I = map(x -> x[2] => x[1], enumerate(df_m2.id)) |> Dict
@@ -275,7 +276,7 @@ process(path; linker, host, port, path_xl, path_ft, path_tg, path_psm, fdr, path
     ns = filter(n -> !endswith(n, '_'), names(df_tg))
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
 
-    MesMS.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path)[1])).TargetXView.csv"))
+    MesMS.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path_ms)[1])).TargetXView.csv"))
     
     @async begin
         sleep(4)
@@ -288,10 +289,48 @@ end
 main() = begin
     settings = ArgParse.ArgParseSettings(prog="TargetXView")
     ArgParse.@add_arg_table! settings begin
+        "target"
+            help = "target list"
+            required = true
+        "--ms"
+            help = ".mes or .ms1/2 file; .ms2/1 file should be in the same directory for .ms1/2"
+            required = true
+        "--psm"
+            help = "pLink PSM path"
+            required = true
+        "--out"
+            help = "output directory"
+            default = "./out/"
+            metavar = "./out/"
+        "--xl"
+            help = "candidate xl list"
+            default = ""
+        "--ft"
+            help = "feature list"
+            default = ""
+        "--psm_pf"
+            help = "pFind PSM path"
+            default = ""
         "--fmt", "-f"
             help = "target list format: auto, TW, TmQE, TmFu"
             metavar = "auto|TW|TmQE|TmFu"
             default = "auto"
+        "--linker"
+            help = "default linker"
+            default = "DSSO"
+        "--error"
+            help = "m/z error"
+            metavar = "ppm"
+            default = "20.0"
+        "--fdr"
+            help = "FDR threshold (%)"
+            default = "Inf"
+        "--cfg"
+            help = "pLink config directory"
+            default = ""
+        "--cfg_pf"
+            help = "pFind config directory"
+            default = ""
         "--host"
             help = "hostname"
             metavar = "hostname"
@@ -300,47 +339,9 @@ main() = begin
             help = "port"
             metavar = "port"
             default = "30030"
-        "--error"
-            help = "m/z error"
-            metavar = "ppm"
-            default = "20.0"
-        "--cfg"
-            help = "pLink config directory"
-            default = ""
-        "--cfg_pf"
-            help = "pFind config directory"
-            default = ""
-        "--linker"
-            help = "default linker"
-            default = "DSSO"
-        "--xl"
-            help = "candidate xl list"
-            default = ""
-        "--ms"
-            help = ".mes or .ms1/2 file; .ms2/1 files should be in the same directory for .ms1/2"
-            required = true
-        "--ft"
-            help = "feature list"
-            default = ""
-        "--psm"
-            help = "pLink PSM path"
-            required = true
-        "--psm_pf"
-            help = "pFind PSM path"
-            default = ""
-        "--fdr"
-            help = "FDR threshold (%)"
-            default = "Inf"
-        "--out"
-            help = "output directory"
-            default = "./out/"
-            metavar = "./out/"
-        "target"
-            help = "target list"
-            required = true
     end
     args = ArgParse.parse_args(settings)
-    process(args["data"]; prepare(args)...)
+    process(; prepare(args)...)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

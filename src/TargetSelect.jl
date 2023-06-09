@@ -7,10 +7,11 @@ import MesMS
 import MesUtil: TMS, pFind, pLink
 
 prepare(args) = begin
-    name = args["name"]
     df = pLink.read_psm_full(args["psm"]).xl
     df.mod_a = pFind.modstr.(df.mod_a)
     df.mod_b = pFind.modstr.(df.mod_b)
+    out = mkpath(args["out"])
+    name = args["name"]
     fdr_min = parse(Float64, args["fdr_min"]) / 100
     fdr_max = parse(Float64, args["fdr_max"]) / 100
     fdr_ge = args["fdr_ge"]
@@ -21,11 +22,10 @@ prepare(args) = begin
     rt = parse(Float64, args["rtime"])
     lc = parse(Float64, args["lc"])
     fmt = split(args["fmt"], ",") .|> strip .|> Symbol
-    out = mkpath(args["out"])
-    return (; name, df, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt, out)
+    return (; df, out, name, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt)
 end
 
-process(paths; name, df, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt, out) = begin
+process(paths; df, out, name, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt) = begin
     M = map(p -> splitext(basename(p))[1] => MesMS.dict_by_id(MesMS.read_ms(p).MS2), paths) |> Dict
 
     s = trues(size(df, 1))
@@ -72,14 +72,22 @@ end
 main() = begin
     settings = ArgParse.ArgParseSettings(prog="TargetSelect")
     ArgParse.@add_arg_table! settings begin
-        "--name"
-            help = "task name"
-            metavar = "name"
-            default = "TargetWizard"
+        "data"
+            help = "list of .mes or .ms1/2 files; .ms2/1 files should be in the same directory for .ms1/2"
+            nargs = '+'
+            required = true
         "--psm"
             help = "pLink PSM file (full list)"
             metavar = "PSM"
             required = true
+        "--out", "-o"
+            help = "output directory"
+            metavar = "./out/"
+            default = "./out/"
+        "--name"
+            help = "task name"
+            metavar = "name"
+            default = "TargetWizard"
         "--fdr_min"
             help = "min. FDR (%)"
             metavar = "min"
@@ -118,17 +126,9 @@ main() = begin
             help = "format(s) of target list (split by `,`)        TW: TargetWizard, TmQE: Thermo Q Exactive, TmFu: Thermo Fusion"
             metavar = "TW,TmQE,TmFu"
             default = "TW,TmQE,TmFu"
-        "--out", "-o"
-            help = "output directory"
-            metavar = "./out/"
-            default = "./out/"
-        "data"
-            help = "list of .mes or .ms1/2 files; .ms2/1 files should be in the same directory for .ms1/2"
-            nargs = '+'
-            required = true
     end
     args = ArgParse.parse_args(settings)
-    paths = (sort∘unique∘reduce)(vcat, MesMS.match_path.(args["data"], ".mes"); init=String[])
+    paths = reduce(vcat, MesMS.match_path.(args["data"], ".mes")) |> unique |> sort
     @info "file paths of selected data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
     process(paths; prepare(args)...)

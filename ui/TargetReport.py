@@ -24,14 +24,14 @@ ion_types = ["a", "b", "c", "x", "y", "z", "a_NH3", "b_NH3", "y_NH3", "a_H2O", "
 ion_names = ["a", "b", "c", "x", "y", "z", "a-NH₃", "b-NH₃", "y-NH₃", "a-H₂O", "b-H₂O", "y-H₂O"]
 vars_spec = {
     "report": {"type": tk.StringVar, "value": BAReport},
+    "out": {"type": tk.StringVar, "value": ""},
     "ms": {"type": tk.StringVar, "value": ""},
-    "error2": {"type": tk.StringVar, "value": "20.0"},
     "target": {"type": tk.StringVar, "value": ""},
     "target_fmt": {"type": tk.StringVar, "value": "Auto Detect"},
     "psm": {"type": tk.StringVar, "value": ""},
     "linker": {"type": tk.StringVar, "value": "DSSO"},
+    "error2": {"type": tk.StringVar, "value": "20.0"},
     "cfg_pl": {"type": tk.StringVar, "value": ""},
-    "out": {"type": tk.StringVar, "value": ""},
     "generators": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin")},
     "thermorawread": {"type": tk.StringVar, "value": util.get_content("ThermoRawRead", "ThermoRawRead.exe", shared=True)},
     "mono": {"type": tk.StringVar, "value": path_mono},
@@ -56,11 +56,12 @@ def run_identificationreport():
     pass
 
 def run_crosslinkedpeptidecoveragereport():
-    task.call(os.path.join(V["generators"].get(), "XLCoverageReport"), V["psm"].get(), *(V["ms"].get().split(";")),
+    task.call(os.path.join(V["generators"].get(), "XLCoverageReport"), V["psm"].get(),
+        "--ms", *(V["ms"].get().split(";")),
         "--out", V["out"].get(),
+        "--linker", V["linker"].get(),
         "--error", V["error2"].get(),
         "--ion", ",".join([t for t in ion_types if V[f"ion_{t}"].get()]),
-        "--linker", V["linker"].get(),
         "--cfg", V["cfg_pl"].get(),
     )
 
@@ -132,10 +133,10 @@ I += 1
 
 f = F[XPCReport]
 I = 0
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=t_ms))
-I += 1
 t = (("PSM", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))
+util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], V["out"], filetypes=t))
+I += 1
+util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=t_ms))
 I += 1
 _, f_ion, _ = util.add_entry(f, I, "Ion Type:", ttk.Frame(f, height=24))
 f_ion1 = ttk.Frame(f_ion)
@@ -145,9 +146,9 @@ f_ion2.pack(fill="x")
 for n, t in zip(ion_names[0:6], ion_types[0:6]): ttk.Checkbutton(f_ion1, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
 for n, t in zip(ion_names[6:], ion_types[6:]): ttk.Checkbutton(f_ion2, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
 I += 1
-util.add_entry(f, I, "Fragment Mass Error:", V["error2"], "ppm")
-I += 1
 util.add_entry(f, I, "Default Linker:", V["linker"])
+I += 1
+util.add_entry(f, I, "Fragment Mass Error:", V["error2"], "ppm")
 I += 1
 util.add_entry(f, I, "pLink Cfg. Directory:", V["cfg_pl"], "Select", util.askdir(V["cfg_pl"]))
 I += 1

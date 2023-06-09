@@ -17,24 +17,24 @@ views = [RView, CView, RXView, CXView]
 target_fmts = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
 vars_spec = {
     "view": {"type": tk.StringVar, "value": RXView},
+    "out": {"type": tk.StringVar, "value": ""},
     "tg": {"type": tk.StringVar, "value": ""},
     "target_fmt": {"type": tk.StringVar, "value": "Auto Detect"},
-    "xl": {"type": tk.StringVar, "value": ""},
     "ms": {"type": tk.StringVar, "value": ""},
     "ms_": {"type": tk.StringVar, "value": ""},
-    "ft": {"type": tk.StringVar, "value": ""},
-    "ft_": {"type": tk.StringVar, "value": ""},
     "psm": {"type": tk.StringVar, "value": ""},
     "psm_xl": {"type": tk.StringVar, "value": ""},
     "psm_xl_": {"type": tk.StringVar, "value": ""},
-    "fdr": {"type": tk.StringVar, "value": "Inf"},
-    "error": {"type": tk.StringVar, "value": "20.0"},
+    "xl": {"type": tk.StringVar, "value": ""},
+    "ft": {"type": tk.StringVar, "value": ""},
+    "ft_": {"type": tk.StringVar, "value": ""},
     "linker": {"type": tk.StringVar, "value": "DSSO"},
-    "out": {"type": tk.StringVar, "value": ""},
-    "targetview": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin")},
+    "error": {"type": tk.StringVar, "value": "20.0"},
+    "fdr": {"type": tk.StringVar, "value": "Inf"},
     "cfg_pl": {"type": tk.StringVar, "value": ""},
     "cfg_pf": {"type": tk.StringVar, "value": ""},
     "url": {"type": tk.StringVar, "value": "127.0.0.1:30030"},
+    "targetview": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin")},
 }
 task = util.Task("TargetView", vars_spec, path=meta.homedir)
 V = task.vars
@@ -47,34 +47,36 @@ def run_dualview():
 
 def run_xview():
     task.call(os.path.join(V["targetview"].get(), "TargetXView"),
-        V["tg"].get(), "--out", V["out"].get(),
+        V["tg"].get(),
+        "--ms", V["ms"].get(),
+        "--psm", V["psm_xl"].get(),
+        "--out", V["out"].get(),
+        "--xl", V["xl"].get(),
+        "--ft", V["ft"].get(),
+        "--psm_pf", V["psm"].get(),
         "--fmt", target_fmts[V["target_fmt"].get()],
+        "--linker", V["linker"].get(),
         "--error", V["error"].get(),
+        "--fdr", V["fdr"].get(),
         "--cfg", V["cfg_pl"].get(),
         "--cfg_pf", V["cfg_pf"].get(),
-        "--linker", V["linker"].get(),
-        "--xl", V["xl"].get(),
-        "--ms", V["ms"].get(),
-        "--ft", V["ft"].get(),
-        "--psm", V["psm_xl"].get(),
-        "--psm_pf", V["psm"].get(),
-        "--fdr", V["fdr"].get(),
         "--host", V["url"].get().split(":")[0],
         "--port", V["url"].get().split(":")[1],
     )
 
 def run_xdualview():
     task.call(os.path.join(V["targetview"].get(), "TargetXDualView"),
-        V["tg"].get(), "--out", V["out"].get(),
-        "--fmt", target_fmts[V["target_fmt"].get()],
-        "--error", V["error"].get(),
-        "--cfg", V["cfg_pl"].get(),
-        "--linker", V["linker"].get(),
-        "--xl", V["xl"].get(),
+        V["tg"].get(),
         "--ms", V["ms"].get(), V["ms_"].get(),
-        "--ft", V["ft"].get(), V["ft_"].get(),
         "--psm", V["psm_xl"].get(), V["psm_xl_"].get(),
+        "--out", V["out"].get(),
+        "--xl", V["xl"].get(),
+        "--ft", V["ft"].get(), V["ft_"].get(),
+        "--fmt", target_fmts[V["target_fmt"].get()],
+        "--linker", V["linker"].get(),
+        "--error", V["error"].get(),
         "--fdr", V["fdr"].get(),
+        "--cfg", V["cfg_pl"].get(),
         "--host", V["url"].get().split(":")[0],
         "--port", V["url"].get().split(":")[1],
     )
@@ -139,31 +141,35 @@ util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V
 I += 1
 util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["target_fmt"], values=list(target_fmts.keys()), state="readonly", justify="center"))
 I += 1
-t = (("Candidate XL List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=t))
-I += 1
 t = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
-I += 1
-t = (("Peptide Feature List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=t))
 I += 1
 t = (("XL PSM", "*.csv"), ("All", "*.*"))
 util.add_entry(f, I, "XL PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], filetypes=t))
 I += 1
-t = (("Linear PSM", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Linear PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))
+util.add_entry(f, I, "Default Linker:", V["linker"])
+I += 1
+util.add_entry(f, I, "Max. MS1 Mass Error:", V["error"], "ppm")
 I += 1
 util.add_entry(f, I, "FDR:", V["fdr"], "%")
 I += 1
-util.add_entry(f, I, "MS1 Mass Error:", V["error"], "ppm")
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
+ttk.Label(f, text="Optional").grid(column=0, row=I)
 I += 1
-util.add_entry(f, I, "Default Linker:", V["linker"])
+t = (("Candidate XL List", "*.csv"), ("All", "*.*"))
+util.add_entry(f, I, "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=t))
+I += 1
+t = (("Peptide Feature List", "*.csv"), ("All", "*.*"))
+util.add_entry(f, I, "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=t))
+I += 1
+t = (("Linear PSM", "*.csv"), ("All", "*.*"))
+util.add_entry(f, I, "Linear PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))
 I += 1
 util.add_entry(f, I, "pLink Cfg. Directory:", V["cfg_pl"], "Select", util.askdir(V["cfg_pl"]))
 I += 1
 util.add_entry(f, I, "pFind Cfg. Directory:", V["cfg_pf"], "Select", util.askdir(V["cfg_pf"]))
 I += 1
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 
 f = F[CXView]
 I = 0
@@ -200,11 +206,11 @@ util.add_entry(f, I, "XL PSM:", V["psm_xl_"], "Select", util.askfile(V["psm_xl_"
 I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 I += 1
-util.add_entry(f, I, "FDR:", V["fdr"], "%")
+util.add_entry(f, I, "Default Linker:", V["linker"])
 I += 1
 util.add_entry(f, I, "MS1 Mass Error:", V["error"], "ppm")
 I += 1
-util.add_entry(f, I, "Default Linker:", V["linker"])
+util.add_entry(f, I, "FDR:", V["fdr"], "%")
 I += 1
 util.add_entry(f, I, "pLink Cfg. Directory:", V["cfg_pl"], "Select", util.askdir(V["cfg_pl"]))
 I += 1
