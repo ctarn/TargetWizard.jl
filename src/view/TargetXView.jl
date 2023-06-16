@@ -98,7 +98,7 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
         Input("tg_table", "derived_virtual_data"),
         Input("tg_table", "derived_virtual_selected_rows"),
     ) do v1, v2
-        id = v1[v2[begin] + 1].id
+        id = parse(Int, v1[v2[begin] + 1].id)
         tg = df_tg[id, :]
         table_data = Dict.(pairs.(eachrow(string.(df_xl[tg.xl_, :]))))
         fig = plot_lc(tg, df_ft, df_m1, df_m2, p_hit, ε)
@@ -120,7 +120,7 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
         Input("psm_table", "derived_virtual_data"),
         Input("psm_table", "derived_virtual_selected_rows"),
     ) do v1, v2
-        id = v1[v2[begin] + 1].id
+        id = parse(Int, v1[v2[begin] + 1].id)
         r = df_psm[id, :]
         m2 = df_m2[M2I[r.scan], :]
         if r.engine == :pLink

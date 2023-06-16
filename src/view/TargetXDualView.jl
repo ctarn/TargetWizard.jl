@@ -159,7 +159,7 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
         Input("tg_table", "derived_virtual_data"),
         Input("tg_table", "derived_virtual_selected_rows"),
     ) do v1, v2
-        id = v1[v2[begin] + 1].id
+        id = parse(Int, v1[v2[begin] + 1].id)
         tg = df_tg[id, :]
         table_data = Dict.(pairs.(eachrow(string.(df_xl[tg.xl_, :]))))
         fig = plot_lc(tg, dfs_ft, dfs_m1, dfs_m2, ε)
@@ -187,7 +187,7 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
         Input("error_frag_a", "value"),
     ) do v1, v2, ε2
         ε2 = ε2 * 1.0e-6
-        id = v1[v2[begin] + 1].id
+        id = parse(Int, v1[v2[begin] + 1].id)
         iden = dfs_psm[1][id, :]
         spec = dfs_m2[1][M2Is[1][iden.scan], :]
         p_seq, p_psm = plot_psm(iden, spec, ε2, ele_plink, aa_plink, mod_plink, xl_plink)
@@ -204,7 +204,7 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
         Input("error_frag_b", "value"),
     ) do v1, v2, ε2
         ε2 = ε2 * 1.0e-6
-        id = v1[v2[begin] + 1].id
+        id = parse(Int, v1[v2[begin] + 1].id)
         iden = dfs_psm[2][id, :]
         spec = dfs_m2[2][M2Is[2][iden.scan], :]
         p_seq, p_psm = plot_psm(iden, spec, ε2, ele_plink, aa_plink, mod_plink, xl_plink)
