@@ -54,7 +54,7 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
             style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
             style_cell=Dict("overflow"=>"hidden", "text-overflow"=>"ellipsis", "min-width"=>"64px", "max-width"=>"256px"),
             columns=[(; name=i, id=i) for i in names(df_tg_tb)],
-            data=Dict.(pairs.(eachrow(df_tg_tb))),
+            data=Dict.(pairs.(eachrow(string.(df_tg_tb)))),
             filter_action="native",
             sort_action="native",
             sort_mode="multi",
@@ -100,7 +100,7 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
     ) do v1, v2
         id = v1[v2[begin] + 1].id
         tg = df_tg[id, :]
-        table_data = Dict.(pairs.(eachrow(df_xl[tg.xl_, :])))
+        table_data = Dict.(pairs.(eachrow(string.(df_xl[tg.xl_, :]))))
         fig = plot_lc(tg, df_ft, df_m1, df_m2, p_hit, ε)
         return table_data, fig
     end
@@ -111,7 +111,7 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
     ) do v
         ids = map(p -> p.customdata, v.points)
         psms = df_psm[vcat(df_m2[ids, :psm]...), :]
-        return Dict.(pairs.(eachrow(psms)))
+        return Dict.(pairs.(eachrow(string.(psms))))
     end
 
     callback!(app,

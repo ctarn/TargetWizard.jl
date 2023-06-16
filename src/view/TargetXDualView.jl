@@ -84,7 +84,7 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
             style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
             style_cell=Dict("overflow"=>"hidden", "text-overflow"=>"ellipsis", "min-width"=>"64px", "max-width"=>"256px"),
             columns=[(; name=i, id=i) for i in names(df_tg_tab)],
-            data=Dict.(pairs.(eachrow(df_tg_tab))),
+            data=Dict.(pairs.(eachrow(string.(df_tg_tab)))),
             filter_action="native",
             sort_action="native",
             sort_mode="multi",
@@ -161,7 +161,7 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
     ) do v1, v2
         id = v1[v2[begin] + 1].id
         tg = df_tg[id, :]
-        table_data = Dict.(pairs.(eachrow(df_xl[tg.xl_, :])))
+        table_data = Dict.(pairs.(eachrow(string.(df_xl[tg.xl_, :]))))
         fig = plot_lc(tg, dfs_ft, dfs_m1, dfs_m2, ε)
         return table_data, fig
     end
@@ -176,7 +176,7 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
         ids_b = map(i -> i[2], filter(i -> i[1] == "B", ids))
         psms_a = isempty(ids_a) ? DataFrames.DataFrame() : dfs_psm[1][vcat(dfs_m2[1][ids_a, :psm]...), :]
         psms_b = isempty(ids_b) ? DataFrames.DataFrame() : dfs_psm[2][vcat(dfs_m2[2][ids_b, :psm]...), :]
-        return Dict.(pairs.(eachrow(psms_a))), Dict.(pairs.(eachrow(psms_b)))
+        return Dict.(pairs.(eachrow(string.(psms_a)))), Dict.(pairs.(eachrow(string.(psms_b))))
     end
 
     callback!(app,
