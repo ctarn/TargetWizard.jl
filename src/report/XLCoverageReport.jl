@@ -25,7 +25,7 @@ prepare(args) = begin
 end
 
 process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
-    ion_types = map(i -> getfield(Plot, Symbol("ion_$(i)")), ion_syms)
+    ion_types = map(i -> getfield(MesMS, Symbol("ion_$(i)")), ion_syms)
     df = pLink.read_psm_full(path).xl
     M = map(p -> splitext(basename(p))[1] => MesMS.dict_by_id(MesMS.read_ms(p).MS2), paths_ms) |> Dict
 
