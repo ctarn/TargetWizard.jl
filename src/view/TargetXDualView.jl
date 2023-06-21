@@ -217,22 +217,22 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
 end
 
 prepare(args) = begin
-    path_tg = args["target"]
     path_ms = args["ms"]
     path_psm = args["psm"]
     out = mkpath(args["out"])
     path_xl = args["xl"]
     path_ft = args["ft"]
+    fmt = args["fmt"] |> Symbol
     linker = Symbol(args["linker"])
     ε = parse(Float64, args["error"]) * 1.0e-6
     fdr = parse(Float64, args["fdr"]) / 100
     cfg = args["cfg"]
     host = parse(IPAddr, args["host"])
     port = parse(Int, args["port"])
-    return (; path_tg, path_ms, path_psm, out, path_xl, path_ft, linker, ε, fdr, cfg, host, port)
+    return (; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cfg, host, port)
 end
 
-process(; path_tg, path_ms, path_psm, out, path_xl, path_ft, linker, ε, fdr, cfg, host, port) = begin
+process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cfg, host, port) = begin
     Ms = map(MesMS.read_ms, path_ms)
     dfs_m1 = map(Ms) do M
         map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1)
@@ -293,10 +293,10 @@ process(; path_tg, path_ms, path_psm, out, path_xl, path_ft, linker, ε, fdr, cf
         return df_ft
     end
 
-    @info "Target loading from " * path_tg
-    df_tg = DataFrames.DataFrame(CSV.File(path_tg))
+    @info "Target loading from " * path
+    df_tg = DataFrames.DataFrame(CSV.File(path))
     df_tg.id = Vector(1:DataFrames.nrow(df_tg))
-    parse_target_list!(df, fmt)
+    parse_target_list!(df_tg, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
     df_tg.start = round.(df_tg.start; digits=2)
     df_tg.stop = round.(df_tg.stop; digits=2)
@@ -358,7 +358,7 @@ process(; path_tg, path_ms, path_psm, out, path_xl, path_ft, linker, ε, fdr, cf
     ns = filter(n -> !endswith(n, '_'), names(df_tg))
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
 
-    MesMS.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path_tg)[1])).TargetXDualView.csv"))
+    MesMS.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path)[1])).TargetXDualView.csv"))
 
     @async begin
         sleep(4)
@@ -421,7 +421,7 @@ main() = begin
             default = "30030"
     end
     args = ArgParse.parse_args(settings)
-    process(; prepare(args)...)
+    process(args["target"]; prepare(args)...)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

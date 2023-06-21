@@ -142,13 +142,13 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
 end
 
 prepare(args) = begin
-    path_tg = args["target"]
     path_ms = args["ms"]
     path_psm = args["psm"]
     out = mkpath(args["out"])
     path_xl = args["xl"]
     path_ft = args["ft"]
     path_psm_pf = args["psm_pf"]
+    fmt = args["fmt"] |> Symbol
     linker = Symbol(args["linker"])
     ε = parse(Float64, args["error"]) * 1.0e-6
     fdr = parse(Float64, args["fdr"]) / 100
@@ -156,10 +156,10 @@ prepare(args) = begin
     cfg_pf = args["cfg_pf"]
     host = parse(IPAddr, args["host"])
     port = parse(Int, args["port"])
-    return (; path_tg, path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, linker, ε, fdr, cfg, cfg_pf, host, port)
+    return (; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, cfg, cfg_pf, host, port)
 end
 
-process(; path_tg, path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, linker, ε, fdr, cfg, cfg_pf, host, port) = begin
+process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, cfg, cfg_pf, host, port) = begin
     M = MesMS.read_ms(path_ms)
     df_m1 = map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1) |> DataFrames.DataFrame
     df_m2 = map(m -> (; m.id, mz=m.activation_center, rt=m.retention_time, m.peaks), M.MS2) |> DataFrames.DataFrame
@@ -231,10 +231,10 @@ process(; path_tg, path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, linker
     df_ft.id = Vector(1:DataFrames.nrow(df_ft))
     DataFrames.select!(df_ft, :id, DataFrames.Not([:id]))
 
-    @info "Target loading from " * path_tg
-    df_tg = CSV.File(path_tg) |> DataFrames.DataFrame
+    @info "Target loading from " * path
+    df_tg = CSV.File(path) |> DataFrames.DataFrame
     df_tg.id = Vector(1:DataFrames.nrow(df_tg))
-    parse_target_list!(df, fmt)
+    parse_target_list!(df_tg, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
 
     @info "XL Candidtes mapping"
@@ -341,7 +341,7 @@ main() = begin
             default = "30030"
     end
     args = ArgParse.parse_args(settings)
-    process(; prepare(args)...)
+    process(args["target"]; prepare(args)...)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
