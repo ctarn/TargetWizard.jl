@@ -20,7 +20,7 @@ const DIR_DATA = @path joinpath(@__DIR__, "../../data/dash")
 Δ = 1.00335
 
 plot_lc(tg, dfs_ft, dfs_m1, dfs_m2, ε) = begin
-    ps = map(zip(["A", "B"], dfs_m1)) do (s, df_m1)
+    ps = map(["A", "B"], dfs_m1) do s, df_m1
         x = df_m1.rt
         ys = map(n -> map(p -> MesMS.max_inten_ε(p, tg.mz + n * Δ / tg.z, ε), df_m1.peaks), -1:2)
         ls = [scatter(x=x, y=ys[2], mode="lines", name="$(s) M")]
@@ -242,7 +242,7 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
     end .|> DataFrames.DataFrame
     M2Is = map(df -> map(x -> x[2] => x[1], enumerate(df.id)), dfs_m2) .|> Dict
 
-    dfs_psm = map(zip(path_psm, dfs_m2, M2Is)) do (p, df_m2, M2I)
+    dfs_psm = map(path_psm, dfs_m2, M2Is) do p, df_m2, M2I
         df_psm = pLink.read_psm_full(p).xl
         df_psm = df_psm[df_psm.fdr .≤ fdr, :]
         df_psm.engine .= :pLink
@@ -332,7 +332,7 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
     df_tg.n_psm_b = length.(df_tg.psm_b_)
 
     @info "MS2 mapping"
-    df_tg.m2_all_a_, df_tg.m2_all_b_ = map(zip(dfs_m2, M2Is)) do (df_m2, M2I)
+    df_tg.m2_all_a_, df_tg.m2_all_b_ = map(dfs_m2, M2Is) do df_m2, M2I
         tmp = sort!([(x.mz::Float64, x.id::Int) for x in eachrow(df_m2)])
         mzs = map(x -> x[1], tmp)
         ids = map(x -> x[2], tmp)
