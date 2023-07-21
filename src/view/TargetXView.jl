@@ -258,6 +258,8 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
     df_tg.m2_ = [filter(i -> r.start ≤ df_m2.rt[i] ≤ r.stop, r.m2_all_) for r in eachrow(df_tg)]
     df_tg.n_m2_all = length.(df_tg.m2_all_)
     df_tg.n_m2 = length.(df_tg.m2_)
+    df_tg.m2_all_id_ = [map(x -> df_m2.id[x], r.m2_all_) for r in eachrow(df_tg)]
+    df_tg.m2_id_ = [map(x -> df_m2.id[x], r.m2_) for r in eachrow(df_tg)]
 
     @info "PSM mapping"
     df_tg.psm_all_ = [vcat(df_m2[r.m2_all_, :psm]...) for r in eachrow(df_tg)]

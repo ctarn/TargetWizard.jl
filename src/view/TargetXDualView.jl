@@ -355,6 +355,15 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
     df_tg.n_m2_ext_a = length.(df_tg.m2_ext_a_)
     df_tg.n_m2_ext_b = length.(df_tg.m2_ext_b_)
 
+    df_tg.m2_all_a_id_ = [map(x -> dfs_m2[1].id[x], r.m2_all_a_) for r in eachrow(df_tg)]
+    df_tg.m2_all_b_id_ = [map(x -> dfs_m2[2].id[x], r.m2_all_b_) for r in eachrow(df_tg)]
+    df_tg.m2_a_id_ = [map(x -> dfs_m2[1].id[x], r.m2_a_) for r in eachrow(df_tg)]
+    df_tg.m2_b_id_ = [map(x -> dfs_m2[2].id[x], r.m2_b_) for r in eachrow(df_tg)]
+    df_tg.m2_ext_all_a_id_ = [map(x -> dfs_m2[1].id[x], r.m2_ext_all_a_) for r in eachrow(df_tg)]
+    df_tg.m2_ext_all_b_id_ = [map(x -> dfs_m2[2].id[x], r.m2_ext_all_b_) for r in eachrow(df_tg)]
+    df_tg.m2_ext_a_id_ = [map(x -> dfs_m2[1].id[x], r.m2_ext_a_) for r in eachrow(df_tg)]
+    df_tg.m2_ext_b_id_ = [map(x -> dfs_m2[2].id[x], r.m2_ext_b_) for r in eachrow(df_tg)]
+
     ns = filter(n -> !endswith(n, '_'), names(df_tg))
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
 
