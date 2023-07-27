@@ -258,7 +258,7 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
         ]
         DataFrames.select!(df_psm, ns, DataFrames.Not(ns))
         ("linker" ∉ names(df_psm)) && (df_psm.linker .= linker)
-        df_psm.id = Vector(1:DataFrames.nrow(df_psm))
+        df_psm.id = Vector(1:size(df_psm, 1))
         DataFrames.select!(df_psm, :id, DataFrames.Not([:id]))
         df_psm.rt = [df_m2[M2I[r.scan], :rt] for r in eachrow(df_psm)]
         df_psm.mz = round.(df_psm.mz, digits=6)
@@ -282,20 +282,20 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
 
     !isempty(path_xl) && @info "XL Candidtes loading from " * path_xl
     df_xl = DataFrames.DataFrame(isempty(path_xl) ? [] : CSV.File(path_xl))
-    df_xl.id = Vector(1:DataFrames.nrow(df_xl))
+    df_xl.id = Vector(1:size(df_xl, 1))
     DataFrames.select!(df_xl, :id, DataFrames.Not([:id]))
 
     dfs_ft = map(path_ft) do p
         !isempty(p) && @info "Feature loading from " * p
         df_ft = DataFrames.DataFrame(isempty(p) ? [] : CSV.File(p))
-        df_ft.id = Vector(1:DataFrames.nrow(df_ft))
+        df_ft.id = Vector(1:size(df_ft, 1))
         DataFrames.select!(df_ft, :id, DataFrames.Not([:id]))
         return df_ft
     end
 
     @info "Target loading from " * path
     df_tg = DataFrames.DataFrame(CSV.File(path))
-    df_tg.id = Vector(1:DataFrames.nrow(df_tg))
+    df_tg.id = Vector(1:size(df_tg, 1))
     parse_target_list!(df_tg, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
     df_tg.start = round.(df_tg.start; digits=2)

@@ -20,7 +20,7 @@ const DIR_DATA = @path joinpath(@__DIR__, "../../data/dash")
 Δ = 1.00335
 
 plot_hit(df_m2) = begin
-    ls = [scatter(x=df_m2.rt, y=df_m2.mz, customdata=1:DataFrames.nrow(df_m2), mode="markers", name="All MS2", line_color="grey")]
+    ls = [scatter(x=df_m2.rt, y=df_m2.mz, customdata=1:size(df_m2, 1), mode="markers", name="All MS2", line_color="grey")]
     return Plot(ls, Layout(; xaxis_title="retention time (s)", yaxis_title="m/z"))
 end
 
@@ -193,7 +193,7 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
         df_psm = vcat(df_psm, df_psm_pf; cols=:union)
     end
 
-    df_psm.id = Vector(1:DataFrames.nrow(df_psm))
+    df_psm.id = Vector(1:size(df_psm, 1))
     DataFrames.select!(df_psm, :id, DataFrames.Not([:id]))
     df_psm.rt = [df_m2[M2I[r.scan], :rt] for r in eachrow(df_psm)]
 
@@ -223,17 +223,17 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
 
     !isempty(path_xl) && @info "XL Candidtes loading from " * path_xl
     df_xl = (isempty(path_xl) ? [] : CSV.File(path_xl)) |> DataFrames.DataFrame
-    df_xl.id = Vector(1:DataFrames.nrow(df_xl))
+    df_xl.id = Vector(1:size(df_xl, 1))
     DataFrames.select!(df_xl, :id, DataFrames.Not([:id]))
 
     !isempty(path_ft) && @info "Feature loading from "* path_ft
     df_ft = (isempty(path_ft) ? [] : CSV.File(path_ft)) |> DataFrames.DataFrame
-    df_ft.id = Vector(1:DataFrames.nrow(df_ft))
+    df_ft.id = Vector(1:size(df_ft, 1))
     DataFrames.select!(df_ft, :id, DataFrames.Not([:id]))
 
     @info "Target loading from " * path
     df_tg = CSV.File(path) |> DataFrames.DataFrame
-    df_tg.id = Vector(1:DataFrames.nrow(df_tg))
+    df_tg.id = Vector(1:size(df_tg, 1))
     parse_target_list!(df_tg, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
 
