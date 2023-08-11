@@ -13,7 +13,8 @@ RView = "Regular Linear Peptide View"
 CView = "Comparative Linear Peptide View"
 RXView = "Regular Cross-linked Peptide View"
 CXView = "Comparative Cross-linked Peptide View"
-views = [RView, CView, RXView, CXView]
+XSView = "Cross-link Site View"
+views = [RView, CView, RXView, CXView, XSView]
 target_fmts = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
 vars_spec = {
     "view": {"type": tk.StringVar, "value": RXView},
@@ -34,6 +35,8 @@ vars_spec = {
     "cfg_pl": {"type": tk.StringVar, "value": ""},
     "cfg_pf": {"type": tk.StringVar, "value": ""},
     "url": {"type": tk.StringVar, "value": "127.0.0.1:30030"},
+    "inten_thres": {"type": tk.StringVar, "value": "0.0"},
+    "smooth": {"type": tk.StringVar, "value": "16"},
     "targetview": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin")},
 }
 task = util.Task("TargetView", vars_spec, path=meta.homedir)
@@ -81,11 +84,25 @@ def run_xdualview():
         "--port", V["url"].get().split(":")[1],
     )
 
+def run_xsview():
+    task.call(os.path.join(V["targetview"].get(), "XSiteView"),
+        "--ms", V["ms"].get(),
+        "--psm", V["psm_xl"].get(),
+        "--out", V["out"].get(),
+        "--error", V["error"].get(),
+        "--inten", V["inten_thres"].get(),
+        "--smooth", V["smooth"].get(),
+        "--cfg", V["cfg_pl"].get(),
+        "--host", V["url"].get().split(":")[0],
+        "--port", V["url"].get().split(":")[1],
+    )
+
 def run():
     if V["view"].get() == RView: run_view()
     elif V["view"].get() == CView: run_dualview()
     elif V["view"].get() == RXView: run_xview()
     elif V["view"].get() == CXView: run_xdualview()
+    elif V["view"].get() == XSView: run_xsview()
     else: print("Unknown View Type:", V["view"].get())
 
 def new_port():
@@ -211,6 +228,23 @@ I += 1
 util.add_entry(f, I, "MS1 Mass Error:", V["error"], "ppm")
 I += 1
 util.add_entry(f, I, "FDR:", V["fdr"], "%")
+I += 1
+util.add_entry(f, I, "pLink Cfg. Directory:", V["cfg_pl"], "Select", util.askdir(V["cfg_pl"]))
+I += 1
+
+f = F[XSView]
+I = 0
+t = (("XL PSM", "*.csv"), ("All", "*.*"))
+util.add_entry(f, I, "XL PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], V["out"], filetypes=t))
+I += 1
+t = (("MES file", "*.mes"), ("MS1 file", "*.ms1"), ("All", "*.*"))
+util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
+I += 1
+util.add_entry(f, I, "Max. Mass Error:", V["error"], "ppm")
+I += 1
+util.add_entry(f, I, "Intensity Thres.:", V["inten_thres"])
+I += 1
+util.add_entry(f, I, "Smooth Width:", V["smooth"])
 I += 1
 util.add_entry(f, I, "pLink Cfg. Directory:", V["cfg_pl"], "Select", util.askdir(V["cfg_pl"]))
 I += 1
