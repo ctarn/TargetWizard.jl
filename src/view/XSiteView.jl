@@ -1,5 +1,6 @@
 module XSiteView
 
+using Statistics
 using Sockets
 
 import ArgParse
@@ -18,6 +19,42 @@ include("../util.jl")
 const DIR_DATA = @path joinpath(@__DIR__, "../../data/dash")
 
 Δ = 1.00335
+
+build_ions(seq, mods, tab_ele, tab_aa, tab_mod; types=[(MesMS.ion_b, 1:3), (MesMS.ion_y, 1:3)]) = begin
+    ts = [(; t..., mass=MesMS.mass(t.Δ, tab_ele), zs) for (t, zs) in types]
+    base = MesMS.calc_ion_base(MesMS.lsum_seq(seq, mods, tab_aa, tab_mod))
+    ions = [MesMS.calc_ion(i, t.mass, z, t.type, t.sym, t.color) for t in ts for z in t.zs for i in base[t.part]]
+    return ions
+end
+
+_plot_seq!(ls, x, y, seq, mods, ions, font) = begin
+    colors = [:black for _ in seq]
+    foreach(m -> colors[m.site] = :red, mods)
+    for (i, aa) in enumerate(seq)
+        push!(ls, scatter(x=[x + i - 0.5], y=[y], mode="text", name="", text=string(aa), textposition="middle center", textfont=attr(size=font*2, color=colors[i])))
+    end
+    n = Dict()
+    for i in ions
+        n[(i.part, i.loc)] = get(n, (i.part, i.loc), 0) + 1
+        if i.part == :l
+            push!(ls, scatter(x=[x + i.loc], y=[y - (n[(i.part, i.loc)] / 2 + 1.5)], mode="text", name="", text="┛", hovertext=i.text, textposition="top left", textfont=attr(size=font, color=i.color)))
+        elseif i.part == :r
+            push!(ls, scatter(x=[x + i.loc], y=[y + (n[(i.part, i.loc)] / 2 + 2.0)], mode="text", name="", text="┏", hovertext=i.text, textposition="bottom right", textfont=attr(size=font, color=i.color)))
+        end
+    end
+end
+
+seq_xl(seqs, modss, site_pairs, ionss; font=18) = begin
+    seqs = collect.(seqs)
+    lα, lβ = mean(extrema(first.(site_pairs))), mean(extrema(last.(site_pairs)))
+    xs = max(lα, lβ) .- [lα, lβ] .+ [0.25, -0.25]
+    ys = [4, -4]
+    ls = [scatter(x=[a, b] .+ xs .- 0.5, y=copysign.(abs.(ys) .- 2, ys), mode="lines", name="") for (a, b) in site_pairs]
+    for (x, y, seq, mods, ions) in zip(xs, ys, seqs, modss, ionss)
+        _plot_seq!(ls, x, y, seq, mods, ions, font)
+    end
+    return Plot(ls, Layout(; showlegend=false, yaxis=attr(showticklabels=false, range=(-8, 8)), xaxis=attr(showticklabels=false), height=300))
+end
 
 get_inten(mz, ps, ε) = maximum(p -> p.inten, MesMS.query_ε(ps, mz, ε); init=0.0)
 
@@ -128,6 +165,7 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
             export_headers="display",
         ),
         dcc_graph(id="group_graph"),
+        dcc_graph(id="ion_graph"),
         dash_datatable(
             id="psm_table",
             style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
@@ -162,6 +200,7 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
     callback!(app,
         Output("psm_table", "columns"),
         Output("psm_table", "data"),
+        Output("ion_graph", "figure"),
         Input("group_table", "derived_virtual_data"),
         Input("group_table", "derived_virtual_selected_rows"),
         Input("group_graph", "selectedData"),
@@ -173,7 +212,13 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
             s = [id ∈ selected for id in df.id]
             df = df[s, :]
         end
-        return [(; name=i, id=i) for i in names(df)], Dict.(pairs.(eachrow(string.(df))))
+        r = df[1, :]
+        linker = getproperty(tab_xl, Symbol(r.linker))
+        site_pairs = [(r.site_a, r.site_b) for r in eachrow(df)]
+        ions_a = build_ions(r.pep_a, r.mod_a, tab_ele, tab_aa, tab_mod)
+        ions_b = build_ions(r.pep_b, r.mod_b, tab_ele, tab_aa, tab_mod)
+        p_ion = seq_xl((r.pep_a, r.pep_b), (r.mod_a, r.mod_b), site_pairs, [ions_a, ions_b])
+        return [(; name=i, id=i) for i in names(df)], Dict.(pairs.(eachrow(string.(df)))), p_ion
     end
 
     callback!(app,
