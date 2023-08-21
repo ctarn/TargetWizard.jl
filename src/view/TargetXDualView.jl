@@ -91,6 +91,8 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
             row_selectable="single",
             page_action="native",
             page_size=10,
+            export_format="csv",
+            export_headers="display",
         ),
         html_h4("Candidate Crosslink List of Selected Target"),
         dash_datatable(
@@ -103,6 +105,8 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
             sort_mode="multi",
             page_action="native",
             page_size=10,
+            export_format="csv",
+            export_headers="display",
         ),
         dcc_graph(id="lc_graph"),
         html_h4("PSM List of Selected Data A MS2(s) (may differ from the selected target)"),
@@ -117,6 +121,8 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
             row_selectable="single",
             page_action="native",
             page_size=4,
+            export_format="csv",
+            export_headers="display",
         ),
         html_h4("PSM List of Selected Data B MS2(s) (may differ from the selected target)"),
         dash_datatable(
@@ -130,6 +136,8 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
             row_selectable="single",
             page_action="native",
             page_size=4,
+            export_format="csv",
+            export_headers="display",
         ),
         html_div(className="opts") do
             html_div(className="opt") do

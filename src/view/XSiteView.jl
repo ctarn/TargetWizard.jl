@@ -124,6 +124,8 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
             row_selectable="single",
             page_action="native",
             page_size=10,
+            export_format="csv",
+            export_headers="display",
         ),
         dcc_graph(id="group_graph"),
         dash_datatable(
@@ -137,6 +139,8 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
             row_selectable="single",
             page_action="native",
             page_size=10,
+            export_format="csv",
+            export_headers="display",
         ),
         dcc_graph(id="seq_graph"),
         dcc_graph(id="psm_graph")

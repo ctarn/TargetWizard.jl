@@ -61,6 +61,8 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
             row_selectable="single",
             page_action="native",
             page_size=10,
+            export_format="csv",
+            export_headers="display",
         ),
         dash_datatable(
             id="xl_table",
@@ -72,6 +74,8 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
             sort_mode="multi",
             page_action="native",
             page_size=10,
+            export_format="csv",
+            export_headers="display",
         ),
         dcc_graph(id="lc_graph"),
         dash_datatable(
@@ -85,6 +89,8 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
             row_selectable="single",
             page_action="native",
             page_size=10,
+            export_format="csv",
+            export_headers="display",
         ),
         dcc_graph(id="seq_graph"),
         dcc_graph(id="psm_graph")
