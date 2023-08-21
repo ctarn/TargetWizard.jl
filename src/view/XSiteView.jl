@@ -1,5 +1,6 @@
 module XSiteView
 
+using Printf
 using Statistics
 using Sockets
 
@@ -37,9 +38,9 @@ _plot_seq!(ls, x, y, seq, mods, ions, font) = begin
     for i in ions
         n[(i.part, i.loc)] = get(n, (i.part, i.loc), 0) + 1
         if i.part == :l
-            push!(ls, scatter(x=[x + i.loc], y=[y - (n[(i.part, i.loc)] / 2 + 1.5)], mode="text", name="", text="┛", hovertext=i.text, textposition="top left", textfont=attr(size=font, color=i.color)))
+            push!(ls, scatter(x=[x + i.loc], y=[y - (n[(i.part, i.loc)] / 2 + 1.5)], mode="text", name="", text="┛", hovertext=i.text, customdata=[(i.seq, i.text, i.mz, i.z)], textposition="top left", textfont=attr(size=font, color=i.color)))
         elseif i.part == :r
-            push!(ls, scatter(x=[x + i.loc], y=[y + (n[(i.part, i.loc)] / 2 + 2.0)], mode="text", name="", text="┏", hovertext=i.text, textposition="bottom right", textfont=attr(size=font, color=i.color)))
+            push!(ls, scatter(x=[x + i.loc], y=[y + (n[(i.part, i.loc)] / 2 + 2.0)], mode="text", name="", text="┏", hovertext=i.text, customdata=[(i.seq, i.text, i.mz, i.z)], textposition="bottom right", textfont=attr(size=font, color=i.color)))
         end
     end
 end
@@ -164,7 +165,7 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
             export_format="csv",
             export_headers="display",
         ),
-        dcc_graph(id="group_graph"),
+        dcc_graph(id="group_graph", config=PlotConfig(toImageButtonOptions=attr(format="svg", filename="XSiteView_group").fields)),
         dcc_tabs() do
             dcc_tab(; label="PSM List") do
                 dash_datatable(
@@ -181,11 +182,12 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
                     export_format="csv",
                     export_headers="display",
                 ),
-                dcc_graph(id="seq_graph"),
-                dcc_graph(id="psm_graph")
+                dcc_graph(id="seq_graph", config=PlotConfig(toImageButtonOptions=attr(format="svg", filename="XSiteView_seq").fields)),
+                dcc_graph(id="psm_graph", config=PlotConfig(toImageButtonOptions=attr(format="svg", filename="XSiteView_psm").fields))
             end,
             dcc_tab(; label="Fragment Ion") do
-                dcc_graph(id="ion_graph")
+                dcc_graph(id="ion_graph", config=PlotConfig(toImageButtonOptions=attr(format="svg", filename="XSiteView_frag").fields)),
+                dcc_graph(id="ion_lc_graph", config=PlotConfig(toImageButtonOptions=attr(format="svg", filename="XSiteView_frag_LC").fields))
             end
         end
     end
@@ -219,10 +221,9 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
             df = df[s, :]
         end
         r = df[1, :]
-        linker = getproperty(tab_xl, Symbol(r.linker))
         site_pairs = [(r.site_a, r.site_b) for r in eachrow(df)]
-        ions_a = build_ions(r.pep_a, r.mod_a, tab_ele, tab_aa, tab_mod)
-        ions_b = build_ions(r.pep_b, r.mod_b, tab_ele, tab_aa, tab_mod)
+        ions_a = [(; i..., seq="α") for i in build_ions(r.pep_a, r.mod_a, tab_ele, tab_aa, tab_mod)]
+        ions_b = [(; i..., seq="β") for i in build_ions(r.pep_b, r.mod_b, tab_ele, tab_aa, tab_mod)]
         p_ion = seq_xl((r.pep_a, r.pep_b), (r.mod_a, r.mod_b), site_pairs, [ions_a, ions_b])
         return [(; name=i, id=i) for i in names(df)], Dict.(pairs.(eachrow(string.(df)))), p_ion
     end
@@ -244,6 +245,43 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
         p_seq = MesMS.Plotly.seq_xl(seqs, modss, sites, ionss)
         p_psm = MesMS.Plotly.spec(m2.peaks, filter(i -> i.peak > 0, vcat(ionss...)))
         return p_seq, p_psm
+    end
+
+    callback!(app,
+        Output("ion_lc_graph", "figure"),
+        Input("group_table", "derived_virtual_data"),
+        Input("group_table", "derived_virtual_selected_rows"),
+        Input("ion_graph", "selectedData"),
+    ) do v1, v2, v3
+        id = parse(Int, v1[v2[begin] + 1].id)
+        df = gd_grp[id]
+        ions = isnothing(v3) ? [] : filter(p -> hasproperty(p, :customdata), v3.points)
+        ions = map(i -> i.customdata, ions)
+
+        ms2s = [M2D[df.file[end]][r.scan] for r in eachrow(df)]
+        ms2s = sort(ms2s, by=s -> s.retention_time)
+        linker = getproperty(tab_xl, Symbol(df[1, :linker]))
+        xs = map(s -> s.retention_time, ms2s)
+        ls = AbstractTrace[]
+        for ion in ions
+            s, name, mz, z = ion
+            for (sym, δ, sty) in zip(["", "'", "''"], [0, linker.masses...], ["solid", "dot", "dash"])
+                mz_ = mz + δ / z
+                ys = map(s -> get_inten(mz_, s.peaks, ε), values(ms2s))
+                push!(ls, scatter(x=xs, y=ys, mode="lines+markers", line_dash=sty, name=@sprintf("%s (%.4f Th)", s * sym * name, mz_)))
+            end
+        end
+        p_ion = Plot(ls, Layout(; yaxis_title="abundance"))
+
+        mz = df.mz[end]
+        ms1s = M1[df.file[end]]
+        xs = map(s -> s.retention_time, values(ms1s))
+        ys = map(s -> get_inten(mz, s.peaks, ε), values(ms1s))
+        ls = [scatter(x=xs, y=ys, mode="lines", name=@sprintf("%s (%.4f Th)", "M", mz), line_color="grey")]
+        p_m = Plot(ls, Layout(; xaxis_title="retention time (s)", yaxis_title="abundance"))
+        p = [p_ion; p_m]
+        relayout!(p, Layout(Subplots(rows=2, cols=1, row_heights=[1, 3], shared_xaxes=true)))
+        return p
     end
     return app
 end
