@@ -111,7 +111,7 @@ end
 build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, tab_mod, tab_xl) = begin
     app = dash(; assets_folder=DIR_DATA)
     app.layout = html_div() do
-        html_h1("PxpSiteView", style=Dict("text-align"=>"center")),
+        html_h1("XSiteView", style=Dict("text-align"=>"center")),
         dash_datatable(
             id="group_table",
             style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
@@ -165,7 +165,8 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
         id = parse(Int, v1[v2[begin] + 1].id)
         df = gd_grp[id]
         if !isnothing(v3)
-            s = df.id .∈ map(p -> p.customdata, v3.points)
+            selected = map(p -> p.customdata, v3.points)
+            s = [id ∈ selected for id in df.id]
             df = df[s, :]
         end
         return [(; name=i, id=i) for i in names(df)], Dict.(pairs.(eachrow(string.(df))))
