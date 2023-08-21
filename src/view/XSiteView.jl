@@ -165,23 +165,29 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
             export_headers="display",
         ),
         dcc_graph(id="group_graph"),
-        dcc_graph(id="ion_graph"),
-        dash_datatable(
-            id="psm_table",
-            style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
-            style_cell=Dict("overflow"=>"hidden", "text-overflow"=>"ellipsis", "min-width"=>"64px", "max-width"=>"256px"),
-            columns=[(; name="psm", id="psm"),],
-            filter_action="native",
-            sort_action="native",
-            sort_mode="multi",
-            row_selectable="single",
-            page_action="native",
-            page_size=10,
-            export_format="csv",
-            export_headers="display",
-        ),
-        dcc_graph(id="seq_graph"),
-        dcc_graph(id="psm_graph")
+        dcc_tabs() do
+            dcc_tab(; label="PSM List") do
+                dash_datatable(
+                    id="psm_table",
+                    style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
+                    style_cell=Dict("overflow"=>"hidden", "text-overflow"=>"ellipsis", "min-width"=>"64px", "max-width"=>"256px"),
+                    columns=[(; name="psm", id="psm"),],
+                    filter_action="native",
+                    sort_action="native",
+                    sort_mode="multi",
+                    row_selectable="single",
+                    page_action="native",
+                    page_size=10,
+                    export_format="csv",
+                    export_headers="display",
+                ),
+                dcc_graph(id="seq_graph"),
+                dcc_graph(id="psm_graph")
+            end,
+            dcc_tab(; label="Fragment Ion") do
+                dcc_graph(id="ion_graph")
+            end
+        end
     end
 
     callback!(app,
