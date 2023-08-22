@@ -290,16 +290,17 @@ prepare(args) = begin
     path_psm = args["psm"]
     path_ms = args["ms"]
     out = mkpath(args["out"])
+    linker = Symbol(args["linker"])
     ε = parse(Float64, args["error"]) * 1.0e-6
     τ = parse(Float64, args["inten"])
     smooth_size = parse(Int, args["smooth"])
     cfg = args["cfg"]
     host = parse(IPAddr, args["host"])
     port = parse(Int, args["port"])
-    return (; path_psm, path_ms, out, ε, τ, smooth_size, cfg, host, port)
+    return (; path_psm, path_ms, out, linker, ε, τ, smooth_size, cfg, host, port)
 end
 
-process(; path_psm, path_ms, out, ε, τ, smooth_size, cfg, host, port) = begin
+process(; path_psm, path_ms, out, linker,  ε, τ, smooth_size, cfg, host, port) = begin
     smooth_k = vcat(Vector(1:smooth_size), Vector(smooth_size-1:-1:1))
     M = MesMS.read_all(MesMS.read_ms, path_ms)
     M1 = MesMS.mapvalue(m -> m.MS1, M)
@@ -310,6 +311,7 @@ process(; path_psm, path_ms, out, ε, τ, smooth_size, cfg, host, port) = begin
     M2D = map(((k, v),) -> k => (map(m -> m.id => m, v) |> Dict), collect(M2)) |> Dict
     df_psm = pLink.read_psm(path_psm)
 
+    df_psm.linker .= linker
     df_psm.group_id .= -1
     df_psm.range_id .= -1
     df_psm.rt = [M2D[r.file][r.scan].retention_time for r in eachrow(df_psm)]
@@ -377,6 +379,9 @@ main() = begin
         "--out"
             help = "output directory"
             default = "./out/"
+        "--linker"
+            help = "default linker"
+            default = "DSSO"
         "--error"
             help = "m/z error"
             metavar = "ppm"

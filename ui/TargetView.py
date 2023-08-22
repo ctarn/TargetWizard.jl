@@ -89,6 +89,7 @@ def run_xsview():
         "--ms", V["ms"].get(),
         "--psm", V["psm_xl"].get(),
         "--out", V["out"].get(),
+        "--linker", V["linker"].get(),
         "--error", V["error"].get(),
         "--inten", V["inten_thres"].get(),
         "--smooth", V["smooth"].get(),
@@ -239,6 +240,8 @@ util.add_entry(f, I, "XL PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"],
 I += 1
 t = (("MES file", "*.mes"), ("MS1 file", "*.ms1"), ("All", "*.*"))
 util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
+I += 1
+util.add_entry(f, I, "Default Linker:", V["linker"])
 I += 1
 util.add_entry(f, I, "Max. Mass Error:", V["error"], "ppm")
 I += 1
