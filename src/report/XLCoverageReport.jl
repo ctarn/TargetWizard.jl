@@ -144,6 +144,39 @@ process_monolink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_
     return df
 end
 
+process_looplink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl) = begin
+    @info "fragment ion calculating"
+    df.ion = @showprogress map(eachrow(df)) do r
+        peaks = M[r.file][r.scan].peaks
+        types = [(i, 1:(r.z-1)) for i in ion_types]
+        ions = Plot.build_ions_looplink(peaks, r.pep, r.mod, tab_xl[r.linker], r.site_a, r.site_b, ε, tab_ele, tab_aa, tab_mod; types)
+        return filter(i -> i.peak > 0 && 0 < i.loc < length(r.pep), ions)
+    end
+
+    @info "coverage calculating"
+    match = [falses(length(r.pep)-1) for r in eachrow(df)]
+    for idx in 1:size(df, 1)
+        foreach(i -> match[idx][i.loc] = true, df.ion[idx])
+    end
+
+    df.cov = round.(mean.(match); digits=4)
+
+    @info "coverage of each type of fragment ion calculating"
+    @showprogress for (sym, ion_type) in zip(ion_syms, ion_types)
+        ion = map(r -> filter(i -> i.type == ion_type.type, r.ion), eachrow(df))
+        match = [falses(length(r.pep)-1) for r in eachrow(df)]
+        for idx in 1:size(df, 1)
+            foreach(i -> match[idx][i.loc] = true, ion[idx])
+        end
+        df[!, "cov_ion_$(sym)"] = round.(mean.(match); digits=4)
+    end
+
+    DataFrames.select!(df, DataFrames.Not([:ion]), :ion)
+    df.ion = map(ions -> join(getfield.(ions, :text_abbr), ','), df.ion)
+
+    return df
+end
+
 process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
     ion_types = map(i -> getfield(MesMS, Symbol("ion_$(i)")), ion_syms)
 
@@ -173,10 +206,12 @@ process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
     process_crosslink!(df_xl, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
     process_linear!(df_linear, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod)
     process_monolink!(df_mono, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
+    process_looplink!(df_loop, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
 
     MesMS.safe_save(p -> CSV.write(p, df_xl), joinpath(out, basename(path) * ".crosslink.XLCoverageReport.csv"))
     MesMS.safe_save(p -> CSV.write(p, df_linear), joinpath(out, basename(path) * ".linear.XLCoverageReport.csv"))
     MesMS.safe_save(p -> CSV.write(p, df_mono), joinpath(out, basename(path) * ".monolink.XLCoverageReport.csv"))
+    MesMS.safe_save(p -> CSV.write(p, df_loop), joinpath(out, basename(path) * ".looplink.XLCoverageReport.csv"))
 
     data = """
 const FDR = [$(join(string.(df_xl.fdr .* 100), ","))]
