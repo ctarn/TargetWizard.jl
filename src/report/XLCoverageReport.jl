@@ -25,6 +25,7 @@ prepare(args) = begin
 end
 
 process_crosslink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl) = begin
+    @info "cross-linked peptide processing"
     @info "fragment ion calculating"
     df.ion = @showprogress map(eachrow(df)) do r
         peaks = M[r.file][r.scan].peaks
@@ -79,6 +80,7 @@ process_crosslink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab
 end
 
 process_linear!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod) = begin
+    @info "linear peptide processing"
     @info "fragment ion calculating"
     df.ion = @showprogress map(eachrow(df)) do r
         peaks = M[r.file][r.scan].peaks
@@ -112,6 +114,7 @@ process_linear!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod) = begi
 end
 
 process_monolink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl) = begin
+    @info "mono-linked peptide processing"
     @info "fragment ion calculating"
     df.ion = @showprogress map(eachrow(df)) do r
         peaks = M[r.file][r.scan].peaks
@@ -145,6 +148,7 @@ process_monolink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_
 end
 
 process_looplink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl) = begin
+    @info "loop-linked peptide processing"
     @info "fragment ion calculating"
     df.ion = @showprogress map(eachrow(df)) do r
         peaks = M[r.file][r.scan].peaks
