@@ -134,7 +134,7 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
             modss = (r.mod_a, r.mod_b)
             linker = xl_plink[Symbol(r.linker)]
             sites = (r.site_a, r.site_b)
-            ionss = MesMS.Plot.build_ions_xl(m2.peaks, seqs, modss, linker, sites, ε, ele_plink, aa_plink, mod_plink)
+            ionss = MesMS.Plot.build_ions_crosslink(m2.peaks, seqs, modss, linker, sites, ε, ele_plink, aa_plink, mod_plink)
             p_seq = MesMS.Plotly.seq_xl(seqs, modss, sites, ionss)
             p_psm = MesMS.Plotly.spec(m2.peaks, filter(i -> i.peak > 0, vcat(ionss...)))
         elseif r.engine == :pFind
