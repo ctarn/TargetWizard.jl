@@ -18,7 +18,7 @@ prepare(args) = begin
     out = mkpath(args["out"])
     linker = Symbol(args["linker"])
     ε = parse(Float64, args["error"]) * 1.0e-6
-    ion_syms = split(args["ion"], ",") .|> strip 
+    ion_syms = split(args["ion"], ",") .|> strip
     @info "selected fragment ion type: $(join(ion_syms, ", "))"
     cfg = args["cfg"]
     return (; out, linker, ε, ion_syms, cfg)
@@ -48,7 +48,7 @@ process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
         modss = (r.mod_a, r.mod_b)
         sites = (r.site_a, r.site_b)
         types = [(i, 1:(r.z-1)) for i in ion_types]
-        ionss = Plot.build_ions_xl(peaks, seqs, modss, tab_xl[linker], sites, ε, tab_ele, tab_aa, tab_mod; types)
+        ionss = MesMS.build_ions_xl(peaks, seqs, modss, tab_xl[linker], sites, ε, tab_ele, tab_aa, tab_mod; types)
         return filter.(i -> i.peak > 0 && i.loc > 0, ionss)
     end
 
@@ -84,8 +84,6 @@ process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
         df[!, "cov_b_ion_$(sym)"] = round.(mean.(match_b); digits=4)
     end
 
-    df.mod_a = pFind.modstr.(df.mod_a)
-    df.mod_b = pFind.modstr.(df.mod_b)
     df.prot_a = pFind.protstr.(df.prot_a)
     df.prot_b = pFind.protstr.(df.prot_b)
 

@@ -8,8 +8,6 @@ import MesUtil: TMS, pFind, pLink
 
 prepare(args) = begin
     df = pLink.read_psm_full(args["psm"]).xl
-    df.mod_a = pFind.modstr.(df.mod_a)
-    df.mod_b = pFind.modstr.(df.mod_b)
     out = mkpath(args["out"])
     name = args["name"]
     fdr_min = parse(Float64, args["fdr_min"]) / 100
