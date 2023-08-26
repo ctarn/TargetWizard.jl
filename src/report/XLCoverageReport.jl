@@ -24,23 +24,7 @@ prepare(args) = begin
     return (; out, linker, ε, ion_syms, cfg)
 end
 
-process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
-    ion_types = map(i -> getfield(MesMS, Symbol("ion_$(i)")), ion_syms)
-    df = pLink.read_psm_full(path).xl
-    M = map(p -> splitext(basename(p))[1] => MesMS.dict_by_id(MesMS.read_ms(p).MS2), paths_ms) |> Dict
-
-    if isempty(cfg)
-        tab_ele = pLink.read_element() |> NamedTuple
-        tab_aa = map(x -> MesMS.mass(x, tab_ele), pLink.read_amino_acid() |> NamedTuple)
-        tab_mod = MesMS.mapvalue(x -> x.mass, pLink.read_modification())
-        tab_xl = pLink.read_linker() |> NamedTuple
-    else
-        tab_ele = pLink.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
-        tab_aa = map(x -> MesMS.mass(x, tab_ele), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
-        tab_mod = MesMS.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
-        tab_xl = pLink.read_linker(joinpath(cfg, "xlink.ini")) |> NamedTuple
-    end
-
+process_crosslink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl) = begin
     @info "fragment ion calculating"
     df.ion = @showprogress map(eachrow(df)) do r
         peaks = M[r.file][r.scan].peaks
@@ -48,7 +32,7 @@ process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
         modss = (r.mod_a, r.mod_b)
         sites = (r.site_a, r.site_b)
         types = [(i, 1:(r.z-1)) for i in ion_types]
-        ionss = MesMS.build_ions_xl(peaks, seqs, modss, tab_xl[linker], sites, ε, tab_ele, tab_aa, tab_mod; types)
+        ionss = Plot.build_ions_xl(peaks, seqs, modss, tab_xl[r.linker], sites, ε, tab_ele, tab_aa, tab_mod; types)
         return filter.(i -> i.peak > 0 && i.loc > 0, ionss)
     end
 
@@ -70,9 +54,9 @@ process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
     df.cov_b = round.(mean.(match_b); digits=4)
 
     @info "coverage of each type of fragment ion calculating"
-    @showprogress for (idx, sym) in enumerate(ion_syms)
-        ion_a = map(r -> filter(i -> i.type == ion_types[idx].type, r.ion_a), eachrow(df))
-        ion_b = map(r -> filter(i -> i.type == ion_types[idx].type, r.ion_b), eachrow(df))
+    @showprogress for (sym, ion_type) in zip(ion_syms, ion_types)
+        ion_a = map(r -> filter(i -> i.type == ion_type.type, r.ion_a), eachrow(df))
+        ion_b = map(r -> filter(i -> i.type == ion_type.type, r.ion_b), eachrow(df))
         match_a = [falses(length(r.pep_a)-1) for r in eachrow(df)]
         match_b = [falses(length(r.pep_b)-1) for r in eachrow(df)]
         for idx in 1:size(df, 1)
@@ -91,19 +75,83 @@ process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
     df.ion_a = map(ions -> join(getfield.(ions, :text_abbr), ','), df.ion_a)
     df.ion_b = map(ions -> join(getfield.(ions, :text_abbr), ','), df.ion_b)
 
-    MesMS.safe_save(p -> CSV.write(p, df), joinpath(out, basename(path) * ".XLCoverageReport.csv"))
+    return df
+end
+
+process_linear!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod) = begin
+    @info "fragment ion calculating"
+    df.ion = @showprogress map(eachrow(df)) do r
+        peaks = M[r.file][r.scan].peaks
+        types = [(i, 1:(r.z-1)) for i in ion_types]
+        ions = Plot.build_ions(peaks, r.pep, r.mod, ε, tab_ele, tab_aa, tab_mod; types)
+        return filter(i -> i.peak > 0 && 0 < i.loc < length(r.pep), ions)
+    end
+
+    @info "coverage calculating"
+    match = [falses(length(r.pep)-1) for r in eachrow(df)]
+    for idx in 1:size(df, 1)
+        foreach(i -> match[idx][i.loc] = true, df.ion[idx])
+    end
+
+    df.cov = round.(mean.(match); digits=4)
+
+    @info "coverage of each type of fragment ion calculating"
+    @showprogress for (sym, ion_type) in zip(ion_syms, ion_types)
+        ion = map(r -> filter(i -> i.type == ion_type.type, r.ion), eachrow(df))
+        match = [falses(length(r.pep)-1) for r in eachrow(df)]
+        for idx in 1:size(df, 1)
+            foreach(i -> match[idx][i.loc] = true, ion[idx])
+        end
+        df[!, "cov_ion_$(sym)"] = round.(mean.(match); digits=4)
+    end
+
+    DataFrames.select!(df, DataFrames.Not([:ion]), :ion)
+    df.ion = map(ions -> join(getfield.(ions, :text_abbr), ','), df.ion)
+
+    return df
+end
+
+process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
+    ion_types = map(i -> getfield(MesMS, Symbol("ion_$(i)")), ion_syms)
+
+    M = map(p -> splitext(basename(p))[1] => MesMS.dict_by_id(MesMS.read_ms(p).MS2), paths_ms) |> Dict
+
+    if isempty(cfg)
+        tab_ele = pLink.read_element() |> NamedTuple
+        tab_aa = map(x -> MesMS.mass(x, tab_ele), pLink.read_amino_acid() |> NamedTuple)
+        tab_mod = MesMS.mapvalue(x -> x.mass, pLink.read_modification())
+        tab_xl = pLink.read_linker() |> NamedTuple
+    else
+        tab_ele = pLink.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
+        tab_aa = map(x -> MesMS.mass(x, tab_ele), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
+        tab_mod = MesMS.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
+        tab_xl = pLink.read_linker(joinpath(cfg, "xlink.ini")) |> NamedTuple
+    end
+
+    psm = pLink.read_psm_full(path)
+    df_xl = psm.xl
+    df_linear = psm.linear
+    df_mono = psm.mono
+    df_loop = psm.loop
+    df_xl.linker .= linker
+
+    process_crosslink!(df_xl, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
+    process_linear!(df_linear, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod)
+
+    MesMS.safe_save(p -> CSV.write(p, df_xl), joinpath(out, basename(path) * ".crosslink.XLCoverageReport.csv"))
+    MesMS.safe_save(p -> CSV.write(p, df_linear), joinpath(out, basename(path) * ".linear.XLCoverageReport.csv"))
 
     data = """
-const FDR = [$(join(string.(df.fdr .* 100), ","))]
-const COV_all = [$(join(string.(df.cov .* 100), ","))]
-const COV_A_all = [$(join(string.(df.cov_a .* 100), ","))]
-const COV_B_all = [$(join(string.(df.cov_b .* 100), ","))]
+const FDR = [$(join(string.(df_xl.fdr .* 100), ","))]
+const COV_all = [$(join(string.(df_xl.cov .* 100), ","))]
+const COV_A_all = [$(join(string.(df_xl.cov_a .* 100), ","))]
+const COV_B_all = [$(join(string.(df_xl.cov_b .* 100), ","))]
 """
     data *= map(ion_syms) do sym
 """
-const COV_$(sym) = [$(join(string.(df[!, "cov_ion_$(sym)"] .* 100), ","))]
-const COV_A_$(sym) = [$(join(string.(df[!, "cov_a_ion_$(sym)"] .* 100), ","))]
-const COV_B_$(sym) = [$(join(string.(df[!, "cov_b_ion_$(sym)"] .* 100), ","))]
+const COV_$(sym) = [$(join(string.(df_xl[!, "cov_ion_$(sym)"] .* 100), ","))]
+const COV_A_$(sym) = [$(join(string.(df_xl[!, "cov_a_ion_$(sym)"] .* 100), ","))]
+const COV_B_$(sym) = [$(join(string.(df_xl[!, "cov_b_ion_$(sym)"] .* 100), ","))]
 """
     end |> join
 
