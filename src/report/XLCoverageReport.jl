@@ -33,7 +33,7 @@ process_crosslink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab
         modss = (r.mod_a, r.mod_b)
         sites = (r.site_a, r.site_b)
         types = [(i, 1:(r.z-1)) for i in ion_types]
-        ionss = Plot.build_ions_crosslink(peaks, seqs, modss, tab_xl[r.linker], sites, ε, tab_ele, tab_aa, tab_mod; types)
+        ionss = MesMS.build_ions_crosslink(peaks, seqs, modss, tab_xl[r.linker], sites, ε, tab_ele, tab_aa, tab_mod; types)
         return filter.(i -> i.peak > 0 && i.loc > 0, ionss)
     end
 
@@ -85,7 +85,7 @@ process_linear!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod) = begi
     df.ion = @showprogress map(eachrow(df)) do r
         peaks = M[r.file][r.scan].peaks
         types = [(i, 1:(r.z-1)) for i in ion_types]
-        ions = Plot.build_ions(peaks, r.pep, r.mod, ε, tab_ele, tab_aa, tab_mod; types)
+        ions = MesMS.build_ions(peaks, r.pep, r.mod, ε, tab_ele, tab_aa, tab_mod; types)
         return filter(i -> i.peak > 0 && 0 < i.loc < length(r.pep), ions)
     end
 
@@ -119,7 +119,7 @@ process_monolink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_
     df.ion = @showprogress map(eachrow(df)) do r
         peaks = M[r.file][r.scan].peaks
         types = [(i, 1:(r.z-1)) for i in ion_types]
-        ions = Plot.build_ions_monolink(peaks, r.pep, r.mod, tab_xl[r.linker], r.site, ε, tab_ele, tab_aa, tab_mod; types)
+        ions = MesMS.build_ions_monolink(peaks, r.pep, r.mod, tab_xl[r.linker], r.site, ε, tab_ele, tab_aa, tab_mod; types)
         return filter(i -> i.peak > 0 && 0 < i.loc < length(r.pep), ions)
     end
 
@@ -153,7 +153,7 @@ process_looplink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_
     df.ion = @showprogress map(eachrow(df)) do r
         peaks = M[r.file][r.scan].peaks
         types = [(i, 1:(r.z-1)) for i in ion_types]
-        ions = Plot.build_ions_looplink(peaks, r.pep, r.mod, tab_xl[r.linker], r.site_a, r.site_b, ε, tab_ele, tab_aa, tab_mod; types)
+        ions = MesMS.build_ions_looplink(peaks, r.pep, r.mod, tab_xl[r.linker], r.site_a, r.site_b, ε, tab_ele, tab_aa, tab_mod; types)
         return filter(i -> i.peak > 0 && 0 < i.loc < length(r.pep), ions)
     end
 

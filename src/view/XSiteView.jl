@@ -241,7 +241,7 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
         modss = (r.mod_a, r.mod_b)
         linker = getproperty(tab_xl, Symbol(r.linker))
         sites = (r.site_a, r.site_b)
-        ionss = MesMS.Plot.build_ions_crosslink(m2.peaks, seqs, modss, linker, sites, ε, tab_ele, tab_aa, tab_mod)
+        ionss = MesMS.build_ions_crosslink(m2.peaks, seqs, modss, linker, sites, ε, tab_ele, tab_aa, tab_mod)
         p_seq = MesMS.Plotly.seq_xl(seqs, modss, sites, ionss)
         p_psm = MesMS.Plotly.spec(m2.peaks, filter(i -> i.peak > 0, vcat(ionss...)))
         return p_seq, p_psm
