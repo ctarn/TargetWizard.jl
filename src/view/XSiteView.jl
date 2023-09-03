@@ -165,7 +165,7 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
             export_format="csv",
             export_headers="display",
         ),
-        dcc_graph(id="group_graph", config=PlotConfig(toImageButtonOptions=Dict(format=>"svg", filename=>"XSiteView_group"))),
+        dcc_graph(id="group_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"XSiteView_LC"))),
         dcc_tabs() do
             dcc_tab(; label="PSM List") do
                 dash_datatable(
@@ -182,12 +182,12 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
                     export_format="csv",
                     export_headers="display",
                 ),
-                dcc_graph(id="seq_graph", config=PlotConfig(toImageButtonOptions=Dict(format=>"svg", filename=>"XSiteView_seq"))),
-                dcc_graph(id="psm_graph", config=PlotConfig(toImageButtonOptions=Dict(format=>"svg", filename=>"XSiteView_psm")))
+                dcc_graph(id="seq_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"XSiteView_SEQ"))),
+                dcc_graph(id="psm_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"XSiteView_PSM")))
             end,
             dcc_tab(; label="Fragment Ion") do
-                dcc_graph(id="ion_graph", config=PlotConfig(toImageButtonOptions=Dict(format=>"svg", filename=>"XSiteView_frag"))),
-                dcc_graph(id="ion_lc_graph", config=PlotConfig(toImageButtonOptions=Dict(format=>"svg", filename=>"XSiteView_frag_LC")))
+                dcc_graph(id="ion_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"XSiteView_ION"))),
+                dcc_graph(id="ion_lc_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"XSiteView_ION_LC")))
             end
         end
     end

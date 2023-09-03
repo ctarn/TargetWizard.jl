@@ -77,7 +77,7 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
             export_format="csv",
             export_headers="display",
         ),
-        dcc_graph(id="lc_graph"),
+        dcc_graph(id="lc_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXView_LC"))),
         dash_datatable(
             id="psm_table",
             style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
@@ -92,8 +92,8 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
             export_format="csv",
             export_headers="display",
         ),
-        dcc_graph(id="seq_graph"),
-        dcc_graph(id="psm_graph")
+        dcc_graph(id="seq_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXView_SEQ"))),
+        dcc_graph(id="psm_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXView_PSM")))
     end
 
     p_hit = plot_hit(df_m2)

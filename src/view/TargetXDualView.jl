@@ -108,7 +108,7 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
             export_format="csv",
             export_headers="display",
         ),
-        dcc_graph(id="lc_graph"),
+        dcc_graph(id="lc_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXDualView_LC"))),
         html_h4("PSM List of Selected Data A MS2(s) (may differ from the selected target)"),
         dash_datatable(
             id="psm_table_a",
@@ -155,10 +155,10 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
                 end
             end
         end,
-        dcc_graph(id="seq_graph_a"),
-        dcc_graph(id="seq_graph_b"),
-        dcc_graph(id="psm_graph_a"),
-        dcc_graph(id="psm_graph_b")
+        dcc_graph(id="seq_graph_a", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXDualView_SEQ_A"))),
+        dcc_graph(id="seq_graph_b", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXDualView_SEQ_B"))),
+        dcc_graph(id="psm_graph_a", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXDualView_PSM_A"))),
+        dcc_graph(id="psm_graph_b", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXDualView_PSM_B")))
     end
 
     callback!(app,
