@@ -1,4 +1,4 @@
-module XSeekView
+module XExhaustiveSearchView
 
 using Sockets
 
