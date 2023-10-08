@@ -44,7 +44,7 @@ build_app(df, dfs_m1, dfs_m2, tab_ele, tab_aa, tab_mod, tab_xl, ε) = begin
     tbs_m2 = MesMS.mapvalue(df -> DataFrames.select(df, DataFrames.Not(:peaks)), dfs_m2)
     app = dash(; assets_folder=DIR_DATA)
     app.layout = html_div() do
-        html_h1("XSeekView", style=Dict("text-align"=>"center")),
+        html_h1("Cross-link Exhaustive Search View", style=Dict("text-align"=>"center")),
         dash_datatable(
             id="tg_table",
             style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
