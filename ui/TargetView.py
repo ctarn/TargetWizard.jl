@@ -14,7 +14,8 @@ CView = "Comparative Linear Peptide View"
 RXView = "Regular Cross-linked Peptide View"
 CXView = "Comparative Cross-linked Peptide View"
 XSView = "Cross-link Site View"
-views = [RView, CView, RXView, CXView, XSView]
+XESView = "Cross-link Exhaustive Search View"
+views = [RView, CView, RXView, CXView, XSView, XESView]
 target_fmts = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
 vars_spec = {
     "view": {"type": tk.StringVar, "value": RXView},
@@ -98,12 +99,25 @@ def run_xsview():
         "--port", V["url"].get().split(":")[1],
     )
 
+def run_xesview():
+    task.call(os.path.join(V["targetview"].get(), "XExhaustiveSearchView"),
+        V["tg"].get(),
+        "--ms", *(V["ms"].get().split(";")),
+        "--out", V["out"].get(),
+        "--linker", V["linker"].get(),
+        "--error", V["error"].get(),
+        "--cfg", V["cfg_pl"].get(),
+        "--host", V["url"].get().split(":")[0],
+        "--port", V["url"].get().split(":")[1],
+    )
+
 def run():
     if V["view"].get() == RView: run_view()
     elif V["view"].get() == CView: run_dualview()
     elif V["view"].get() == RXView: run_xview()
     elif V["view"].get() == CXView: run_xdualview()
     elif V["view"].get() == XSView: run_xsview()
+    elif V["view"].get() == XESView: run_xesview()
     else: print("Unknown View Type:", V["view"].get())
 
 def new_port():
@@ -248,6 +262,21 @@ I += 1
 util.add_entry(f, I, "Intensity Thres.:", V["inten_thres"])
 I += 1
 util.add_entry(f, I, "Smooth Width:", V["smooth"])
+I += 1
+util.add_entry(f, I, "pLink Cfg. Directory:", V["cfg_pl"], "Select", util.askdir(V["cfg_pl"]))
+I += 1
+
+f = F[XESView]
+I = 0
+t = (("List", "*.csv"), ("All", "*.*"))
+util.add_entry(f, I, "Peptide List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=t))
+I += 1
+t = (("MES file", "*.mes"), ("MS1 file", "*.ms1"), ("All", "*.*"))
+util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], filetypes=t))
+I += 1
+util.add_entry(f, I, "Default Linker:", V["linker"])
+I += 1
+util.add_entry(f, I, "Max. Mass Error:", V["error"], "ppm")
 I += 1
 util.add_entry(f, I, "pLink Cfg. Directory:", V["cfg_pl"], "Select", util.askdir(V["cfg_pl"]))
 I += 1
