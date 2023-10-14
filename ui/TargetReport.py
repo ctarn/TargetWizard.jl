@@ -8,11 +8,6 @@ import util
 main = ttk.Frame()
 main.pack(fill="both")
 
-if util.is_darwin:
-    path_mono = "/Library/Frameworks/Mono.framework/Versions/Current/Commands/mono"
-else:
-    path_mono = "mono"
-
 BAReport = "Basic Aquisition Report"
 TSReport = "Target Selection Report"
 TAReport = "Target Aquisition Report"
@@ -31,13 +26,9 @@ vars_spec = {
     "psm": {"type": tk.StringVar, "value": ""},
     "linker": {"type": tk.StringVar, "value": "DSSO"},
     "error2": {"type": tk.StringVar, "value": "20.0"},
-    "cfg_pl": {"type": tk.StringVar, "value": ""},
-    "generators": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin")},
-    "thermorawread": {"type": tk.StringVar, "value": util.get_content("ThermoRawRead", "ThermoRawRead.exe", shared=True)},
-    "mono": {"type": tk.StringVar, "value": path_mono},
 }
 for t in ion_types: vars_spec[f"ion_{t}"] = {"type": tk.IntVar, "value": 1}
-task = util.Task("TargetReport", vars_spec, path=meta.homedir)
+task = util.Task("TargetReport", vars_spec, path=meta.homedir, shared_vars_spec=meta.vars_spec, shared_vars=meta.vars)
 V = task.vars
 
 def run_basicaquisitionreport():
@@ -91,12 +82,6 @@ I += 1
 util.add_entry(main, I, "Output Directory:", V["out"], "Select", util.askdir(V["out"]))
 I += 1
 task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I, columnspan=3)
-I += 1
-ttk.Separator(main, orient=tk.HORIZONTAL).grid(column=0, row=I, columnspan=3, sticky="EW")
-ttk.Label(main, text="Advanced Configuration").grid(column=0, row=I, columnspan=3)
-I += 1
-util.add_entry(main, I, "Generators:", V["generators"], "Select", util.askdir(V["generators"]))
-I += 1
 
 t_ms = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 t_target = (("Target List", "*.csv"), ("All", "*.*"))
@@ -149,8 +134,5 @@ I += 1
 util.add_entry(f, I, "Default Linker:", V["linker"])
 I += 1
 util.add_entry(f, I, "Fragment Mass Error:", V["error2"], "ppm")
-I += 1
-util.add_entry(f, I, "pLink Cfg. Directory:", V["cfg_pl"], "Select", util.askdir(V["cfg_pl"]))
-I += 1
 
 select_report(None, False)

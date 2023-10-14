@@ -33,14 +33,11 @@ vars_spec = {
     "linker": {"type": tk.StringVar, "value": "DSSO"},
     "error": {"type": tk.StringVar, "value": "20.0"},
     "fdr": {"type": tk.StringVar, "value": "Inf"},
-    "cfg_pl": {"type": tk.StringVar, "value": ""},
-    "cfg_pf": {"type": tk.StringVar, "value": ""},
     "url": {"type": tk.StringVar, "value": "127.0.0.1:30030"},
     "inten_thres": {"type": tk.StringVar, "value": "0.0"},
     "smooth": {"type": tk.StringVar, "value": "16"},
-    "targetview": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin")},
 }
-task = util.Task("TargetView", vars_spec, path=meta.homedir)
+task = util.Task("TargetView", vars_spec, path=meta.homedir, shared_vars_spec=meta.vars_spec, shared_vars=meta.vars)
 V = task.vars
 
 def run_view():
@@ -50,7 +47,7 @@ def run_dualview():
     pass
 
 def run_xview():
-    task.call(os.path.join(V["targetview"].get(), "TargetXView"),
+    task.call(os.path.join(V["viewers"].get(), "TargetXView"),
         V["tg"].get(),
         "--ms", V["ms"].get(),
         "--psm", V["psm_xl"].get(),
@@ -69,7 +66,7 @@ def run_xview():
     )
 
 def run_xdualview():
-    task.call(os.path.join(V["targetview"].get(), "TargetXDualView"),
+    task.call(os.path.join(V["viewers"].get(), "TargetXDualView"),
         V["tg"].get(),
         "--ms", V["ms"].get(), V["ms_"].get(),
         "--psm", V["psm_xl"].get(), V["psm_xl_"].get(),
@@ -86,7 +83,7 @@ def run_xdualview():
     )
 
 def run_xsview():
-    task.call(os.path.join(V["targetview"].get(), "XSiteView"),
+    task.call(os.path.join(V["viewers"].get(), "XSiteView"),
         "--ms", V["ms"].get(),
         "--psm", V["psm_xl"].get(),
         "--out", V["out"].get(),
@@ -100,7 +97,7 @@ def run_xsview():
     )
 
 def run_xesview():
-    task.call(os.path.join(V["targetview"].get(), "XExhaustiveSearchView"),
+    task.call(os.path.join(V["viewers"].get(), "XExhaustiveSearchView"),
         V["tg"].get(),
         "--ms", *(V["ms"].get().split(";")),
         "--out", V["out"].get(),
@@ -142,33 +139,23 @@ I += 1
 F = {v: util.init_form(ttk.Frame(main)) for v in views}
 I_fs = I
 I += 1
+util.add_entry(main, I, "URL:", V["url"], "New Port", new_port)
+I += 1
 util.add_entry(main, I, "Output Directory:", V["out"], "Select", util.askdir(V["out"]))
 I += 1
 task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I, columnspan=3)
-I += 1
-ttk.Separator(main, orient=tk.HORIZONTAL).grid(column=0, row=I, columnspan=3, sticky="EW")
-ttk.Label(main, text="Advanced Configuration").grid(column=0, row=I, columnspan=3)
-I += 1
-util.add_entry(main, I, "TargetView:", V["targetview"], "Select", util.askfile(V["targetview"]))
-I += 1
-util.add_entry(main, I, "URL:", V["url"], "New Port", new_port)
-I += 1
-
-
-t = (("Target List", "*.csv"), ("All", "*.*"))
 
 f = F[RView]
 I = 0
 ttk.Label(f, text=f"{RView} Not Available").grid(column=0, row=I, columnspan=3)
-I += 1
 
 f = F[CView]
 I = 0
 ttk.Label(f, text=f"{CView} Not Available").grid(column=0, row=I, columnspan=3)
-I += 1
 
 f = F[RXView]
 I = 0
+t = (("Target List", "*.csv"), ("All", "*.*"))
 util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=t))
 I += 1
 util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["target_fmt"], values=list(target_fmts.keys()), state="readonly", justify="center"))
@@ -197,14 +184,11 @@ I += 1
 t = (("Linear PSM", "*.csv"), ("All", "*.*"))
 util.add_entry(f, I, "Linear PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))
 I += 1
-util.add_entry(f, I, "pLink Cfg. Directory:", V["cfg_pl"], "Select", util.askdir(V["cfg_pl"]))
-I += 1
-util.add_entry(f, I, "pFind Cfg. Directory:", V["cfg_pf"], "Select", util.askdir(V["cfg_pf"]))
-I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 
 f = F[CXView]
 I = 0
+t = (("Target List", "*.csv"), ("All", "*.*"))
 util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=t))
 I += 1
 util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["target_fmt"], values=list(target_fmts.keys()), state="readonly", justify="center"))
@@ -243,9 +227,6 @@ I += 1
 util.add_entry(f, I, "MS1 Mass Error:", V["error"], "ppm")
 I += 1
 util.add_entry(f, I, "FDR:", V["fdr"], "%")
-I += 1
-util.add_entry(f, I, "pLink Cfg. Directory:", V["cfg_pl"], "Select", util.askdir(V["cfg_pl"]))
-I += 1
 
 f = F[XSView]
 I = 0
@@ -262,9 +243,6 @@ I += 1
 util.add_entry(f, I, "Intensity Thres.:", V["inten_thres"])
 I += 1
 util.add_entry(f, I, "Smooth Width:", V["smooth"])
-I += 1
-util.add_entry(f, I, "pLink Cfg. Directory:", V["cfg_pl"], "Select", util.askdir(V["cfg_pl"]))
-I += 1
 
 f = F[XESView]
 I = 0
@@ -277,8 +255,5 @@ I += 1
 util.add_entry(f, I, "Default Linker:", V["linker"])
 I += 1
 util.add_entry(f, I, "Max. Mass Error:", V["error"], "ppm")
-I += 1
-util.add_entry(f, I, "pLink Cfg. Directory:", V["cfg_pl"], "Select", util.askdir(V["cfg_pl"]))
-I += 1
 
 select_view(None, False)

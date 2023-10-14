@@ -8,11 +8,6 @@ import util
 main = ttk.Frame()
 main.pack(fill="both")
 
-if util.is_darwin:
-    path_mono = "/Library/Frameworks/Mono.framework/Versions/Current/Commands/mono"
-else:
-    path_mono = "mono"
-
 tds = ["TT", "TD", "DD"]
 pts = ["Inter", "Intra"]
 fmts = ["TW", "TmQE", "TmFu"]
@@ -29,12 +24,11 @@ vars_spec = {
     "batch": {"type": tk.StringVar, "value": "Inf"},
     "rtime": {"type": tk.StringVar, "value": "240"},
     "lc": {"type": tk.StringVar, "value": "Inf"},
-    "targetselect": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "TargetSelect")},
 }
 for t in tds: vars_spec[f"td_{t}"] = {"type": tk.IntVar, "value": 1}
 for t in pts: vars_spec[f"pt_{t}"] = {"type": tk.IntVar, "value": 1}
 for t in fmts: vars_spec[f"fmt_{t}"] = {"type": tk.IntVar, "value": t == "TW"}
-task = util.Task("TargetSelect", vars_spec, path=meta.homedir)
+task = util.Task("TargetSelect", vars_spec, path=meta.homedir, shared_vars_spec=meta.vars_spec, shared_vars=meta.vars)
 V = task.vars
 
 def run():
@@ -90,9 +84,3 @@ I += 1
 util.add_entry(main, I, "Output Directory:", V["out"], "Select", util.askdir(V["out"]))
 I += 1
 task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I, columnspan=3)
-I += 1
-ttk.Separator(main, orient=tk.HORIZONTAL).grid(column=0, row=I, columnspan=3, sticky="EW")
-ttk.Label(main, text="Advanced Configuration").grid(column=0, row=I, columnspan=3)
-I += 1
-util.add_entry(main, I, "TargetSelect:", V["targetselect"], "Select", util.askfile(V["targetselect"]))
-I += 1
