@@ -171,38 +171,6 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
     df_m2 = map(m -> (; m.id, mz=m.activation_center, rt=m.retention_time, m.peaks), M.MS2) |> DataFrames.DataFrame
     M2I = map(x -> x[2] => x[1], enumerate(df_m2.id)) |> Dict
 
-    df_psm = pLink.read_psm_full(path_psm).xl
-    df_psm = df_psm[df_psm.fdr .≤ fdr, :]
-    df_psm.engine .= :pLink
-    ns = [
-        "Order", "Peptide", "Peptide_Type", "mh_calc", "Modifications", "Evalue", "Precursor_Mass_Error(Da)",
-        "Proteins", "prot_type", "FileID", "LabelID", "Alpha_Matched", "Beta_Matched", "Alpha_Evalue", "Beta_Evalue",
-        "Alpha_Seq_Coverage", "Beta_Seq_Coverage",
-    ]
-    DataFrames.select!(df_psm, DataFrames.Not(filter(x -> x ∈ names(df_psm), ns)))
-    ns = [
-        "engine", "mh", "mz", "z", "pep_a", "pep_b", "mod_a", "mod_b", "site_a", "site_b",
-        "prot_a", "prot_b", "error", "title", "file", "scan", "idx_pre",
-    ]
-    DataFrames.select!(df_psm, ns, DataFrames.Not(ns))
-    ("linker" ∉ names(df_psm)) && (df_psm.linker .= linker)
-
-    if !isempty(path_psm_pf)
-        df_psm_pf = pFind.read_psm(path_psm_pf)
-        df_psm_pf.engine .= :pFind
-        ns = [
-            "Scan_No", "Sequence", "mh_calc", "Mass_Shift(Exp.-Calc.)", "score_raw", "Modification",
-            "Specificity", "Positions", "Label", "Miss.Clv.Sites", "Avg.Frag.Mass.Shift", "Others", "mz_calc"
-        ]
-        DataFrames.select!(df_psm_pf, DataFrames.Not(filter(x -> x ∈ names(df_psm_pf), ns)))
-        DataFrames.rename!(df_psm_pf, :pep => :pep_a, :mod => :mod_a, :proteins => :prot_a)
-        df_psm = vcat(df_psm, df_psm_pf; cols=:union)
-    end
-
-    df_psm.id = Vector(1:size(df_psm, 1))
-    DataFrames.select!(df_psm, :id, DataFrames.Not([:id]))
-    df_psm.rt = [df_m2[M2I[r.scan], :rt] for r in eachrow(df_psm)]
-
     if isempty(cfg)
         ele_plink = pLink.read_element() |> NamedTuple
         aa_plink = map(x -> MesMS.mass(x, ele_plink), pLink.read_amino_acid() |> NamedTuple)
@@ -224,6 +192,43 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
         aa_pfind = map(x -> MesMS.mass(x, ele_pfind), pFind.read_amino_acid(joinpath(cfg_pf, "aa.ini")) |> NamedTuple)
         mod_pfind = MesMS.mapvalue(x -> x.mass, pFind.read_modification(joinpath(cfg_pf, "modification.ini")))
     end
+
+    df_psm = pLink.read_psm_full(path_psm).xl
+    df_psm = df_psm[df_psm.fdr .≤ fdr, :]
+    df_psm.engine .= :pLink
+    ns = [
+        "Order", "Peptide", "Peptide_Type", "mh_calc", "Modifications", "Evalue", "Precursor_Mass_Error(Da)",
+        "Proteins", "prot_type", "FileID", "LabelID", "Alpha_Matched", "Beta_Matched", "Alpha_Evalue", "Beta_Evalue",
+        "Alpha_Seq_Coverage", "Beta_Seq_Coverage",
+    ]
+    DataFrames.select!(df_psm, DataFrames.Not(filter(x -> x ∈ names(df_psm), ns)))
+    ns = [
+        "engine", "mh", "mz", "z", "pep_a", "pep_b", "mod_a", "mod_b", "site_a", "site_b",
+        "prot_a", "prot_b", "error", "title", "file", "scan", "idx_pre",
+    ]
+    DataFrames.select!(df_psm, ns, DataFrames.Not(ns))
+    ("linker" ∉ names(df_psm)) && (df_psm.linker .= linker)
+
+    ion_syms = ["b", "y"]
+    ion_types = map(i -> getfield(MesMS, Symbol("ion_$(i)")), ion_syms)
+    M_ = [splitext(basename(path_ms))[1] => MesMS.dict_by_id(M.MS2)] |> Dict
+    calc_cov_crosslink!(df_psm, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink, xl_plink)
+
+    if !isempty(path_psm_pf)
+        df_psm_pf = pFind.read_psm(path_psm_pf)
+        df_psm_pf.engine .= :pFind
+        ns = [
+            "Scan_No", "Sequence", "mh_calc", "Mass_Shift(Exp.-Calc.)", "score_raw", "Modification",
+            "Specificity", "Positions", "Label", "Miss.Clv.Sites", "Avg.Frag.Mass.Shift", "Others", "mz_calc"
+        ]
+        DataFrames.select!(df_psm_pf, DataFrames.Not(filter(x -> x ∈ names(df_psm_pf), ns)))
+        DataFrames.rename!(df_psm_pf, :pep => :pep_a, :mod => :mod_a, :proteins => :prot_a)
+        df_psm = vcat(df_psm, df_psm_pf; cols=:union)
+    end
+
+    df_psm.id = Vector(1:size(df_psm, 1))
+    DataFrames.select!(df_psm, :id, DataFrames.Not([:id]))
+    df_psm.rt = [df_m2[M2I[r.scan], :rt] for r in eachrow(df_psm)]
 
     df_m2.psm = [df_psm[df_psm.scan .== r.id, :id] for r in eachrow(df_m2)]
 
@@ -288,7 +293,7 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
     df_tg_ext.psm_all_list = map(df_tg_ext.psm_all_) do psms
         items = map(psms) do i
             r = df_psm[i, :]
-            return "$(r.scan):$(r.pep_a)($(r.mod_a))@$(r.site_a)-$(r.pep_b)($(r.mod_b))@$(r.site_b)"
+            return "$(r.scan)($(round(r.cov_a; digits=2))|$(round(r.cov_b; digits=2))):$(r.pep_a)($(r.mod_a))@$(r.site_a)-$(r.pep_b)($(r.mod_b))@$(r.site_b)"
         end
         return join(items, ";")
     end
