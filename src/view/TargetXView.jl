@@ -283,8 +283,18 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
 
     ns = filter(n -> !endswith(n, '_'), names(df_tg))
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
+    
+    df_tg_ext = DataFrames.DataFrame(df_tg)
+    df_tg_ext.psm_all_list = map(df_tg_ext.psm_all_) do psms
+        items = map(psms) do i
+            r = df_psm[i, :]
+            return "$(r.scan):$(r.pep_a)($(r.mod_a))@$(r.site_a)-$(r.pep_b)($(r.mod_b))@$(r.site_b)"
+        end
+        return join(items, ";")
+    end
 
-    MesMS.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path_ms)[1])).TargetXView.csv"))
+    MesMS.safe_save(p -> CSV.write(p, df_tg_ext), joinpath(out, "$(basename(splitext(path_ms)[1])).tg.TargetXView.csv"))
+    MesMS.safe_save(p -> CSV.write(p, df_psm), joinpath(out, "$(basename(splitext(path_ms)[1])).psm.TargetXView.csv"))
     
     @async begin
         sleep(4)
