@@ -301,16 +301,16 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
     
     df_tg_ext = DataFrames.DataFrame(df_tg)
-    df_tg_ext.psm_list = map(df_tg_ext.psm_) do psms
+    df_tg_ext.iden = map(df_tg_ext.psm_) do psms
         map(psmstr, eachrow(df_psm[psms, :])) |> xs -> join(xs, ";")
     end
-    df_tg_ext.psm_list_credible = map(df_tg_ext.psm_) do psms
+    df_tg_ext.iden_credible = map(df_tg_ext.psm_) do psms
         map(psmstr, eachrow(df_psm[filter(i -> df_psm.credible[i], psms), :])) |> xs -> join(xs, ";")
     end
-    df_tg_ext.psm_all_list = map(df_tg_ext.psm_all_) do psms
+    df_tg_ext.iden_all = map(df_tg_ext.psm_all_) do psms
         map(psmstr, eachrow(df_psm[psms, :])) |> xs -> join(xs, ";")
     end
-    df_tg_ext.psm_all_list_credible = map(df_tg_ext.psm_all_) do psms
+    df_tg_ext.iden_all_credible = map(df_tg_ext.psm_all_) do psms
         map(psmstr, eachrow(df_psm[filter(i -> df_psm.credible[i], psms), :])) |> xs -> join(xs, ";")
     end
 
