@@ -2,6 +2,7 @@ using Statistics
 
 import DataFrames
 import MesMS
+import ProgressMeter: @showprogress
 
 parse_target_list!(df, fmt) = begin
     if fmt == :auto
