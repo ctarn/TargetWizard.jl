@@ -50,6 +50,7 @@ def run_xview():
     task.call(os.path.join(V["viewers"].get(), "TargetXView"),
         V["tg"].get(),
         "--ms", V["ms"].get(),
+        "--ms_old", *(V["ms_"].get().split(";")),
         "--psm", V["psm_xl"].get(),
         "--out", V["out"].get(),
         "--xl", V["xl"].get(),
@@ -156,21 +157,24 @@ ttk.Label(f, text=f"{CView} Not Available").grid(column=0, row=I, columnspan=3)
 f = F[RXView]
 I = 0
 t = (("Target List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=t))
+util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=t))
 I += 1
 util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["target_fmt"], values=list(target_fmts.keys()), state="readonly", justify="center"))
 I += 1
 t = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
+util.add_entry(f, I, "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
 I += 1
 t = (("XL PSM", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "XL PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], filetypes=t))
+util.add_entry(f, I, "Targeted MS PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], filetypes=t))
+I += 1
+t = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
+util.add_entry(f, I, "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=t))
 I += 1
 util.add_entry(f, I, "Default Linker:", V["linker"])
 I += 1
 util.add_entry(f, I, "Max. MS1 Mass Error:", V["error"], "ppm")
 I += 1
-util.add_entry(f, I, "FDR:", V["fdr"], "%")
+util.add_entry(f, I, "FDR Threshold:", V["fdr"], "%")
 I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 ttk.Label(f, text="Optional").grid(column=0, row=I)
