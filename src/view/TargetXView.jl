@@ -149,6 +149,11 @@ end
 
 prepare(args) = begin
     path_ms = args["ms"]
+    @info "file path of selected data:"
+    println("\t$(path_ms)")
+    paths_ms_old = reduce(vcat, MesMS.match_path.(args["ms_old"], ".mes")) |> unique |> sort
+    @info "file paths of selected original data:"
+    foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths_ms_old))
     path_psm = args["psm"]
     out = mkpath(args["out"])
     path_xl = args["xl"]
@@ -162,17 +167,19 @@ prepare(args) = begin
     cfg_pf = args["cfg_pf"]
     host = parse(IPAddr, args["host"])
     port = parse(Int, args["port"])
-    return (; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, cfg, cfg_pf, host, port)
+    return (; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, cfg, cfg_pf, host, port)
 end
 
 psmstr(x) = "$(x.scan)($(round(x.cov_a; digits=2))|$(round(x.cov_b; digits=2))):$(x.pep_a)($(x.mod_a))@$(x.site_a)-$(x.pep_b)($(x.mod_b))@$(x.site_b)"
 is_same_xl_pep(a, b) = (a.pep_a == b.pep_a) && (a.pep_b == b.pep_b) && (a.mod_a == b.mod_a) && (a.mod_b == b.mod_b) && (a.site_a == b.site_a) && (a.site_b == b.site_b)
 
-process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, cfg, cfg_pf, host, port) = begin
+process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, cfg, cfg_pf, host, port) = begin
     M = MesMS.read_ms(path_ms)
     df_m1 = map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1) |> DataFrames.DataFrame
     df_m2 = map(m -> (; m.id, mz=m.activation_center, rt=m.retention_time, m.peaks), M.MS2) |> DataFrames.DataFrame
     M2I = map(x -> x[2] => x[1], enumerate(df_m2.id)) |> Dict
+
+    M_old = map(p -> splitext(basename(p))[1] => MesMS.dict_by_id(MesMS.read_ms(p).MS2), paths_ms_old) |> Dict
 
     if isempty(cfg)
         ele_plink = pLink.read_element() |> NamedTuple
@@ -282,6 +289,26 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
     df_tg.n_m2 = length.(df_tg.m2_)
     df_tg.m2_all_id_ = [map(x -> df_m2.id[x], r.m2_all_) for r in eachrow(df_tg)]
     df_tg.m2_id_ = [map(x -> df_m2.id[x], r.m2_) for r in eachrow(df_tg)]
+
+    @info "MS2 similarity calculating"
+    df_tg.m2_sim_ = @showprogress map(eachrow(df_tg)) do r
+        psa = M_old[r.file][r.scan].peaks
+        return map(eachrow(df_m2[r.m2_, :])) do s
+            sim = map(psa) do p
+                !isempty(MesMS.argquery_ε(s.peaks, p.mz, ε))
+            end |> mean
+            return "$(s.id):$(round(sim; digits=2))"
+        end |> xs -> join(xs, ";")
+    end
+    df_tg.m2_all_sim_ = @showprogress map(eachrow(df_tg)) do r
+        psa = M_old[r.file][r.scan].peaks
+        return map(eachrow(df_m2[r.m2_all_, :])) do s
+            sim = map(psa) do p
+                !isempty(MesMS.argquery_ε(s.peaks, p.mz, ε))
+            end |> mean
+            return "$(s.id):$(round(sim; digits=2))"
+        end |> xs -> join(xs, ";")
+    end
 
     @info "PSM mapping"
     df_tg.psm_all_ = [vcat(df_m2[r.m2_all_, :psm]...) for r in eachrow(df_tg)]
@@ -394,6 +421,10 @@ main() = begin
             required = true
         "--ms"
             help = ".mes or .ms1/2 file; .ms2/1 file should be in the same directory for .ms1/2"
+            required = true
+        "--ms_old"
+            help = "origianl .mes or .ms1/2 files; .ms2/1 files should be in the same directory for .ms1/2"
+            nargs = '+'
             required = true
         "--psm"
             help = "pLink PSM path"
