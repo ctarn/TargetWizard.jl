@@ -165,6 +165,8 @@ prepare(args) = begin
     return (; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, cfg, cfg_pf, host, port)
 end
 
+psmstr(x) = "$(x.scan)($(round(x.cov_a; digits=2))|$(round(x.cov_b; digits=2))):$(x.pep_a)($(x.mod_a))@$(x.site_a)-$(x.pep_b)($(x.mod_b))@$(x.site_b)"
+
 process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, cfg, cfg_pf, host, port) = begin
     M = MesMS.read_ms(path_ms)
     df_m1 = map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1) |> DataFrames.DataFrame
@@ -251,6 +253,8 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
     df_tg.id = Vector(1:size(df_tg, 1))
     parse_target_list!(df_tg, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
+    "mod_a" ∈ names(df_tg) && (df_tg.mod_a = parse.(Array{MesMS.Mod}, (df_tg.mod_a)))
+    "mod_b" ∈ names(df_tg) && (df_tg.mod_b = parse.(Array{MesMS.Mod}, (df_tg.mod_b)))
 
     @info "XL Candidtes mapping"
     tmp = sort!([(x.mz::Float64, x.id::Int) for x in eachrow(df_xl)])
@@ -295,24 +299,46 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
     
     df_tg_ext = DataFrames.DataFrame(df_tg)
     df_tg_ext.psm_list = map(df_tg_ext.psm_) do psms
-        map(eachrow(df_psm[psms, :])) do r
-            "$(r.scan)($(round(r.cov_a; digits=2))|$(round(r.cov_b; digits=2))):$(r.pep_a)($(r.mod_a))@$(r.site_a)-$(r.pep_b)($(r.mod_b))@$(r.site_b)"
-        end |> xs -> join(xs, ";")
+        map(psmstr, eachrow(df_psm[psms, :])) |> xs -> join(xs, ";")
     end
     df_tg_ext.psm_list_credible = map(df_tg_ext.psm_) do psms
-        map(eachrow(df_psm[filter(i -> df_psm.credible[i], psms), :])) do r
-            "$(r.scan)($(round(r.cov_a; digits=2))|$(round(r.cov_b; digits=2))):$(r.pep_a)($(r.mod_a))@$(r.site_a)-$(r.pep_b)($(r.mod_b))@$(r.site_b)"
-        end |> xs -> join(xs, ";")
+        map(psmstr, eachrow(df_psm[filter(i -> df_psm.credible[i], psms), :])) |> xs -> join(xs, ";")
     end
     df_tg_ext.psm_all_list = map(df_tg_ext.psm_all_) do psms
-        map(eachrow(df_psm[psms, :])) do r
-            "$(r.scan)($(round(r.cov_a; digits=2))|$(round(r.cov_b; digits=2))):$(r.pep_a)($(r.mod_a))@$(r.site_a)-$(r.pep_b)($(r.mod_b))@$(r.site_b)"
-        end |> xs -> join(xs, ";")
+        map(psmstr, eachrow(df_psm[psms, :])) |> xs -> join(xs, ";")
     end
     df_tg_ext.psm_all_list_credible = map(df_tg_ext.psm_all_) do psms
-        map(eachrow(df_psm[filter(i -> df_psm.credible[i], psms), :])) do r
-            "$(r.scan)($(round(r.cov_a; digits=2))|$(round(r.cov_b; digits=2))):$(r.pep_a)($(r.mod_a))@$(r.site_a)-$(r.pep_b)($(r.mod_b))@$(r.site_b)"
-        end |> xs -> join(xs, ";")
+        map(psmstr, eachrow(df_psm[filter(i -> df_psm.credible[i], psms), :])) |> xs -> join(xs, ";")
+    end
+
+    df_tg_ext.same_iden = map(eachrow(df_tg_ext)) do r
+        filter(eachrow(df_psm[r.psm_, :])) do s
+            (s.engine != :pLink) && return false
+            return (r.pep_a == s.pep_a) && (r.pep_b == s.pep_b) && (r.mod_a == s.mod_a) && (r.mod_b == s.mod_b) && (r.site_a == s.site_a) && (r.site_b == s.site_b)
+        end .|> psmstr |> xs -> join(xs, ";")
+    end
+
+    df_tg_ext.same_iden_credible = map(eachrow(df_tg_ext)) do r
+        filter(eachrow(df_psm[r.psm_, :])) do s
+            (s.engine != :pLink) && return false
+            (!s.credible) && return false
+            return (r.pep_a == s.pep_a) && (r.pep_b == s.pep_b) && (r.mod_a == s.mod_a) && (r.mod_b == s.mod_b) && (r.site_a == s.site_a) && (r.site_b == s.site_b)
+        end .|> psmstr |> xs -> join(xs, ";")
+    end
+
+    df_tg_ext.same_iden_all = map(eachrow(df_tg_ext)) do r
+        filter(eachrow(df_psm[r.psm_all_, :])) do s
+            (s.engine != :pLink) && return false
+            return (r.pep_a == s.pep_a) && (r.pep_b == s.pep_b) && (r.mod_a == s.mod_a) && (r.mod_b == s.mod_b) && (r.site_a == s.site_a) && (r.site_b == s.site_b)
+        end .|> psmstr |> xs -> join(xs, ";")
+    end
+
+    df_tg_ext.same_iden_all_credible = map(eachrow(df_tg_ext)) do r
+        filter(eachrow(df_psm[r.psm_all_, :])) do s
+            (s.engine != :pLink) && return false
+            (!s.credible) && return false
+            return (r.pep_a == s.pep_a) && (r.pep_b == s.pep_b) && (r.mod_a == s.mod_a) && (r.mod_b == s.mod_b) && (r.site_a == s.site_a) && (r.site_b == s.site_b)
+        end .|> psmstr |> xs -> join(xs, ";")
     end
 
     MesMS.safe_save(p -> CSV.write(p, df_tg_ext), joinpath(out, "$(basename(splitext(path_ms)[1])).tg.TargetXView.csv"))
