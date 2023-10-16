@@ -166,6 +166,7 @@ prepare(args) = begin
 end
 
 psmstr(x) = "$(x.scan)($(round(x.cov_a; digits=2))|$(round(x.cov_b; digits=2))):$(x.pep_a)($(x.mod_a))@$(x.site_a)-$(x.pep_b)($(x.mod_b))@$(x.site_b)"
+is_same_xl_pep(a, b) = (a.pep_a == b.pep_a) && (a.pep_b == b.pep_b) && (a.mod_a == b.mod_a) && (a.mod_b == b.mod_b) && (a.site_a == b.site_a) && (a.site_b == b.site_b)
 
 process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, cfg, cfg_pf, host, port) = begin
     M = MesMS.read_ms(path_ms)
@@ -215,6 +216,8 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
     ion_types = map(i -> getfield(MesMS, Symbol("ion_$(i)")), ion_syms)
     M_ = [splitext(basename(path_ms))[1] => MesMS.dict_by_id(M.MS2)] |> Dict
     calc_cov_crosslink!(df_psm, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink, xl_plink)
+
+    df_psm.cov_min = min.(df_psm.cov_a, df_psm.cov_b)
 
     df_psm.credible = map(eachrow(df_psm)) do r
         r.cov_a_ion_y ≥ 0.6 && r.cov_b_ion_y ≥ 0.6 && r.cov_a_ion_b ≥ 0.4 && r.cov_b_ion_b ≥ 0.4
@@ -314,32 +317,63 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
     df_tg_ext.same_iden = map(eachrow(df_tg_ext)) do r
         filter(eachrow(df_psm[r.psm_, :])) do s
             (s.engine != :pLink) && return false
-            return (r.pep_a == s.pep_a) && (r.pep_b == s.pep_b) && (r.mod_a == s.mod_a) && (r.mod_b == s.mod_b) && (r.site_a == s.site_a) && (r.site_b == s.site_b)
+            return is_same_xl_pep(r, s)
         end .|> psmstr |> xs -> join(xs, ";")
     end
+    df_tg_ext.have_same_iden = .!isempty.(df_tg_ext.same_iden)
 
     df_tg_ext.same_iden_credible = map(eachrow(df_tg_ext)) do r
         filter(eachrow(df_psm[r.psm_, :])) do s
             (s.engine != :pLink) && return false
             (!s.credible) && return false
-            return (r.pep_a == s.pep_a) && (r.pep_b == s.pep_b) && (r.mod_a == s.mod_a) && (r.mod_b == s.mod_b) && (r.site_a == s.site_a) && (r.site_b == s.site_b)
+            return is_same_xl_pep(r, s)
         end .|> psmstr |> xs -> join(xs, ";")
     end
+    df_tg_ext.have_same_iden_credible = .!isempty.(df_tg_ext.same_iden_credible)
 
     df_tg_ext.same_iden_all = map(eachrow(df_tg_ext)) do r
         filter(eachrow(df_psm[r.psm_all_, :])) do s
             (s.engine != :pLink) && return false
-            return (r.pep_a == s.pep_a) && (r.pep_b == s.pep_b) && (r.mod_a == s.mod_a) && (r.mod_b == s.mod_b) && (r.site_a == s.site_a) && (r.site_b == s.site_b)
+            return is_same_xl_pep(r, s)
         end .|> psmstr |> xs -> join(xs, ";")
     end
+    df_tg_ext.have_same_iden_all = .!isempty.(df_tg_ext.same_iden_all)
 
     df_tg_ext.same_iden_all_credible = map(eachrow(df_tg_ext)) do r
         filter(eachrow(df_psm[r.psm_all_, :])) do s
             (s.engine != :pLink) && return false
             (!s.credible) && return false
-            return (r.pep_a == s.pep_a) && (r.pep_b == s.pep_b) && (r.mod_a == s.mod_a) && (r.mod_b == s.mod_b) && (r.site_a == s.site_a) && (r.site_b == s.site_b)
+            return is_same_xl_pep(r, s)
         end .|> psmstr |> xs -> join(xs, ";")
     end
+    df_tg_ext.have_same_iden_all_credible = .!isempty.(df_tg_ext.same_iden_all_credible)
+
+    vs = map(eachrow(df_tg_ext)) do r
+        b = nothing
+        for s in eachrow(df_psm[r.psm_, :])
+            (s.engine != :pLink) && continue
+            isnothing(b) && (b = s)
+            (s.cov_min ≤ b.cov_min) && continue
+            b = s
+        end
+        is_same = !isnothing(b) && is_same_xl_pep(r, b)
+        return isnothing(b) ? ("", false) : (psmstr(b), is_same_xl_pep(r, b))
+    end
+    df_tg_ext.best_iden = first.(vs)
+    df_tg_ext.best_iden_is_same = last.(vs)
+
+    vs = map(eachrow(df_tg_ext)) do r
+        b = nothing
+        for s in eachrow(df_psm[r.psm_all_, :])
+            (s.engine != :pLink) && continue
+            isnothing(b) && (b = s)
+            (s.cov_min ≤ b.cov_min) && continue
+            b = s
+        end
+        return isnothing(b) ? ("", false) : (psmstr(b), is_same_xl_pep(r, b))
+    end
+    df_tg_ext.best_iden_all = first.(vs)
+    df_tg_ext.best_iden_all_is_same = last.(vs)
 
     MesMS.safe_save(p -> CSV.write(p, df_tg_ext), joinpath(out, "$(basename(splitext(path_ms)[1])).tg.TargetXView.csv"))
     MesMS.safe_save(p -> CSV.write(p, df_psm), joinpath(out, "$(basename(splitext(path_ms)[1])).psm.TargetXView.csv"))
