@@ -214,6 +214,10 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
     M_ = [splitext(basename(path_ms))[1] => MesMS.dict_by_id(M.MS2)] |> Dict
     calc_cov_crosslink!(df_psm, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink, xl_plink)
 
+    df_psm.credible = map(eachrow(df_psm)) do r
+        r.cov_a_ion_y ≥ 0.6 && r.cov_b_ion_y ≥ 0.6 && r.cov_a_ion_b ≥ 0.4 && r.cov_b_ion_b ≥ 0.4
+    end
+
     if !isempty(path_psm_pf)
         df_psm_pf = pFind.read_psm(path_psm_pf)
         df_psm_pf.engine .= :pFind
@@ -290,12 +294,25 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
     
     df_tg_ext = DataFrames.DataFrame(df_tg)
+    df_tg_ext.psm_list = map(df_tg_ext.psm_) do psms
+        map(eachrow(df_psm[psms, :])) do r
+            "$(r.scan)($(round(r.cov_a; digits=2))|$(round(r.cov_b; digits=2))):$(r.pep_a)($(r.mod_a))@$(r.site_a)-$(r.pep_b)($(r.mod_b))@$(r.site_b)"
+        end |> xs -> join(xs, ";")
+    end
+    df_tg_ext.psm_list_credible = map(df_tg_ext.psm_) do psms
+        map(eachrow(df_psm[filter(i -> df_psm.credible[i], psms), :])) do r
+            "$(r.scan)($(round(r.cov_a; digits=2))|$(round(r.cov_b; digits=2))):$(r.pep_a)($(r.mod_a))@$(r.site_a)-$(r.pep_b)($(r.mod_b))@$(r.site_b)"
+        end |> xs -> join(xs, ";")
+    end
     df_tg_ext.psm_all_list = map(df_tg_ext.psm_all_) do psms
-        items = map(psms) do i
-            r = df_psm[i, :]
-            return "$(r.scan)($(round(r.cov_a; digits=2))|$(round(r.cov_b; digits=2))):$(r.pep_a)($(r.mod_a))@$(r.site_a)-$(r.pep_b)($(r.mod_b))@$(r.site_b)"
-        end
-        return join(items, ";")
+        map(eachrow(df_psm[psms, :])) do r
+            "$(r.scan)($(round(r.cov_a; digits=2))|$(round(r.cov_b; digits=2))):$(r.pep_a)($(r.mod_a))@$(r.site_a)-$(r.pep_b)($(r.mod_b))@$(r.site_b)"
+        end |> xs -> join(xs, ";")
+    end
+    df_tg_ext.psm_all_list_credible = map(df_tg_ext.psm_all_) do psms
+        map(eachrow(df_psm[filter(i -> df_psm.credible[i], psms), :])) do r
+            "$(r.scan)($(round(r.cov_a; digits=2))|$(round(r.cov_b; digits=2))):$(r.pep_a)($(r.mod_a))@$(r.site_a)-$(r.pep_b)($(r.mod_b))@$(r.site_b)"
+        end |> xs -> join(xs, ";")
     end
 
     MesMS.safe_save(p -> CSV.write(p, df_tg_ext), joinpath(out, "$(basename(splitext(path_ms)[1])).tg.TargetXView.csv"))
