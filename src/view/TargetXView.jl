@@ -173,6 +173,8 @@ end
 psmstr(x) = "$(x.scan)($(round(x.cov_a; digits=2))|$(round(x.cov_b; digits=2))):$(x.pep_a)($(x.mod_a))@$(x.site_a)-$(x.pep_b)($(x.mod_b))@$(x.site_b)"
 is_same_xl_pep(a, b) = (a.pep_a == b.pep_a) && (a.pep_b == b.pep_b) && (a.mod_a == b.mod_a) && (a.mod_b == b.mod_b) && (a.site_a == b.site_a) && (a.site_b == b.site_b)
 
+unify_mods_str(s) = (!ismissing(s) && startswith(s, "Any[") && endswith(s, "]")) ? s[5:end-1] : s
+
 process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, cfg, cfg_pf, host, port) = begin
     M = MesMS.read_ms(path_ms)
     df_m1 = map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1) |> DataFrames.DataFrame
@@ -263,8 +265,8 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     df_tg.id = Vector(1:size(df_tg, 1))
     parse_target_list!(df_tg, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
-    "mod_a" ∈ names(df_tg) && (df_tg.mod_a = parse.(Array{MesMS.Mod}, (df_tg.mod_a)))
-    "mod_b" ∈ names(df_tg) && (df_tg.mod_b = parse.(Array{MesMS.Mod}, (df_tg.mod_b)))
+    "mod_a" ∈ names(df_tg) && (df_tg.mod_a = parse.(Array{MesMS.Mod}, unify_mods_str.(df_tg.mod_a)))
+    "mod_b" ∈ names(df_tg) && (df_tg.mod_b = parse.(Array{MesMS.Mod}, unify_mods_str.(df_tg.mod_b)))
 
     @info "XL Candidtes mapping"
     tmp = sort!([(x.mz::Float64, x.id::Int) for x in eachrow(df_xl)])
