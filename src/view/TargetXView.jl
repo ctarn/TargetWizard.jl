@@ -170,7 +170,10 @@ prepare(args) = begin
     return (; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, cfg, cfg_pf, host, port)
 end
 
-psmstr(x) = "$(x.scan)($(round(x.cov_a; digits=2))|$(round(x.cov_b; digits=2))):$(x.pep_a)($(x.mod_a))@$(x.site_a)-$(x.pep_b)($(x.mod_b))@$(x.site_b)"
+psmstr_linear(x) = "$(x.scan)($(round(x.cov; digits=2))):$(x.pep)($(x.mod))"
+psmstr_mono(x) = "$(x.scan)($(round(x.cov; digits=2))):$(x.pep)($(x.mod))@$(x.site)"
+psmstr_loop(x) = "$(x.scan)($(round(x.cov; digits=2))):$(x.pep)($(x.mod))@$(x.site_a)-$(x.site_b)"
+psmstr_link(x) = "$(x.scan)($(round(x.cov_a; digits=2))|$(round(x.cov_b; digits=2))):$(x.pep_a)($(x.mod_a))@$(x.site_a)-$(x.pep_b)($(x.mod_b))@$(x.site_b)"
 is_same_xl_pep(a, b) = (a.pep_a == b.pep_a) && (a.pep_b == b.pep_b) && (a.mod_a == b.mod_a) && (a.mod_b == b.mod_b) && (a.site_a == b.site_a) && (a.site_b == b.site_b)
 
 unify_mods_str(s) = (!ismissing(s) && startswith(s, "Any[") && endswith(s, "]")) ? s[5:end-1] : s
@@ -205,7 +208,8 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
         mod_pfind = MesMS.mapvalue(x -> x.mass, pFind.read_modification(joinpath(cfg_pf, "modification.ini")))
     end
 
-    df_psm = pLink.read_psm_full(path_psm).xl
+    dfs = pLink.read_psm_full(path_psm)
+    df_psm = dfs.xl
     df_psm = df_psm[df_psm.fdr .≤ fdr, :]
     df_psm.engine .= :pLink
     ns = [
@@ -221,16 +225,29 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     DataFrames.select!(df_psm, ns, DataFrames.Not(ns))
     ("linker" ∉ names(df_psm)) && (df_psm.linker .= linker)
 
+    df_linear = dfs.linear
+
+    df_mono = dfs.mono
+    ("linker" ∉ names(df_mono)) && (df_mono.linker .= linker)
+
+    df_loop = dfs.loop
+    ("linker" ∉ names(df_loop)) && (df_loop.linker .= linker)
+
     ion_syms = ["b", "y"]
     ion_types = map(i -> getfield(MesMS, Symbol("ion_$(i)")), ion_syms)
     M_ = [splitext(basename(path_ms))[1] => MesMS.dict_by_id(M.MS2)] |> Dict
     calc_cov_crosslink!(df_psm, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink, xl_plink)
+    calc_cov_linear!(df_linear, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink)
+    calc_cov_monolink!(df_mono, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink, xl_plink)
+    calc_cov_looplink!(df_loop, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink, xl_plink)
 
     df_psm.cov_min = min.(df_psm.cov_a, df_psm.cov_b)
-
     df_psm.credible = map(eachrow(df_psm)) do r
         r.cov_a_ion_y ≥ 0.6 && r.cov_b_ion_y ≥ 0.6 && r.cov_a_ion_b ≥ 0.4 && r.cov_b_ion_b ≥ 0.4
     end
+    df_linear.credible = map(r -> r.cov_ion_y ≥ 0.6 && r.cov_ion_b ≥ 0.4, eachrow(df_linear))
+    df_mono.credible = map(r -> r.cov_ion_y ≥ 0.6 && r.cov_ion_b ≥ 0.4, eachrow(df_mono))
+    df_loop.credible = map(r -> r.cov_ion_y ≥ 0.6 && r.cov_ion_b ≥ 0.4, eachrow(df_loop))
 
     if !isempty(path_psm_pf)
         df_psm_pf = pFind.read_psm(path_psm_pf)
@@ -249,6 +266,9 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     df_psm.rt = [df_m2[M2I[r.scan], :rt] for r in eachrow(df_psm)]
 
     df_m2.psm = [df_psm[df_psm.scan .== r.id, :id] for r in eachrow(df_m2)]
+    df_m2.psm_linear = [df_linear[df_linear.scan .== r.id, :id] for r in eachrow(df_m2)]
+    df_m2.psm_mono = [df_mono[df_mono.scan .== r.id, :id] for r in eachrow(df_m2)]
+    df_m2.psm_loop = [df_loop[df_loop.scan .== r.id, :id] for r in eachrow(df_m2)]
 
     !isempty(path_xl) && @info "XL Candidtes loading from " * path_xl
     df_xl = (isempty(path_xl) ? [] : CSV.File(path_xl)) |> DataFrames.DataFrame
@@ -318,6 +338,13 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     df_tg.n_psm_all = length.(df_tg.psm_all_)
     df_tg.n_psm = length.(df_tg.psm_)
 
+    df_tg.psm_linear_all_ = [vcat(df_m2[r.m2_all_, :psm_linear]...) for r in eachrow(df_tg)]
+    df_tg.psm_linear_ = [vcat(df_m2[r.m2_, :psm_linear]...) for r in eachrow(df_tg)]
+    df_tg.psm_mono_all_ = [vcat(df_m2[r.m2_all_, :psm_mono]...) for r in eachrow(df_tg)]
+    df_tg.psm_mono_ = [vcat(df_m2[r.m2_, :psm_mono]...) for r in eachrow(df_tg)]
+    df_tg.psm_loop_all_ = [vcat(df_m2[r.m2_all_, :psm_loop]...) for r in eachrow(df_tg)]
+    df_tg.psm_loop_ = [vcat(df_m2[r.m2_, :psm_loop]...) for r in eachrow(df_tg)]
+
     filter_plink(x) = filter(i -> df_psm.engine[i] == :pLink, x)
     filter_pfind(x) = filter(i -> df_psm.engine[i] == :pFind, x)
 
@@ -330,28 +357,24 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
     
     df_tg_ext = DataFrames.DataFrame(df_tg)
-    df_tg_ext.iden = map(df_tg_ext.psm_) do psms
-        map(psmstr, eachrow(df_psm[psms, :])) |> xs -> join(xs, ";")
+    for (k, s, d) in zip(["", "_linear", "_mono", "_loop"], [psmstr_link, psmstr_linear, psmstr_mono, psmstr_loop], [df_psm, df_linear, df_mono, df_loop])
+        for a in ["", "_all"]
+            df_tg_ext[!, "iden$(k)$(a)"] = map(df_tg_ext[!, "psm$(k)$(a)_"]) do psms
+                map(s, eachrow(d[psms, :])) |> xs -> join(xs, ";")
+            end
+            df_tg_ext[!, "have_iden$(k)$(a)"] = .!isempty.(df_tg_ext[!, "iden$(k)$(a)"])
+            df_tg_ext[!, "iden$(k)$(a)_credible"] = map(df_tg_ext[!, "psm$(k)$(a)_"]) do psms
+                map(s, eachrow(d[filter(i -> d.credible[i], psms), :])) |> xs -> join(xs, ";")
+            end
+            df_tg_ext[!, "have_iden$(k)$(a)_credible"] = .!isempty.(df_tg_ext[!, "iden$(k)$(a)_credible"])
+        end
     end
-    df_tg_ext.have_iden = .!isempty.(df_tg_ext.iden)
-    df_tg_ext.iden_credible = map(df_tg_ext.psm_) do psms
-        map(psmstr, eachrow(df_psm[filter(i -> df_psm.credible[i], psms), :])) |> xs -> join(xs, ";")
-    end
-    df_tg_ext.have_iden_credible = .!isempty.(df_tg_ext.iden_credible)
-    df_tg_ext.iden_all = map(df_tg_ext.psm_all_) do psms
-        map(psmstr, eachrow(df_psm[psms, :])) |> xs -> join(xs, ";")
-    end
-    df_tg_ext.have_iden_all = .!isempty.(df_tg_ext.iden_all)
-    df_tg_ext.iden_all_credible = map(df_tg_ext.psm_all_) do psms
-        map(psmstr, eachrow(df_psm[filter(i -> df_psm.credible[i], psms), :])) |> xs -> join(xs, ";")
-    end
-    df_tg_ext.have_iden_all_credible = .!isempty.(df_tg_ext.iden_all_credible)
 
     df_tg_ext.same_iden = map(eachrow(df_tg_ext)) do r
         filter(eachrow(df_psm[r.psm_, :])) do s
             (s.engine != :pLink) && return false
             return is_same_xl_pep(r, s)
-        end .|> psmstr |> xs -> join(xs, ";")
+        end .|> psmstr_link |> xs -> join(xs, ";")
     end
     df_tg_ext.have_same_iden = .!isempty.(df_tg_ext.same_iden)
 
@@ -360,7 +383,7 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
             (s.engine != :pLink) && return false
             (!s.credible) && return false
             return is_same_xl_pep(r, s)
-        end .|> psmstr |> xs -> join(xs, ";")
+        end .|> psmstr_link |> xs -> join(xs, ";")
     end
     df_tg_ext.have_same_iden_credible = .!isempty.(df_tg_ext.same_iden_credible)
 
@@ -368,7 +391,7 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
         filter(eachrow(df_psm[r.psm_all_, :])) do s
             (s.engine != :pLink) && return false
             return is_same_xl_pep(r, s)
-        end .|> psmstr |> xs -> join(xs, ";")
+        end .|> psmstr_link |> xs -> join(xs, ";")
     end
     df_tg_ext.have_same_iden_all = .!isempty.(df_tg_ext.same_iden_all)
 
@@ -377,7 +400,7 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
             (s.engine != :pLink) && return false
             (!s.credible) && return false
             return is_same_xl_pep(r, s)
-        end .|> psmstr |> xs -> join(xs, ";")
+        end .|> psmstr_link |> xs -> join(xs, ";")
     end
     df_tg_ext.have_same_iden_all_credible = .!isempty.(df_tg_ext.same_iden_all_credible)
 
@@ -390,7 +413,7 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
             b = s
         end
         is_same = !isnothing(b) && is_same_xl_pep(r, b)
-        return isnothing(b) ? ("", false) : (psmstr(b), is_same_xl_pep(r, b))
+        return isnothing(b) ? ("", false) : (psmstr_link(b), is_same_xl_pep(r, b))
     end
     df_tg_ext.best_iden = first.(vs)
     df_tg_ext.best_iden_is_same = last.(vs)
@@ -403,14 +426,17 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
             (s.cov_min ≤ b.cov_min) && continue
             b = s
         end
-        return isnothing(b) ? ("", false) : (psmstr(b), is_same_xl_pep(r, b))
+        return isnothing(b) ? ("", false) : (psmstr_link(b), is_same_xl_pep(r, b))
     end
     df_tg_ext.best_iden_all = first.(vs)
     df_tg_ext.best_iden_all_is_same = last.(vs)
 
     MesMS.safe_save(p -> CSV.write(p, df_tg_ext), joinpath(out, "$(basename(splitext(path_ms)[1])).tg.TargetXView.csv"))
-    MesMS.safe_save(p -> CSV.write(p, df_psm), joinpath(out, "$(basename(splitext(path_ms)[1])).psm.TargetXView.csv"))
-    
+    MesMS.safe_save(p -> CSV.write(p, df_psm), joinpath(out, "$(basename(splitext(path_ms)[1])).crosslink.TargetXView.csv"))
+    MesMS.safe_save(p -> CSV.write(p, df_linear), joinpath(out, "$(basename(splitext(path_ms)[1])).linear.TargetXView.csv"))
+    MesMS.safe_save(p -> CSV.write(p, df_mono), joinpath(out, "$(basename(splitext(path_ms)[1])).monolink.TargetXView.csv"))
+    MesMS.safe_save(p -> CSV.write(p, df_loop), joinpath(out, "$(basename(splitext(path_ms)[1])).looplink.TargetXView.csv"))
+
     @async begin
         sleep(4)
         MesMS.open_url("http://$(host):$(port)")
