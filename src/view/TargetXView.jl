@@ -333,15 +333,19 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     df_tg_ext.iden = map(df_tg_ext.psm_) do psms
         map(psmstr, eachrow(df_psm[psms, :])) |> xs -> join(xs, ";")
     end
+    df_tg_ext.have_iden = .!isempty.(df_tg_ext.iden)
     df_tg_ext.iden_credible = map(df_tg_ext.psm_) do psms
         map(psmstr, eachrow(df_psm[filter(i -> df_psm.credible[i], psms), :])) |> xs -> join(xs, ";")
     end
+    df_tg_ext.have_iden_credible = .!isempty.(df_tg_ext.iden_credible)
     df_tg_ext.iden_all = map(df_tg_ext.psm_all_) do psms
         map(psmstr, eachrow(df_psm[psms, :])) |> xs -> join(xs, ";")
     end
+    df_tg_ext.have_iden_all = .!isempty.(df_tg_ext.iden_all)
     df_tg_ext.iden_all_credible = map(df_tg_ext.psm_all_) do psms
         map(psmstr, eachrow(df_psm[filter(i -> df_psm.credible[i], psms), :])) |> xs -> join(xs, ";")
     end
+    df_tg_ext.have_iden_all_credible = .!isempty.(df_tg_ext.iden_all_credible)
 
     df_tg_ext.same_iden = map(eachrow(df_tg_ext)) do r
         filter(eachrow(df_psm[r.psm_, :])) do s
