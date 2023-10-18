@@ -24,10 +24,36 @@ prepare(args) = begin
     return (; df, out, name, ε, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt)
 end
 
+_nearbymax(M, i, mz, ε, τ, δ) = begin
+    skip = 0
+    v = -Inf
+    i_max = i
+    while skip ≤ τ
+        v_ = MesMS.max_inten_ε(M[i].peaks, mz, ε)
+        if v_ > v
+            skip = 0
+            v = v_
+            i_max = i
+        else
+            skip += 1
+        end
+        i += δ
+    end
+    return i_max, v
+end
+
+nearbymax(M, i, mz, ε, τ=2) = begin
+    li, lv = _nearbymax(M, i, mz, ε, τ, -1)
+    ri, rv = _nearbymax(M, i, mz, ε, τ, 1)
+    return lv ≥ rv ? (li, lv) : (ri, rv)
+end
+
 process(paths; df, out, name, ε, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt) = begin
     Ms = map(p -> MesMS.read_ms(p), paths)
     M1 = map((p, M) -> splitext(basename(p))[1] => MesMS.dict_by_id(M.MS1), paths, Ms) |> Dict
     M2 = map((p, M) -> splitext(basename(p))[1] => MesMS.dict_by_id(M.MS2), paths, Ms) |> Dict
+    M1V = map((p, M) -> splitext(basename(p))[1] => M.MS1, paths, Ms) |> Dict
+    M1I = map((p, M) -> splitext(basename(p))[1] => [m.id => i for (i, m) in enumerate(M.MS1)] |> Dict, paths, Ms) |> Dict
 
     s = trues(size(df, 1))
     s .&= fdr_ge ? (df.fdr .≥ fdr_min) : (df.fdr .> fdr_min)
@@ -50,6 +76,14 @@ process(paths; df, out, name, ε, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batc
         m1 = M1[r.file][m2.pre]
         return MesMS.max_inten_ε(m1.peaks, r.mz, ε)
     end
+    vs = map(eachrow(df)) do r
+        m2 = M2[r.file][r.scan]
+        i = M1I[r.file][m2.pre]
+        i, v = nearbymax(M1V[r.file], i, r.mz, ε, 2)
+        return v, (M1V[r.file][i].retention_time - m2.retention_time)
+    end
+    df.inten_max = first.(vs)
+    df.inten_max_delta_rt = last.(vs)
 
     df.start = min.(lc * 60, max.(0, df.rt .- (rt / 2)))
     df.stop = min.(lc * 60, max.(0, df.rt .+ (rt / 2)))
