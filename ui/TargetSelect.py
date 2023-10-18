@@ -17,6 +17,7 @@ vars_spec = {
     "psm": {"type": tk.StringVar, "value": ""},
     "out": {"type": tk.StringVar, "value": ""},
     "name": {"type": tk.StringVar, "value": "TargetWizard"},
+    "error": {"type": tk.StringVar, "value": "20"},
     "fdr_min": {"type": tk.StringVar, "value": "-Inf"},
     "fdr_max": {"type": tk.StringVar, "value": "Inf"},
     "fdr_ge": {"type": tk.StringVar, "value": "≤"},
@@ -36,6 +37,7 @@ def run():
         "--psm", V["psm"].get(),
         "--out", V["out"].get(),
         "--name", V["name"].get(),
+        "--error", V["error"].get(),
         "--fdr_min", V["fdr_min"].get(),
         "--fdr_max", V["fdr_max"].get(),
         *(["--fdr_ge"] if V["fdr_ge"].get() == "≤" else []),
@@ -57,6 +59,8 @@ t = (("PSM", "*.csv"), ("All", "*.*"))
 util.add_entry(main, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))
 I += 1
 util.add_entry(main, I, "Task Name:", V["name"])
+I += 1
+util.add_entry(main, I, "Max. MS1 Mass Error:", V["error"], "ppm")
 I += 1
 _, f, _ = util.add_entry(main, I, "FDR Range:", ttk.Frame(main), "%")
 ttk.Entry(f, textvariable=V["fdr_min"]).pack(side="left", fill="x", expand=True)
