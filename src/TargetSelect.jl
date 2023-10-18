@@ -10,6 +10,7 @@ prepare(args) = begin
     df = pLink.read_psm_full(args["psm"]).xl
     out = mkpath(args["out"])
     name = args["name"]
+    ε = parse(Float64, args["error"]) * 1.0e-6
     fdr_min = parse(Float64, args["fdr_min"]) / 100
     fdr_max = parse(Float64, args["fdr_max"]) / 100
     fdr_ge = args["fdr_ge"]
@@ -20,11 +21,13 @@ prepare(args) = begin
     rt = parse(Float64, args["rtime"])
     lc = parse(Float64, args["lc"])
     fmt = split(args["fmt"], ",") .|> strip .|> Symbol
-    return (; df, out, name, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt)
+    return (; df, out, name, ε, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt)
 end
 
-process(paths; df, out, name, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt) = begin
-    M = map(p -> splitext(basename(p))[1] => MesMS.dict_by_id(MesMS.read_ms(p).MS2), paths) |> Dict
+process(paths; df, out, name, ε, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt) = begin
+    Ms = map(p -> MesMS.read_ms(p), paths)
+    M1 = map((p, M) -> splitext(basename(p))[1] => MesMS.dict_by_id(M.MS1), paths, Ms) |> Dict
+    M2 = map((p, M) -> splitext(basename(p))[1] => MesMS.dict_by_id(M.MS2), paths, Ms) |> Dict
 
     s = trues(size(df, 1))
     s .&= fdr_ge ? (df.fdr .≥ fdr_min) : (df.fdr .> fdr_min)
@@ -40,7 +43,13 @@ process(paths; df, out, name, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_si
         renamecols=false,
     )
 
-    df.rt = [M[r.file][r.scan].retention_time for r in eachrow(df)]
+    df.rt = [M2[r.file][r.scan].retention_time for r in eachrow(df)]
+
+    df.inten = map(eachrow(df)) do r
+        m2 = M2[r.file][r.scan]
+        m1 = M1[r.file][m2.pre]
+        return MesMS.max_inten_ε(m1.peaks, r.mz, ε)
+    end
 
     df.start = min.(lc * 60, max.(0, df.rt .- (rt / 2)))
     df.stop = min.(lc * 60, max.(0, df.rt .+ (rt / 2)))
@@ -86,6 +95,10 @@ main() = begin
             help = "task name"
             metavar = "name"
             default = "TargetWizard"
+        "--error"
+            help = "m/z error"
+            metavar = "ppm"
+            default = "20.0"
         "--fdr_min"
             help = "min. FDR (%)"
             metavar = "min"
