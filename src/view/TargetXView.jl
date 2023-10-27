@@ -301,6 +301,8 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     df_tg.ft_ = [sort(filter(x -> df_ft[x, :z] == r.z, ids[MesMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
     df_tg.n_ft = length.(df_tg.ft_)
 
+    calc_sim(dda, tda) = map(p -> !isempty(MesMS.argquery_ε(tda.peaks, p.mz, ε)), M_old[dda.file][dda.scan].peaks) |> mean
+
     @info "MS2 mapping"
     tmp = sort!([(x.mz::Float64, x.id::Int) for x in eachrow(df_m2)])
     mzs = map(x -> x[1], tmp)
@@ -314,22 +316,10 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
 
     @info "MS2 similarity calculating"
     df_tg.m2_sim_ = @showprogress map(eachrow(df_tg)) do r
-        psa = M_old[r.file][r.scan].peaks
-        return map(eachrow(df_m2[r.m2_, :])) do s
-            sim = map(psa) do p
-                !isempty(MesMS.argquery_ε(s.peaks, p.mz, ε))
-            end |> mean
-            return "$(s.id):$(round(sim; digits=2))"
-        end |> xs -> join(xs, ";")
+        map(s -> "$(s.id):$(round(calc_sim(r, s); digits=2))", eachrow(df_m2[r.m2_, :])) |> xs -> join(xs, ";")
     end
     df_tg.m2_all_sim_ = @showprogress map(eachrow(df_tg)) do r
-        psa = M_old[r.file][r.scan].peaks
-        return map(eachrow(df_m2[r.m2_all_, :])) do s
-            sim = map(psa) do p
-                !isempty(MesMS.argquery_ε(s.peaks, p.mz, ε))
-            end |> mean
-            return "$(s.id):$(round(sim; digits=2))"
-        end |> xs -> join(xs, ";")
+        map(s -> "$(s.id):$(round(calc_sim(r, s); digits=2))", eachrow(df_m2[r.m2_all_, :])) |> xs -> join(xs, ";")
     end
 
     @info "PSM mapping"
