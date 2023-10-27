@@ -301,6 +301,8 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     df_tg.ft_ = [sort(filter(x -> df_ft[x, :z] == r.z, ids[MesMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
     df_tg.n_ft = length.(df_tg.ft_)
 
+    Ks = ["", "_allsim", "_all"]
+
     calc_sim(dda, tda) = map(p -> !isempty(MesMS.argquery_ε(tda.peaks, p.mz, ε)), M_old[dda.file][dda.scan].peaks) |> mean
 
     @info "MS2 mapping"
@@ -308,118 +310,85 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     mzs = map(x -> x[1], tmp)
     ids = map(x -> x[2], tmp)
     df_tg.m2_all_ = [map(x -> M2I[x], sort(ids[MesMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
+    df_tg.m2_allsim_ = [filter(i -> calc_sim(r, df_m2[i, :]) ≥ 0.5, r.m2_all_) for r in eachrow(df_tg)]
     df_tg.m2_ = [filter(i -> r.start ≤ df_m2.rt[i] ≤ r.stop, r.m2_all_) for r in eachrow(df_tg)]
-    df_tg.n_m2_all = length.(df_tg.m2_all_)
-    df_tg.n_m2 = length.(df_tg.m2_)
-    df_tg.m2_all_id_ = [map(x -> df_m2.id[x], r.m2_all_) for r in eachrow(df_tg)]
-    df_tg.m2_id_ = [map(x -> df_m2.id[x], r.m2_) for r in eachrow(df_tg)]
+    for K in Ks
+        df_tg[!, "n_m2$(K)"] = length.(df_tg[!, "m2$(K)_"])
+    end
+    for K in Ks
+        df_tg[!, "m2$(K)_id_"] = [map(x -> df_m2.id[x], r["m2$(K)_"]) for r in eachrow(df_tg)]
+    end
 
     @info "MS2 similarity calculating"
-    df_tg.m2_sim_ = @showprogress map(eachrow(df_tg)) do r
-        map(s -> "$(s.id):$(round(calc_sim(r, s); digits=2))", eachrow(df_m2[r.m2_, :])) |> xs -> join(xs, ";")
-    end
-    df_tg.m2_all_sim_ = @showprogress map(eachrow(df_tg)) do r
-        map(s -> "$(s.id):$(round(calc_sim(r, s); digits=2))", eachrow(df_m2[r.m2_all_, :])) |> xs -> join(xs, ";")
+    for K in Ks
+        df_tg[!, "m2$(K)_sim_"] = @showprogress map(eachrow(df_tg)) do r
+            map(s -> "$(s.id):$(round(calc_sim(r, s); digits=2))", eachrow(df_m2[r["m2$(K)_"], :])) |> xs -> join(xs, ";")
+        end
     end
 
     @info "PSM mapping"
-    df_tg.psm_all_ = [vcat(df_m2[r.m2_all_, :psm]...) for r in eachrow(df_tg)]
-    df_tg.psm_ = [vcat(df_m2[r.m2_, :psm]...) for r in eachrow(df_tg)]
-    df_tg.n_psm_all = length.(df_tg.psm_all_)
-    df_tg.n_psm = length.(df_tg.psm_)
-
-    df_tg.psm_linear_all_ = [vcat(df_m2[r.m2_all_, :psm_linear]...) for r in eachrow(df_tg)]
-    df_tg.psm_linear_ = [vcat(df_m2[r.m2_, :psm_linear]...) for r in eachrow(df_tg)]
-    df_tg.psm_mono_all_ = [vcat(df_m2[r.m2_all_, :psm_mono]...) for r in eachrow(df_tg)]
-    df_tg.psm_mono_ = [vcat(df_m2[r.m2_, :psm_mono]...) for r in eachrow(df_tg)]
-    df_tg.psm_loop_all_ = [vcat(df_m2[r.m2_all_, :psm_loop]...) for r in eachrow(df_tg)]
-    df_tg.psm_loop_ = [vcat(df_m2[r.m2_, :psm_loop]...) for r in eachrow(df_tg)]
-
     filter_plink(x) = filter(i -> df_psm.engine[i] == :pLink, x)
     filter_pfind(x) = filter(i -> df_psm.engine[i] == :pFind, x)
+    for K in Ks
+        df_tg[!, "psm$(K)_"] = [vcat(df_m2[r["m2$(K)_"], :psm]...) for r in eachrow(df_tg)]
+        df_tg[!, "n_psm$(K)"] = length.(df_tg[!, "psm$(K)_"])
 
-    df_tg.n_psm_plink_all = length.(map(filter_plink, df_tg.psm_all_))
-    df_tg.n_psm_plink = length.(map(filter_plink, df_tg.psm_))
-    df_tg.n_psm_pfind_all = length.(map(filter_pfind, df_tg.psm_all_))
-    df_tg.n_psm_pfind = length.(map(filter_pfind, df_tg.psm_))
+        df_tg[!, "psm_linear$(K)_"] = [vcat(df_m2[r["m2$(K)_"], :psm_linear]...) for r in eachrow(df_tg)]
+        df_tg[!, "psm_mono$(K)_"] = [vcat(df_m2[r["m2$(K)_"], :psm_mono]...) for r in eachrow(df_tg)]
+        df_tg[!, "psm_loop$(K)_"] = [vcat(df_m2[r["m2$(K)_"], :psm_loop]...) for r in eachrow(df_tg)]
+
+        df_tg[!, "n_psm_plink$(K)"] = length.(map(filter_plink, df_tg[!, "psm$(K)_"]))
+        df_tg[!, "n_psm_pfind$(K)"] = length.(map(filter_pfind, df_tg[!, "psm$(K)_"]))
+    end
 
     ns = filter(n -> !endswith(n, '_'), names(df_tg))
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
     
     df_tg_ext = DataFrames.DataFrame(df_tg)
     for (k, s, d) in zip(["", "_linear", "_mono", "_loop"], [psmstr_link, psmstr_linear, psmstr_mono, psmstr_loop], [df_psm, df_linear, df_mono, df_loop])
-        for a in ["", "_all"]
-            df_tg_ext[!, "iden$(k)$(a)"] = map(df_tg_ext[!, "psm$(k)$(a)_"]) do psms
+        for K in Ks
+            df_tg_ext[!, "iden$(k)$(K)"] = map(df_tg_ext[!, "psm$(k)$(K)_"]) do psms
                 map(s, eachrow(d[psms, :])) |> xs -> join(xs, ";")
             end
-            df_tg_ext[!, "have_iden$(k)$(a)"] = .!isempty.(df_tg_ext[!, "iden$(k)$(a)"])
-            df_tg_ext[!, "iden$(k)$(a)_credible"] = map(df_tg_ext[!, "psm$(k)$(a)_"]) do psms
+            df_tg_ext[!, "have_iden$(k)$(K)"] = .!isempty.(df_tg_ext[!, "iden$(k)$(K)"])
+            df_tg_ext[!, "iden$(k)$(K)_credible"] = map(df_tg_ext[!, "psm$(k)$(K)_"]) do psms
                 map(s, eachrow(d[filter(i -> d.credible[i], psms), :])) |> xs -> join(xs, ";")
             end
-            df_tg_ext[!, "have_iden$(k)$(a)_credible"] = .!isempty.(df_tg_ext[!, "iden$(k)$(a)_credible"])
+            df_tg_ext[!, "have_iden$(k)$(K)_credible"] = .!isempty.(df_tg_ext[!, "iden$(k)$(K)_credible"])
         end
     end
 
-    df_tg_ext.same_iden = map(eachrow(df_tg_ext)) do r
-        filter(eachrow(df_psm[r.psm_, :])) do s
-            (s.engine != :pLink) && return false
-            return is_same_xl_pep(r, s)
-        end .|> psmstr_link |> xs -> join(xs, ";")
-    end
-    df_tg_ext.have_same_iden = .!isempty.(df_tg_ext.same_iden)
-
-    df_tg_ext.same_iden_credible = map(eachrow(df_tg_ext)) do r
-        filter(eachrow(df_psm[r.psm_, :])) do s
-            (s.engine != :pLink) && return false
-            (!s.credible) && return false
-            return is_same_xl_pep(r, s)
-        end .|> psmstr_link |> xs -> join(xs, ";")
-    end
-    df_tg_ext.have_same_iden_credible = .!isempty.(df_tg_ext.same_iden_credible)
-
-    df_tg_ext.same_iden_all = map(eachrow(df_tg_ext)) do r
-        filter(eachrow(df_psm[r.psm_all_, :])) do s
-            (s.engine != :pLink) && return false
-            return is_same_xl_pep(r, s)
-        end .|> psmstr_link |> xs -> join(xs, ";")
-    end
-    df_tg_ext.have_same_iden_all = .!isempty.(df_tg_ext.same_iden_all)
-
-    df_tg_ext.same_iden_all_credible = map(eachrow(df_tg_ext)) do r
-        filter(eachrow(df_psm[r.psm_all_, :])) do s
-            (s.engine != :pLink) && return false
-            (!s.credible) && return false
-            return is_same_xl_pep(r, s)
-        end .|> psmstr_link |> xs -> join(xs, ";")
-    end
-    df_tg_ext.have_same_iden_all_credible = .!isempty.(df_tg_ext.same_iden_all_credible)
-
-    vs = map(eachrow(df_tg_ext)) do r
-        b = nothing
-        for s in eachrow(df_psm[r.psm_, :])
-            (s.engine != :pLink) && continue
-            isnothing(b) && (b = s)
-            (s.cov_min ≤ b.cov_min) && continue
-            b = s
+    for K in Ks
+        df_tg_ext[!, "same_iden$(K)"] = map(eachrow(df_tg_ext)) do r
+            filter(eachrow(df_psm[r["psm$(K)_"], :])) do s
+                (s.engine != :pLink) && return false
+                return is_same_xl_pep(r, s)
+            end .|> psmstr_link |> xs -> join(xs, ";")
         end
-        is_same = !isnothing(b) && is_same_xl_pep(r, b)
-        return isnothing(b) ? ("", false) : (psmstr_link(b), is_same_xl_pep(r, b))
-    end
-    df_tg_ext.best_iden = first.(vs)
-    df_tg_ext.best_iden_is_same = last.(vs)
+        df_tg_ext[!, "have_same_iden$(K)"] = .!isempty.(df_tg_ext[!, "same_iden$(K)"])
 
-    vs = map(eachrow(df_tg_ext)) do r
-        b = nothing
-        for s in eachrow(df_psm[r.psm_all_, :])
-            (s.engine != :pLink) && continue
-            isnothing(b) && (b = s)
-            (s.cov_min ≤ b.cov_min) && continue
-            b = s
+        df_tg_ext[!, "same_iden$(K)_credible"] = map(eachrow(df_tg_ext)) do r
+            filter(eachrow(df_psm[r["psm$(K)_"], :])) do s
+                (s.engine != :pLink) && return false
+                (!s.credible) && return false
+                return is_same_xl_pep(r, s)
+            end .|> psmstr_link |> xs -> join(xs, ";")
         end
-        return isnothing(b) ? ("", false) : (psmstr_link(b), is_same_xl_pep(r, b))
+        df_tg_ext[!, "have_same_iden$(K)_credible"] = .!isempty.(df_tg_ext[!, "same_iden$(K)_credible"])
+
+        vs = map(eachrow(df_tg_ext)) do r
+            b = nothing
+            for s in eachrow(df_psm[r["psm$(K)_"], :])
+                (s.engine != :pLink) && continue
+                isnothing(b) && (b = s)
+                (s.cov_min ≤ b.cov_min) && continue
+                b = s
+            end
+            return isnothing(b) ? ("", false) : (psmstr_link(b), is_same_xl_pep(r, b))
+        end
+        df_tg_ext[!, "best_iden$(K)"] = first.(vs)
+        df_tg_ext[!, "best_iden$(K)_is_same"] = last.(vs)
     end
-    df_tg_ext.best_iden_all = first.(vs)
-    df_tg_ext.best_iden_all_is_same = last.(vs)
 
     MesMS.safe_save(p -> CSV.write(p, df_tg_ext), joinpath(out, "$(basename(splitext(path_ms)[1])).tg.TargetXView.csv"))
     MesMS.safe_save(p -> CSV.write(p, df_psm), joinpath(out, "$(basename(splitext(path_ms)[1])).crosslink.TargetXView.csv"))
