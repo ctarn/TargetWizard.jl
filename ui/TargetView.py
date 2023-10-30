@@ -33,6 +33,7 @@ vars_spec = {
     "linker": {"type": tk.StringVar, "value": "DSSO"},
     "error": {"type": tk.StringVar, "value": "20.0"},
     "fdr": {"type": tk.StringVar, "value": "Inf"},
+    "ms_sim_thres": {"type": tk.StringVar, "value": "0.5"},
     "url": {"type": tk.StringVar, "value": "127.0.0.1:30030"},
     "inten_thres": {"type": tk.StringVar, "value": "0.0"},
     "smooth": {"type": tk.StringVar, "value": "16"},
@@ -59,6 +60,7 @@ def run_xview():
         "--fmt", target_fmts[V["target_fmt"].get()],
         "--linker", V["linker"].get(),
         "--error", V["error"].get(),
+        "--ms_sim_thres", V["ms_sim_thres"].get(),
         "--fdr", V["fdr"].get(),
         "--cfg", V["cfg_pl"].get(),
         "--cfg_pf", V["cfg_pf"].get(),
@@ -175,6 +177,8 @@ I += 1
 util.add_entry(f, I, "Max. MS1 Mass Error:", V["error"], "ppm")
 I += 1
 util.add_entry(f, I, "FDR Threshold:", V["fdr"], "%")
+I += 1
+util.add_entry(f, I, "MS Sim. Thres.:", V["ms_sim_thres"])
 I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 ttk.Label(f, text="Optional").grid(column=0, row=I)

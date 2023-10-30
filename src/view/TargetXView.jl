@@ -163,11 +163,12 @@ prepare(args) = begin
     linker = Symbol(args["linker"])
     ε = parse(Float64, args["error"]) * 1.0e-6
     fdr = parse(Float64, args["fdr"]) / 100
+    τ_ms_sim = parse(Float64, args["ms_sim_thres"])
     cfg = args["cfg"]
     cfg_pf = args["cfg_pf"]
     host = parse(IPAddr, args["host"])
     port = parse(Int, args["port"])
-    return (; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, cfg, cfg_pf, host, port)
+    return (; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, τ_ms_sim, cfg, cfg_pf, host, port)
 end
 
 psmstr_linear(x) = "$(x.scan)($(round(x.cov; digits=2))):$(x.pep)($(x.mod))"
@@ -178,7 +179,7 @@ is_same_xl_pep(a, b) = (a.pep_a == b.pep_a) && (a.pep_b == b.pep_b) && (a.mod_a 
 
 unify_mods_str(s) = (!ismissing(s) && startswith(s, "Any[") && endswith(s, "]")) ? s[5:end-1] : s
 
-process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, cfg, cfg_pf, host, port) = begin
+process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, τ_ms_sim, cfg, cfg_pf, host, port) = begin
     M = MesMS.read_ms(path_ms)
     df_m1 = map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1) |> DataFrames.DataFrame
     df_m2 = map(m -> (; m.id, mz=m.activation_center, rt=m.retention_time, m.peaks), M.MS2) |> DataFrames.DataFrame
@@ -310,7 +311,7 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     mzs = map(x -> x[1], tmp)
     ids = map(x -> x[2], tmp)
     df_tg.m2_all_ = [map(x -> M2I[x], sort(ids[MesMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
-    df_tg.m2_allsim_ = [filter(i -> calc_sim(r, df_m2[i, :]) ≥ 0.5, r.m2_all_) for r in eachrow(df_tg)]
+    df_tg.m2_allsim_ = [filter(i -> calc_sim(r, df_m2[i, :]) ≥ τ_ms_sim, r.m2_all_) for r in eachrow(df_tg)]
     df_tg.m2_ = [filter(i -> r.start ≤ df_m2.rt[i] ≤ r.stop, r.m2_all_) for r in eachrow(df_tg)]
     for K in Ks
         df_tg[!, "n_m2$(K)"] = length.(df_tg[!, "m2$(K)_"])
@@ -447,6 +448,9 @@ main() = begin
         "--fdr"
             help = "FDR threshold (%)"
             default = "Inf"
+        "--ms_sim_thres"
+            help = "threshold of MS similarity"
+            default = "0.5"
         "--cfg"
             help = "pLink config directory"
             default = ""
