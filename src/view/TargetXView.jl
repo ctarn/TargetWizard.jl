@@ -163,12 +163,13 @@ prepare(args) = begin
     linker = Symbol(args["linker"])
     ε = parse(Float64, args["error"]) * 1.0e-6
     fdr = parse(Float64, args["fdr"]) / 100
+    decoy = args["decoy"]::Bool
     τ_ms_sim = parse(Float64, args["ms_sim_thres"])
     cfg = args["cfg"]
     cfg_pf = args["cfg_pf"]
     host = parse(IPAddr, args["host"])
     port = parse(Int, args["port"])
-    return (; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, τ_ms_sim, cfg, cfg_pf, host, port)
+    return (; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, decoy, τ_ms_sim, cfg, cfg_pf, host, port)
 end
 
 psmstr_linear(x) = "$(x.scan)($(round(x.cov; digits=2))):$(x.pep)($(x.mod))"
@@ -179,7 +180,7 @@ is_same_xl_pep(a, b) = (a.pep_a == b.pep_a) && (a.pep_b == b.pep_b) && (a.mod_a 
 
 unify_mods_str(s) = (!ismissing(s) && startswith(s, "Any[") && endswith(s, "]")) ? s[5:end-1] : s
 
-process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, τ_ms_sim, cfg, cfg_pf, host, port) = begin
+process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, decoy, τ_ms_sim, cfg, cfg_pf, host, port) = begin
     M = MesMS.read_ms(path_ms)
     df_m1 = map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1) |> DataFrames.DataFrame
     df_m2 = map(m -> (; m.id, mz=m.activation_center, rt=m.retention_time, m.peaks), M.MS2) |> DataFrames.DataFrame
@@ -211,8 +212,17 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
 
     dfs = pLink.read_psm_full(path_psm)
     df_psm = dfs.xl
-    df_psm = df_psm[df_psm.fdr .≤ fdr, :]
-    df_psm.engine .= :pLink
+    df_linear = dfs.linear
+    df_mono = dfs.mono
+    df_loop = dfs.loop
+
+    for df in [df_psm, df_linear, df_mono, df_loop]
+        df.engine .= :pLink
+        filter!(r -> r.fdr .≤ fdr, df)
+        !decoy && filter!(r -> r.td == :TT || r.td == :T, df)
+        ("linker" ∉ names(df)) && (df.linker .= linker)
+    end
+    
     ns = [
         "Order", "Peptide", "Peptide_Type", "mh_calc", "Modifications", "Evalue", "Precursor_Mass_Error(Da)",
         "Proteins", "prot_type", "FileID", "LabelID", "Alpha_Matched", "Beta_Matched", "Alpha_Evalue", "Beta_Evalue",
@@ -224,15 +234,6 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
         "prot_a", "prot_b", "error", "title", "file", "scan", "idx_pre",
     ]
     DataFrames.select!(df_psm, ns, DataFrames.Not(ns))
-    ("linker" ∉ names(df_psm)) && (df_psm.linker .= linker)
-
-    df_linear = dfs.linear
-
-    df_mono = dfs.mono
-    ("linker" ∉ names(df_mono)) && (df_mono.linker .= linker)
-
-    df_loop = dfs.loop
-    ("linker" ∉ names(df_loop)) && (df_loop.linker .= linker)
 
     ion_syms = ["b", "y"]
     ion_types = map(i -> getfield(MesMS, Symbol("ion_$(i)")), ion_syms)
@@ -262,9 +263,11 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
         df_psm = vcat(df_psm, df_psm_pf; cols=:union)
     end
 
-    df_psm.id = Vector(1:size(df_psm, 1))
-    DataFrames.select!(df_psm, :id, DataFrames.Not([:id]))
-    df_psm.rt = [df_m2[M2I[r.scan], :rt] for r in eachrow(df_psm)]
+    for df in [df_psm, df_linear, df_mono, df_loop]
+        df.id = Vector(1:size(df, 1))
+        DataFrames.select!(df, :id, DataFrames.Not([:id]))
+        df.rt = [df_m2[M2I[r.scan], :rt] for r in eachrow(df)]
+    end
 
     df_m2.psm = [df_psm[df_psm.scan .== r.id, :id] for r in eachrow(df_m2)]
     df_m2.psm_linear = [df_linear[df_linear.scan .== r.id, :id] for r in eachrow(df_m2)]
@@ -448,6 +451,9 @@ main() = begin
         "--fdr"
             help = "FDR threshold (%)"
             default = "Inf"
+        "--decoy"
+            help = "preserve decoy identifications"
+            action = :store_true
         "--ms_sim_thres"
             help = "threshold of MS similarity"
             default = "0.5"
