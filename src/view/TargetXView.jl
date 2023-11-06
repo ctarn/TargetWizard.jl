@@ -176,7 +176,8 @@ psmstr_linear(x) = "$(x.scan)($(round(x.cov; digits=2))):$(x.pep)($(x.mod))"
 psmstr_mono(x) = "$(x.scan)($(round(x.cov; digits=2))):$(x.pep)($(x.mod))@$(x.site)"
 psmstr_loop(x) = "$(x.scan)($(round(x.cov; digits=2))):$(x.pep)($(x.mod))@$(x.site_a)-$(x.site_b)"
 psmstr_link(x) = "$(x.scan)($(round(x.cov_a; digits=2))|$(round(x.cov_b; digits=2))):$(x.pep_a)($(x.mod_a))@$(x.site_a)-$(x.pep_b)($(x.mod_b))@$(x.site_b)"
-is_same_xl_pep(a, b) = (a.pep_a == b.pep_a) && (a.pep_b == b.pep_b) && (a.mod_a == b.mod_a) && (a.mod_b == b.mod_b) && (a.site_a == b.site_a) && (a.site_b == b.site_b)
+is_same_xl(a, b) = (a.pep_a == b.pep_a) && (a.pep_b == b.pep_b) && (a.mod_a == b.mod_a) && (a.mod_b == b.mod_b) && (a.site_a == b.site_a) && (a.site_b == b.site_b)
+is_same_xl_pepmod(a, b) = (a.pep_a == b.pep_a) && (a.pep_b == b.pep_b) && (a.mod_a == b.mod_a) && (a.mod_b == b.mod_b)
 
 unify_mods_str(s) = (!ismissing(s) && startswith(s, "Any[") && endswith(s, "]")) ? s[5:end-1] : s
 
@@ -363,35 +364,37 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     end
 
     for K in Ks
-        df_tg_ext[!, "same_iden$(K)"] = map(eachrow(df_tg_ext)) do r
-            filter(eachrow(df_psm[r["psm$(K)_"], :])) do s
-                (s.engine != :pLink) && return false
-                return is_same_xl_pep(r, s)
-            end .|> psmstr_link |> xs -> join(xs, ";")
-        end
-        df_tg_ext[!, "have_same_iden$(K)"] = .!isempty.(df_tg_ext[!, "same_iden$(K)"])
-
-        df_tg_ext[!, "same_iden$(K)_credible"] = map(eachrow(df_tg_ext)) do r
-            filter(eachrow(df_psm[r["psm$(K)_"], :])) do s
-                (s.engine != :pLink) && return false
-                (!s.credible) && return false
-                return is_same_xl_pep(r, s)
-            end .|> psmstr_link |> xs -> join(xs, ";")
-        end
-        df_tg_ext[!, "have_same_iden$(K)_credible"] = .!isempty.(df_tg_ext[!, "same_iden$(K)_credible"])
-
-        vs = map(eachrow(df_tg_ext)) do r
-            b = nothing
-            for s in eachrow(df_psm[r["psm$(K)_"], :])
-                (s.engine != :pLink) && continue
-                isnothing(b) && (b = s)
-                (s.cov_min ≤ b.cov_min) && continue
-                b = s
+        for (f, n) in zip([is_same_xl, is_same_xl_pepmod], ["iden", "pepmod"])
+            df_tg_ext[!, "same_$(n)$(K)"] = map(eachrow(df_tg_ext)) do r
+                filter(eachrow(df_psm[r["psm$(K)_"], :])) do s
+                    (s.engine != :pLink) && return false
+                    return f(r, s)
+                end .|> psmstr_link |> xs -> join(xs, ";")
             end
-            return isnothing(b) ? ("", false) : (psmstr_link(b), is_same_xl_pep(r, b))
+            df_tg_ext[!, "have_same_$(n)$(K)"] = .!isempty.(df_tg_ext[!, "same_$(n)$(K)"])
+
+            df_tg_ext[!, "same_$(n)$(K)_credible"] = map(eachrow(df_tg_ext)) do r
+                filter(eachrow(df_psm[r["psm$(K)_"], :])) do s
+                    (s.engine != :pLink) && return false
+                    (!s.credible) && return false
+                    return f(r, s)
+                end .|> psmstr_link |> xs -> join(xs, ";")
+            end
+            df_tg_ext[!, "have_same_$(n)$(K)_credible"] = .!isempty.(df_tg_ext[!, "same_$(n)$(K)_credible"])
+
+            vs = map(eachrow(df_tg_ext)) do r
+                b = nothing
+                for s in eachrow(df_psm[r["psm$(K)_"], :])
+                    (s.engine != :pLink) && continue
+                    isnothing(b) && (b = s)
+                    (s.cov_min ≤ b.cov_min) && continue
+                    b = s
+                end
+                return isnothing(b) ? ("", false) : (psmstr_link(b), f(r, b))
+            end
+            df_tg_ext[!, "best_iden$(K)"] = first.(vs)
+            df_tg_ext[!, "best_iden$(K)_is_same_$(n)"] = last.(vs)
         end
-        df_tg_ext[!, "best_iden$(K)"] = first.(vs)
-        df_tg_ext[!, "best_iden$(K)_is_same"] = last.(vs)
     end
 
     MesMS.safe_save(p -> CSV.write(p, df_tg_ext), joinpath(out, "$(basename(splitext(path_ms)[1])).tg.TargetXView.csv"))
