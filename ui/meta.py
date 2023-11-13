@@ -28,6 +28,7 @@ vars_spec = {
     "cfg_pl": {"type": tk.StringVar, "value": ""},
     "cfg_pf": {"type": tk.StringVar, "value": ""},
     "targetselect": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "TargetSelect")},
+    "targetbind": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "TargetBind")},
     "generators": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin")},
     "viewers": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin")},
 }

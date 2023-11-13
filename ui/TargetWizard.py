@@ -14,8 +14,9 @@ notebook.pack(fill="x")
 util.add_console(main).pack(fill="x")
 ttk.Label(main, text=meta.copyright, justify="center").pack()
 
-import TargetSelect, TargetReport, TargetView, extra
+import TargetSelect, TargetBind, TargetReport, TargetView, extra
 notebook.add(TargetSelect.main, text="Target Selection")
+notebook.add(TargetBind.main, text="Target Binding")
 notebook.add(TargetReport.main, text="Report Generation")
 notebook.add(TargetView.main, text="Visualization")
 notebook.add(extra.main, text="Extra Configuration")
