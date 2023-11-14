@@ -19,7 +19,7 @@ parse_target_list!(df, fmt) = begin
             @info "list treated as `Thermo Fusion` format based on following columns: $(cols_TmFu)"
             fmt = :TmFu
         else
-            @error "failed to detect list format"
+            error("failed to detect list format")
             fmt = :unknown
         end
     end
