@@ -11,15 +11,14 @@ prepare(args) = begin
     df = args["target"] |> CSV.File |> DataFrames.DataFrame
     out = mkpath(args["out"])
     mode = args["mode"] |> strip |> Symbol
-    (mode ∉ [:center, :window, :extended_window]) && @error("unknown mode: $(mode)")
+    (mode ∉ [:center, :window, :extended_window]) && error("unknown mode: $(mode)")
     εt = parse(Float64, args["error_rt"])
-    ε1 = parse(Float64, args["error1"]) * 1.0e-6
-    ε2 = parse(Float64, args["error2"]) * 1.0e-6
+    εm = parse(Float64, args["error_mz"]) * 1.0e-6
     fmts = split(args["fmt"], ",") .|> strip .|> Symbol
-    return (; df, out, mode, εt, ε1, fmts)
+    return (; df, out, mode, εt, εm, fmts)
 end
 
-process(path; df, out, mode, εt, ε1, fmts) = begin
+process(path; df, out, mode, εt, εm, fmts) = begin
     M = MesMS.read_ms(path; MS1=false).MS2
     name = basename(path) |> splitext |> first
 
@@ -30,7 +29,7 @@ process(path; df, out, mode, εt, ε1, fmts) = begin
         elseif mode == :window
             return ((ms.activation_center - ms.isolation_width / 2) .< df.mz .< (ms.activation_center + ms.isolation_width / 2)) .& rt
         else # :center
-            return MesMS.in_moe.(df.mz, ms.activation_center, ε1) .& rt
+            return MesMS.in_moe.(df.mz, ms.activation_center, εm) .& rt
         end
     end
 
@@ -66,12 +65,8 @@ main() = begin
             help = "retention time error"
             metavar = "sec"
             default = "16"
-        "--error1", "--e1"
-            help = "mass error for MS1 peak"
-            metavar = "ppm"
-            default = "10.0"
-        "--error2", "--e2"
-            help = "mass error for MS2 peak"
+        "--error_mz", "--em"
+            help = "MS1 mass error"
             metavar = "ppm"
             default = "10.0"
         "--fmt", "-f"
