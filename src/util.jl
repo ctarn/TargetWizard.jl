@@ -82,9 +82,6 @@ calc_cov_crosslink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, ta
         df[!, "cov_b_ion_$(sym)"] = round.(mean.(match_b); digits=4)
     end
 
-    df.prot_a = pFind.protstr.(df.prot_a)
-    df.prot_b = pFind.protstr.(df.prot_b)
-
     DataFrames.select!(df, DataFrames.Not([:ion, :ion_a, :ion_b]), :ion_a, :ion_b)
     df.ion_a = map(ions -> join(getfield.(ions, :text_abbr), ','), df.ion_a)
     df.ion_b = map(ions -> join(getfield.(ions, :text_abbr), ','), df.ion_b)
