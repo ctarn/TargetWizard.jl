@@ -3,7 +3,7 @@ module TargetBind
 import ArgParse
 import CSV
 import DataFrames
-import MesMS: MesMS, XL
+import MesMS: MesMS, XLMS
 import ProgressMeter: @showprogress
 
 prepare(args) = begin
