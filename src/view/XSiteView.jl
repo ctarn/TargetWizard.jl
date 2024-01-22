@@ -45,7 +45,7 @@ _plot_seq!(ls, x, y, seq, mods, ions, font) = begin
     end
 end
 
-seq_xl(seqs, modss, site_pairs, ionss; font=18) = begin
+seq_crosslink(seqs, modss, site_pairs, ionss; font=18) = begin
     seqs = collect.(seqs)
     lα, lβ = mean(extrema(first.(site_pairs))), mean(extrema(last.(site_pairs)))
     xs = max(lα, lβ) .- [lα, lβ] .+ [0.25, -0.25]
@@ -224,7 +224,7 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
         site_pairs = [(r.site_a, r.site_b) for r in eachrow(df)]
         ions_a = [(; i..., seq="α") for i in build_ions(r.pep_a, r.mod_a, tab_ele, tab_aa, tab_mod)]
         ions_b = [(; i..., seq="β") for i in build_ions(r.pep_b, r.mod_b, tab_ele, tab_aa, tab_mod)]
-        p_ion = seq_xl((r.pep_a, r.pep_b), (r.mod_a, r.mod_b), site_pairs, [ions_a, ions_b])
+        p_ion = seq_crosslink((r.pep_a, r.pep_b), (r.mod_a, r.mod_b), site_pairs, [ions_a, ions_b])
         return [(; name=i, id=i) for i in names(df)], Dict.(pairs.(eachrow(string.(df)))), p_ion
     end
 
@@ -242,7 +242,7 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
         linker = getproperty(tab_xl, Symbol(r.linker))
         sites = (r.site_a, r.site_b)
         ionss = MesMS.build_ions_crosslink(m2.peaks, seqs, modss, linker, sites, ε, tab_ele, tab_aa, tab_mod)
-        p_seq = MesMS.Plotly.seq_xl(seqs, modss, sites, ionss)
+        p_seq = MesMS.Plotly.seq_crosslink(seqs, modss, sites, ionss)
         p_psm = MesMS.Plotly.spec(m2.peaks, filter(i -> i.peak > 0, vcat(ionss...)))
         return p_seq, p_psm
     end

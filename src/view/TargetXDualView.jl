@@ -67,7 +67,7 @@ plot_psm(iden, spec, ε, ele_plink, aa_plink, mod_plink, xl_plink) = begin
     linker = xl_plink[Symbol(iden.linker)]
     sites = (iden.site_a, iden.site_b)
     ionss = MesMS.build_ions_crosslink(spec.peaks, seqs, modss, linker, sites, ε, ele_plink, aa_plink, mod_plink)
-    p_seq = MesMS.Plotly.seq_xl(seqs, modss, sites, ionss)
+    p_seq = MesMS.Plotly.seq_crosslink(seqs, modss, sites, ionss)
     p_psm = MesMS.Plotly.spec(spec.peaks, filter(i -> i.peak > 0, vcat(ionss...)))
     relayout!(p_seq, Dict(:margin=>Dict(:l=>0, :r=>0, :t=>0, :b=>0, :pad=>0)))
     relayout!(p_psm, Dict(:margin=>Dict(:l=>0, :r=>0, :t=>0, :b=>0, :pad=>0)))
