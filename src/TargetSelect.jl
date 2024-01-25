@@ -28,7 +28,7 @@ _nearbymax(M, i, mz, ε, τ, δ) = begin
     skip = 0
     v = -Inf
     i_max = i
-    while skip ≤ τ
+    while 1 ≤ (i + δ) ≤ length(M) && skip ≤ τ
         v_ = MesMS.max_inten_ε(M[i].peaks, mz, ε)
         if v_ > v
             skip = 0
