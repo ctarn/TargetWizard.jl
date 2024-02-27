@@ -3,8 +3,8 @@ module TargetSelectionReport
 import ArgParse
 import CSV
 import DataFrames
-import MesMS
 import RelocatableFolders: @path
+import UniMS
 
 const DIR_DATA = @path joinpath(@__DIR__, "../../data")
 
@@ -52,8 +52,8 @@ const RT_STOP_MAX = $(maximum(df.stop))
         "{{ script }}" => read(joinpath(DIR_DATA, "TargetSelectionReport.js"), String),
     )
     path_out = joinpath(out, basename(path) * ".TargetSelectionReport.html")
-    MesMS.safe_save(io -> write(io, html), path_out)
-    MesMS.open_url(path_out)
+    UniMS.safe_save(io -> write(io, html), path_out)
+    UniMS.open_url(path_out)
 end
 
 main() = begin
@@ -73,7 +73,7 @@ main() = begin
             default = "auto"
     end
     args = ArgParse.parse_args(settings)
-    paths = reduce(vcat, MesMS.match_path.(args["data"], ".target.csv")) |> unique |> sort
+    paths = reduce(vcat, UniMS.match_path.(args["data"], ".target.csv")) |> unique |> sort
     @info "file paths of selected data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
     process.(paths; prepare(args)...)

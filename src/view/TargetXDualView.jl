@@ -5,10 +5,10 @@ using Sockets
 import ArgParse
 import CSV
 import DataFrames
-import MesMS
 import MesUtil: pLink
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
+import UniMS
 
 using Dash
 using PlotlyBase
@@ -22,7 +22,7 @@ const DIR_DATA = @path joinpath(@__DIR__, "../../data/dash")
 plot_lc(tg, dfs_ft, dfs_m1, dfs_m2, ε) = begin
     ps = map(["A", "B"], dfs_m1) do s, df_m1
         x = df_m1.rt
-        ys = map(n -> map(p -> MesMS.max_inten_ε(p, tg.mz + n * Δ / tg.z, ε), df_m1.peaks), -1:2)
+        ys = map(n -> map(p -> UniMS.max_inten_ε(p, tg.mz + n * Δ / tg.z, ε), df_m1.peaks), -1:2)
         ls = [scatter(x=x, y=ys[2], mode="lines", name="$(s) M")]
         push!(ls, scatter(x=x, y=ys[3], mode="lines", name="$(s) M + 1 Da"))
         push!(ls, scatter(x=x, y=ys[4], mode="lines", name="$(s) M + 2 Da"))
@@ -32,11 +32,11 @@ plot_lc(tg, dfs_ft, dfs_m1, dfs_m2, ε) = begin
     ls = [scatter(x=ones(2) * tg.start, y=[-ε, ε], mode="lines", line_dash="dash", line_color="red", name="RT start")]
     push!(ls, scatter(x=ones(2) * tg.stop, y=[-ε, ε], mode="lines", line_dash="dash", line_color="red", name="RT stop"))
     append!(ls, [scatter(;
-        x=dfs_m2[1].rt[i:i], y=[MesMS.error_rel(tg.mz, dfs_m2[1].mz[i])], name="A MS2#$(dfs_m2[1].id[i])",
+        x=dfs_m2[1].rt[i:i], y=[UniMS.error_rel(tg.mz, dfs_m2[1].mz[i])], name="A MS2#$(dfs_m2[1].id[i])",
         customdata=[(:A, i)], mode="markers", marker_size=4 * (1 + length(dfs_m2[1].psm[i])), marker_symbol="circle"
     ) for i in tg.m2_all_a_])
     append!(ls, [scatter(
-        x=dfs_m2[2].rt[i:i], y=[MesMS.error_rel(tg.mz, dfs_m2[2].mz[i])], name="B MS2#$(dfs_m2[2].id[i])",
+        x=dfs_m2[2].rt[i:i], y=[UniMS.error_rel(tg.mz, dfs_m2[2].mz[i])], name="B MS2#$(dfs_m2[2].id[i])",
         customdata=[(:B, i)], mode="markers", marker_size=4 * (1 + length(dfs_m2[2].psm[i])), marker_symbol="diamond"
     ) for i in tg.m2_all_b_])
     append!(ls, [scatter(;
@@ -66,9 +66,9 @@ plot_psm(iden, spec, ε, ele_plink, aa_plink, mod_plink, xl_plink) = begin
     modss = (iden.mod_a, iden.mod_b)
     linker = xl_plink[Symbol(iden.linker)]
     sites = (iden.site_a, iden.site_b)
-    ionss = MesMS.build_ions_crosslink(spec.peaks, seqs, modss, linker, sites, ε, ele_plink, aa_plink, mod_plink)
-    p_seq = MesMS.Plotly.seq_crosslink(seqs, modss, sites, ionss)
-    p_psm = MesMS.Plotly.spec(spec.peaks, filter(i -> i.peak > 0, vcat(ionss...)))
+    ionss = UniMS.build_ions_crosslink(spec.peaks, seqs, modss, linker, sites, ε, ele_plink, aa_plink, mod_plink)
+    p_seq = UniMS.Plotly.seq_crosslink(seqs, modss, sites, ionss)
+    p_psm = UniMS.Plotly.spec(spec.peaks, filter(i -> i.peak > 0, vcat(ionss...)))
     relayout!(p_seq, Dict(:margin=>Dict(:l=>0, :r=>0, :t=>0, :b=>0, :pad=>0)))
     relayout!(p_psm, Dict(:margin=>Dict(:l=>0, :r=>0, :t=>0, :b=>0, :pad=>0)))
     return p_seq, p_psm
@@ -241,7 +241,7 @@ prepare(args) = begin
 end
 
 process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cfg, host, port) = begin
-    Ms = map(MesMS.read_ms, path_ms)
+    Ms = map(UniMS.read_ms, path_ms)
     dfs_m1 = map(Ms) do M
         map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1)
     end .|> DataFrames.DataFrame
@@ -275,13 +275,13 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
 
     if isempty(cfg)
         ele_plink = pLink.read_element() |> NamedTuple
-        aa_plink = map(x -> MesMS.mass(x, ele_plink), pLink.read_amino_acid() |> NamedTuple)
-        mod_plink = MesMS.mapvalue(x -> x.mass, pLink.read_modification())
+        aa_plink = map(x -> UniMS.mass(x, ele_plink), pLink.read_amino_acid() |> NamedTuple)
+        mod_plink = UniMS.mapvalue(x -> x.mass, pLink.read_modification())
         xl_plink = pLink.read_linker() |> NamedTuple
     else
         ele_plink = pLink.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
-        aa_plink = map(x -> MesMS.mass(x, ele_plink), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
-        mod_plink = MesMS.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
+        aa_plink = map(x -> UniMS.mass(x, ele_plink), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
+        mod_plink = UniMS.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
         xl_plink = pLink.read_linker(joinpath(cfg, "xlink.ini")) |> NamedTuple
     end
 
@@ -313,14 +313,14 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
     tmp = sort!([(x.mz::Float64, x.id::Int) for x in eachrow(df_xl)])
     mzs = map(x -> x[1], tmp)
     ids = map(x -> x[2], tmp)
-    df_tg.xl_ = [sort(filter(x -> df_xl[x, :z] == r.z, ids[MesMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
+    df_tg.xl_ = [sort(filter(x -> df_xl[x, :z] == r.z, ids[UniMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
 
     @info "Feature mapping"
     df_tg.ft_a_, df_tg.ft_b_ = map(dfs_ft) do df_ft
         tmp = sort!([(x.mz::Float64, x.id::Int) for x in eachrow(df_ft)])
         mzs = map(x -> x[1], tmp)
         ids = map(x -> x[2], tmp)
-        return [sort(filter(x -> df_ft[x, :z] == r.z, ids[MesMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
+        return [sort(filter(x -> df_ft[x, :z] == r.z, ids[UniMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
     end
     df_tg.n_ft_a = length.(df_tg.ft_a_)
     df_tg.n_ft_b = length.(df_tg.ft_b_)
@@ -330,7 +330,7 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
         tmp = sort!([(x.mz::Float64, x.id::Int) for x in eachrow(df_psm)])
         mzs = map(x -> x[1], tmp)
         ids = map(x -> x[2], tmp)
-        return [sort(filter(x -> df_psm[x, :z] == r.z, ids[MesMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
+        return [sort(filter(x -> df_psm[x, :z] == r.z, ids[UniMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
     end
     df_tg.psm_a_ = [filter(i -> r.start ≤ dfs_psm[1].rt[i] ≤ r.stop, r.psm_all_a_) for r in eachrow(df_tg)]
     df_tg.psm_b_ = [filter(i -> r.start ≤ dfs_psm[2].rt[i] ≤ r.stop, r.psm_all_b_) for r in eachrow(df_tg)]
@@ -344,7 +344,7 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
         tmp = sort!([(x.mz::Float64, x.id::Int) for x in eachrow(df_m2)])
         mzs = map(x -> x[1], tmp)
         ids = map(x -> x[2], tmp)
-        return [map(x -> M2I[x], sort(ids[MesMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
+        return [map(x -> M2I[x], sort(ids[UniMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
     end
     df_tg.m2_a_ = [filter(i -> r.start ≤ dfs_m2[1].rt[i] ≤ r.stop, r.m2_all_a_) for r in eachrow(df_tg)]
     df_tg.m2_b_ = [filter(i -> r.start ≤ dfs_m2[2].rt[i] ≤ r.stop, r.m2_all_b_) for r in eachrow(df_tg)]
@@ -375,11 +375,11 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
     ns = filter(n -> !endswith(n, '_'), names(df_tg))
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
 
-    MesMS.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path)[1])).TargetXDualView.csv"))
+    UniMS.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path)[1])).TargetXDualView.csv"))
 
     @async begin
         sleep(4)
-        MesMS.open_url("http://$(host):$(port)")
+        UniMS.open_url("http://$(host):$(port)")
     end
     app = build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_plink, mod_plink, xl_plink, ε)
     run_server(app, host, port)

@@ -3,8 +3,8 @@ module TargetBind
 import ArgParse
 import CSV
 import DataFrames
-import MesMS: MesMS, XLMS
 import ProgressMeter: @showprogress
+import UniMS: UniMS, XLMS
 
 prepare(args) = begin
     @info "reading from " * args["target"]
@@ -19,7 +19,7 @@ prepare(args) = begin
 end
 
 process(path; df, out, mode, εt, εm, fmts) = begin
-    M = MesMS.read_ms(path; MS1=false).MS2
+    M = UniMS.read_ms(path; MS1=false).MS2
     name = basename(path) |> splitext |> first
 
     S = @showprogress map(M) do ms
@@ -29,16 +29,16 @@ process(path; df, out, mode, εt, εm, fmts) = begin
         elseif mode == :window
             return ((ms.activation_center - ms.isolation_width / 2) .< df.mz .< (ms.activation_center + ms.isolation_width / 2)) .& rt
         else # :center
-            return MesMS.in_moe.(df.mz, ms.activation_center, εm) .& rt
+            return UniMS.in_moe.(df.mz, ms.activation_center, εm) .& rt
         end
     end
 
     I = @showprogress map(S) do s
-        map(r -> MesMS.Ion(r.mz, r.z), eachrow(df[s, :]))
+        map(r -> UniMS.Ion(r.mz, r.z), eachrow(df[s, :]))
     end
     for fmt in fmts
         ext = fmt ∈ [:csv, :tsv] ? "scan_precursor.$(fmt)" : fmt
-        MesMS.safe_save(p -> MesMS.write_ms_with_precursor(p, M, I; fmt, name), joinpath(out, "$(name).$(ext)"))
+        UniMS.safe_save(p -> UniMS.write_ms_with_precursor(p, M, I; fmt, name), joinpath(out, "$(name).$(ext)"))
     end
 end
 
@@ -75,7 +75,7 @@ main() = begin
             default = "csv"
     end
     args = ArgParse.parse_args(settings)
-    paths = reduce(vcat, MesMS.match_path.(args["data"], ".mes")) |> unique |> sort
+    paths = reduce(vcat, UniMS.match_path.(args["data"], ".mes")) |> unique |> sort
     @info "file paths of selected MS data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
     process.(paths; prepare(args)...)

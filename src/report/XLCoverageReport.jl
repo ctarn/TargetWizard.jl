@@ -5,10 +5,10 @@ using Statistics
 import ArgParse
 import CSV
 import DataFrames
-import MesMS: MesMS, Plot
 import MesUtil: pFind, pLink
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
+import UniMS: UniMS, Plot
 
 const DIR_DATA = @path joinpath(@__DIR__, "../../data")
 
@@ -25,19 +25,19 @@ prepare(args) = begin
 end
 
 process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
-    ion_types = map(i -> getfield(MesMS, Symbol("ion_$(i)")), ion_syms)
+    ion_types = map(i -> getfield(UniMS, Symbol("ion_$(i)")), ion_syms)
 
-    M = map(p -> splitext(basename(p))[1] => MesMS.dict_by_id(MesMS.read_ms(p).MS2), paths_ms) |> Dict
+    M = map(p -> splitext(basename(p))[1] => UniMS.dict_by_id(UniMS.read_ms(p).MS2), paths_ms) |> Dict
 
     if isempty(cfg)
         tab_ele = pLink.read_element() |> NamedTuple
-        tab_aa = map(x -> MesMS.mass(x, tab_ele), pLink.read_amino_acid() |> NamedTuple)
-        tab_mod = MesMS.mapvalue(x -> x.mass, pLink.read_modification())
+        tab_aa = map(x -> UniMS.mass(x, tab_ele), pLink.read_amino_acid() |> NamedTuple)
+        tab_mod = UniMS.mapvalue(x -> x.mass, pLink.read_modification())
         tab_xl = pLink.read_linker() |> NamedTuple
     else
         tab_ele = pLink.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
-        tab_aa = map(x -> MesMS.mass(x, tab_ele), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
-        tab_mod = MesMS.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
+        tab_aa = map(x -> UniMS.mass(x, tab_ele), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
+        tab_mod = UniMS.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
         tab_xl = pLink.read_linker(joinpath(cfg, "xlink.ini")) |> NamedTuple
     end
 
@@ -55,10 +55,10 @@ process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
     calc_cov_monolink!(df_mono, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
     calc_cov_looplink!(df_loop, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
 
-    MesMS.safe_save(p -> CSV.write(p, df_xl), joinpath(out, basename(path) * ".crosslink.XLCoverageReport.csv"))
-    MesMS.safe_save(p -> CSV.write(p, df_linear), joinpath(out, basename(path) * ".linear.XLCoverageReport.csv"))
-    MesMS.safe_save(p -> CSV.write(p, df_mono), joinpath(out, basename(path) * ".monolink.XLCoverageReport.csv"))
-    MesMS.safe_save(p -> CSV.write(p, df_loop), joinpath(out, basename(path) * ".looplink.XLCoverageReport.csv"))
+    UniMS.safe_save(p -> CSV.write(p, df_xl), joinpath(out, basename(path) * ".crosslink.XLCoverageReport.csv"))
+    UniMS.safe_save(p -> CSV.write(p, df_linear), joinpath(out, basename(path) * ".linear.XLCoverageReport.csv"))
+    UniMS.safe_save(p -> CSV.write(p, df_mono), joinpath(out, basename(path) * ".monolink.XLCoverageReport.csv"))
+    UniMS.safe_save(p -> CSV.write(p, df_loop), joinpath(out, basename(path) * ".looplink.XLCoverageReport.csv"))
 
     data = """
 const FDR = [$(join(string.(df_xl.fdr .* 100), ","))]
@@ -99,8 +99,8 @@ const COV_B_$(sym) = [$(join(string.(df_xl[!, "cov_b_ion_$(sym)"] .* 100), ","))
         "{{ script }}" => script,
     )
     path_out = joinpath(out, basename(path) * ".XLCoverageReport.html")
-    MesMS.safe_save(io -> write(io, html), path_out)
-    MesMS.open_url(path_out)
+    UniMS.safe_save(io -> write(io, html), path_out)
+    UniMS.open_url(path_out)
 end
 
 main() = begin
@@ -133,7 +133,7 @@ main() = begin
             default = ""
     end
     args = ArgParse.parse_args(settings)
-    paths = reduce(vcat, MesMS.match_path.(args["ms"], ".mes")) |> unique |> sort
+    paths = reduce(vcat, UniMS.match_path.(args["ms"], ".mes")) |> unique |> sort
     @info "file paths of selected data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
     process(args["data"], paths; prepare(args)...)

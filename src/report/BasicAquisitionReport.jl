@@ -3,9 +3,9 @@ module BasicAquisitionReport
 import ArgParse
 import CSV
 import DataFrames
-import MesMS
 import MesUtil: pFind, pLink
 import RelocatableFolders: @path
+import UniMS
 
 const DIR_DATA = @path joinpath(@__DIR__, "../../data")
 
@@ -16,7 +16,7 @@ end
 
 process(path; out) = begin
     name = splitext(basename(path))[1]
-    M = MesMS.read_ms(path)
+    M = UniMS.read_ms(path)
     rt1 = map(m -> m.retention_time, M.MS1)
     rt2 = map(m -> m.retention_time, M.MS2)
     rt_max = ceil(Int, max(maximum(rt1; init=0.0), maximum(rt2; init=0.0)))
@@ -65,8 +65,8 @@ const BPM_MAX = $(max(maximum(bpm1), maximum(bpm2)))
         "{{ script }}" => read(joinpath(DIR_DATA, "BasicAquisitionReport.js"), String),
     )
     path_out = joinpath(out, name * ".BasicAquisitionReport.html")
-    MesMS.safe_save(io -> write(io, html), path_out)
-    MesMS.open_url(path_out)
+    UniMS.safe_save(io -> write(io, html), path_out)
+    UniMS.open_url(path_out)
 end
 
 main() = begin
@@ -82,7 +82,7 @@ main() = begin
             default = "./out/"
     end
     args = ArgParse.parse_args(settings)
-    paths = reduce(vcat, MesMS.match_path.(args["data"], ".mes")) |> unique |> sort
+    paths = reduce(vcat, UniMS.match_path.(args["data"], ".mes")) |> unique |> sort
     @info "file paths of selected data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
     process.(paths; prepare(args)...)
