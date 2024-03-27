@@ -100,7 +100,7 @@ def run_xsview():
     )
 
 def run_xesview():
-    task.call(os.path.join(V["viewers"].get(), "XExhaustiveSearchView"),
+    task.call(os.path.join(V["viewers"].get(), "ExhaustiveSearchViewX"),
         V["tg"].get(),
         "--ms", *(V["ms"].get().split(";")),
         "--out", V["out"].get(),

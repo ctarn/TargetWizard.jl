@@ -1,4 +1,4 @@
-module XExhaustiveSearchView
+module ExhaustiveSearchViewX
 
 using Sockets
 
