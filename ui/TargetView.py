@@ -42,9 +42,6 @@ task = util.Task("TargetView", vars_spec, path=meta.homedir, shared_vars_spec=me
 V = task.vars
 
 def run_view():
-    pass
-
-def run_dualview():
     task.call(os.path.join(V["viewers"].get(), "TargetView"),
         V["tg"].get(),
         "--ms", V["ms"].get(),
@@ -60,6 +57,9 @@ def run_dualview():
         "--host", V["url"].get().split(":")[0],
         "--port", V["url"].get().split(":")[1],
     )
+
+def run_dualview():
+    pass
 
 def run_xview():
     task.call(os.path.join(V["viewers"].get(), "TargetViewX"),
