@@ -45,7 +45,21 @@ def run_view():
     pass
 
 def run_dualview():
-    pass
+    task.call(os.path.join(V["viewers"].get(), "TargetView"),
+        V["tg"].get(),
+        "--ms", V["ms"].get(),
+        "--ms_old", *(V["ms_"].get().split(";")),
+        "--psm", V["psm"].get(),
+        "--out", V["out"].get(),
+        "--ft", V["ft"].get(),
+        "--fmt", target_fmts[V["target_fmt"].get()],
+        "--error", V["error"].get(),
+        "--ms_sim_thres", V["ms_sim_thres"].get(),
+        "--fdr", V["fdr"].get(),
+        "--cfg", V["cfg_pf"].get(),
+        "--host", V["url"].get().split(":")[0],
+        "--port", V["url"].get().split(":")[1],
+    )
 
 def run_xview():
     task.call(os.path.join(V["viewers"].get(), "TargetViewX"),
@@ -150,7 +164,33 @@ task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I, columnspan=3)
 
 f = F[RView]
 I = 0
-ttk.Label(f, text=f"{RView} Not Available").grid(column=0, row=I, columnspan=3)
+t = (("Target List", "*.csv"), ("All", "*.*"))
+util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=t))
+I += 1
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["target_fmt"], values=list(target_fmts.keys()), state="readonly", justify="center"))
+I += 1
+t = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
+util.add_entry(f, I, "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
+I += 1
+t = (("PSM", "*.csv"), ("PSM", "*.spectra"), ("All", "*.*"))
+util.add_entry(f, I, "Targeted MS PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))
+I += 1
+t = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
+util.add_entry(f, I, "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=t))
+I += 1
+util.add_entry(f, I, "Max. MS1 Mass Error:", V["error"], "ppm")
+I += 1
+util.add_entry(f, I, "FDR Threshold:", V["fdr"], "%")
+I += 1
+util.add_entry(f, I, "MS Sim. Thres.:", V["ms_sim_thres"])
+I += 1
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
+ttk.Label(f, text="Optional").grid(column=0, row=I)
+I += 1
+t = (("Peptide Feature List", "*.csv"), ("All", "*.*"))
+util.add_entry(f, I, "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=t))
+I += 1
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 
 f = F[CView]
 I = 0
