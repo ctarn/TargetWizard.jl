@@ -190,3 +190,27 @@ calc_cov_looplink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab
 
     return df
 end
+
+_nearbymax(M, i, mz, ε, τ, δ) = begin
+    skip = 0
+    v = -Inf
+    i_max = i
+    while 1 ≤ (i + δ) ≤ length(M) && skip ≤ τ
+        v_ = UniMS.max_inten_ε(M[i].peaks, mz, ε)
+        if v_ > v
+            skip = 0
+            v = v_
+            i_max = i
+        else
+            skip += 1
+        end
+        i += δ
+    end
+    return i_max, v
+end
+
+nearbymax(M, i, mz, ε, τ=2) = begin
+    li, lv = _nearbymax(M, i, mz, ε, τ, -1)
+    ri, rv = _nearbymax(M, i, mz, ε, τ, 1)
+    return lv ≥ rv ? (li, lv) : (ri, rv)
+end
