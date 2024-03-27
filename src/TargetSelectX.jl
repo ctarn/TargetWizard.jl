@@ -1,4 +1,4 @@
-module TargetSelect
+module TargetSelectX
 
 import ArgParse
 import CSV
@@ -89,7 +89,7 @@ process(paths; df, out, name, ε, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batc
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="TargetSelect")
+    settings = ArgParse.ArgParseSettings(prog="TargetSelectX")
     ArgParse.@add_arg_table! settings begin
         "data"
             help = "list of .mes or .ms1/2 files; .ms2/1 files should be in the same directory for .ms1/2"
