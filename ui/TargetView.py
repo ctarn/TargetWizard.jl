@@ -69,7 +69,7 @@ def run_xview():
     )
 
 def run_xdualview():
-    task.call(os.path.join(V["viewers"].get(), "TargetXDualView"),
+    task.call(os.path.join(V["viewers"].get(), "TargetDualViewX"),
         V["tg"].get(),
         "--ms", V["ms"].get(), V["ms_"].get(),
         "--psm", V["psm_xl"].get(), V["psm_xl_"].get(),
