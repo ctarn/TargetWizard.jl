@@ -86,7 +86,7 @@ def run_xdualview():
     )
 
 def run_xsview():
-    task.call(os.path.join(V["viewers"].get(), "XSiteView"),
+    task.call(os.path.join(V["viewers"].get(), "CrossLinkSiteView"),
         "--ms", V["ms"].get(),
         "--psm", V["psm_xl"].get(),
         "--out", V["out"].get(),

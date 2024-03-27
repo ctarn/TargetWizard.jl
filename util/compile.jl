@@ -4,7 +4,7 @@ import TOML
 exes = [
     "TargetSelect", "TargetSelectX", "TargetBind",
     "BasicAquisitionReport", "TargetSelectionReport", "CoverageReport" "CoverageReportX",
-    "TargetXView", "TargetXDualView", "XSiteView", "XExhaustiveSearchView",
+    "TargetXView", "TargetXDualView", "CrossLinkSiteView", "XExhaustiveSearchView",
 ]
 
 cfg = TOML.parsefile("Project.toml")

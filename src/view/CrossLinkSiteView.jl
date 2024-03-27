@@ -1,4 +1,4 @@
-module XSiteView
+module CrossLinkSiteView
 
 using Printf
 using Statistics
@@ -149,7 +149,7 @@ end
 build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, tab_mod, tab_xl) = begin
     app = dash(; assets_folder=DIR_DATA)
     app.layout = html_div() do
-        html_h1("XSiteView", style=Dict("text-align"=>"center")),
+        html_h1("CrossLinkSiteView", style=Dict("text-align"=>"center")),
         dash_datatable(
             id="group_table",
             style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
@@ -165,7 +165,7 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
             export_format="csv",
             export_headers="display",
         ),
-        dcc_graph(id="group_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"XSiteView_LC"))),
+        dcc_graph(id="group_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"CrossLinkSiteView_LC"))),
         dcc_tabs() do
             dcc_tab(; label="PSM List") do
                 dash_datatable(
@@ -182,12 +182,12 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
                     export_format="csv",
                     export_headers="display",
                 ),
-                dcc_graph(id="seq_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"XSiteView_SEQ"))),
-                dcc_graph(id="psm_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"XSiteView_PSM")))
+                dcc_graph(id="seq_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"CrossLinkSiteView_SEQ"))),
+                dcc_graph(id="psm_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"CrossLinkSiteView_PSM")))
             end,
             dcc_tab(; label="Fragment Ion") do
-                dcc_graph(id="ion_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"XSiteView_ION"))),
-                dcc_graph(id="ion_lc_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"XSiteView_ION_LC")))
+                dcc_graph(id="ion_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"CrossLinkSiteView_ION"))),
+                dcc_graph(id="ion_lc_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"CrossLinkSiteView_ION_LC")))
             end
         end
     end
@@ -368,7 +368,7 @@ process(; path_psm, path_ms, out, linker,  ε, τ, smooth_size, cfg, host, port)
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="XSiteView")
+    settings = ArgParse.ArgParseSettings(prog="CrossLinkSiteView")
     ArgParse.@add_arg_table! settings begin
         "--psm"
             help = "PSM path"

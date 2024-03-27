@@ -9,7 +9,7 @@ include("report/CoverageReport.jl")
 include("report/CoverageReportX.jl")
 include("view/TargetXView.jl")
 include("view/TargetXDualView.jl")
-include("view/XSiteView.jl")
+include("view/CrossLinkSiteView.jl")
 include("view/XExhaustiveSearchView.jl")
 
 main_TargetSelect()::Cint = TargetSelect.julia_main()
@@ -21,7 +21,7 @@ main_CoverageReport()::Cint = CoverageReport.julia_main()
 main_CoverageReportX()::Cint = CoverageReportX.julia_main()
 main_TargetXView()::Cint = TargetXView.julia_main()
 main_TargetXDualView()::Cint = TargetXDualView.julia_main()
-main_XSiteView()::Cint = XSiteView.julia_main()
+main_CrossLinkSiteView()::Cint = CrossLinkSiteView.julia_main()
 main_XExhaustiveSearchView()::Cint = XExhaustiveSearchView.julia_main()
 
 end
