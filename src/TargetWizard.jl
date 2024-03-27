@@ -1,5 +1,6 @@
 module TargetWizard
 
+include("TargetSelect.jl")
 include("TargetSelectX.jl")
 include("TargetBind.jl")
 include("report/BasicAquisitionReport.jl")
@@ -10,6 +11,7 @@ include("view/TargetXDualView.jl")
 include("view/XSiteView.jl")
 include("view/XExhaustiveSearchView.jl")
 
+main_TargetSelect()::Cint = TargetSelect.julia_main()
 main_TargetSelectX()::Cint = TargetSelectX.julia_main()
 main_TargetBind()::Cint = TargetBind.julia_main()
 main_BasicAquisitionReport()::Cint = BasicAquisitionReport.julia_main()

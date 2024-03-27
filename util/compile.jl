@@ -2,7 +2,7 @@ import PackageCompiler
 import TOML
 
 exes = [
-    "TargetSelectX", "TargetBind",
+    "TargetSelect", "TargetSelectX", "TargetBind",
     "BasicAquisitionReport", "TargetSelectionReport", "XLCoverageReport",
     "TargetXView", "TargetXDualView", "XSiteView", "XExhaustiveSearchView",
 ]
