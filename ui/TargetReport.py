@@ -12,8 +12,9 @@ BAReport = "Basic Aquisition Report"
 TSReport = "Target Selection Report"
 TAReport = "Target Aquisition Report"
 IDReport = "Identification Report"
+PCReport = "Peptide Coverage Report"
 XPCReport = "Cross-linked Peptide Coverage Report"
-reports = [BAReport, TSReport, TAReport, IDReport, XPCReport]
+reports = [BAReport, TSReport, TAReport, IDReport, PCReport, XPCReport]
 target_fmts = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
 ion_types = ["a", "b", "c", "x", "y", "z", "a_NH3", "b_NH3", "y_NH3", "a_H2O", "b_H2O", "y_H2O"]
 ion_names = ["a", "b", "c", "x", "y", "z", "a-NH₃", "b-NH₃", "y-NH₃", "a-H₂O", "b-H₂O", "y-H₂O"]
@@ -46,6 +47,15 @@ def run_targetaquisitionreport():
 def run_identificationreport():
     pass
 
+def run_peptidecoveragereport():
+    task.call(os.path.join(V["generators"].get(), "CoverageReport"), V["psm"].get(),
+        "--ms", *(V["ms"].get().split(";")),
+        "--out", V["out"].get(),
+        "--error", V["error2"].get(),
+        "--ion", ",".join([t for t in ion_types if V[f"ion_{t}"].get()]),
+        "--cfg", V["cfg_pl"].get(),
+    )
+
 def run_crosslinkedpeptidecoveragereport():
     task.call(os.path.join(V["generators"].get(), "XLCoverageReport"), V["psm"].get(),
         "--ms", *(V["ms"].get().split(";")),
@@ -61,6 +71,7 @@ def run():
     elif V["report"].get() == TSReport: run_targetselectionreport()
     elif V["report"].get() == TAReport: run_targetaquisitionreport()
     elif V["report"].get() == IDReport: run_identificationreport()
+    elif V["report"].get() == PCReport: run_peptidecoveragereport()
     elif V["report"].get() == XPCReport: run_crosslinkedpeptidecoveragereport()
     else: print("Unknown Report Type:", V["report"].get())
 
@@ -115,6 +126,23 @@ I += 1
 t = (("PSM", "*.csv"), ("All", "*.*"))
 util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))
 I += 1
+
+f = F[PCReport]
+I = 0
+t = (("PSM", "*.csv"), ("PSM", "*.spectra"), ("All", "*.*"))
+util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], V["out"], filetypes=t))
+I += 1
+util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=t_ms))
+I += 1
+_, f_ion, _ = util.add_entry(f, I, "Ion Type:", ttk.Frame(f, height=24))
+f_ion1 = ttk.Frame(f_ion)
+f_ion2 = ttk.Frame(f_ion)
+f_ion1.pack(fill="x")
+f_ion2.pack(fill="x")
+for n, t in zip(ion_names[0:6], ion_types[0:6]): ttk.Checkbutton(f_ion1, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
+for n, t in zip(ion_names[6:], ion_types[6:]): ttk.Checkbutton(f_ion2, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
+I += 1
+util.add_entry(f, I, "Fragment Mass Error:", V["error2"], "ppm")
 
 f = F[XPCReport]
 I = 0
