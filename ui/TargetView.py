@@ -48,7 +48,7 @@ def run_dualview():
     pass
 
 def run_xview():
-    task.call(os.path.join(V["viewers"].get(), "TargetXView"),
+    task.call(os.path.join(V["viewers"].get(), "TargetViewX"),
         V["tg"].get(),
         "--ms", V["ms"].get(),
         "--ms_old", *(V["ms_"].get().split(";")),

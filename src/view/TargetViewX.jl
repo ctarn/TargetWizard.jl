@@ -1,4 +1,4 @@
-module TargetXView
+module TargetViewX
 
 using Sockets
 
@@ -48,7 +48,7 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
     df_tg_tb = DataFrames.select(df_tg, filter(n -> !endswith(n, "_"), names(df_tg)))
     app = dash(; assets_folder=DIR_DATA)
     app.layout = html_div() do
-        html_h1("TargetXView", style=Dict("text-align"=>"center")),
+        html_h1("TargetViewX", style=Dict("text-align"=>"center")),
         dash_datatable(
             id="tg_table",
             style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
@@ -77,7 +77,7 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
             export_format="csv",
             export_headers="display",
         ),
-        dcc_graph(id="lc_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXView_LC"))),
+        dcc_graph(id="lc_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetViewX_LC"))),
         dash_datatable(
             id="psm_table",
             style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
@@ -92,8 +92,8 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
             export_format="csv",
             export_headers="display",
         ),
-        dcc_graph(id="seq_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXView_SEQ"))),
-        dcc_graph(id="psm_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXView_PSM")))
+        dcc_graph(id="seq_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetViewX_SEQ"))),
+        dcc_graph(id="psm_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetViewX_PSM")))
     end
 
     p_hit = plot_hit(df_m2)
@@ -397,11 +397,11 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
         end
     end
 
-    UniMS.safe_save(p -> CSV.write(p, df_tg_ext), joinpath(out, "$(basename(splitext(path_ms)[1])).tg.TargetXView.csv"))
-    UniMS.safe_save(p -> CSV.write(p, df_psm), joinpath(out, "$(basename(splitext(path_ms)[1])).crosslink.TargetXView.csv"))
-    UniMS.safe_save(p -> CSV.write(p, df_linear), joinpath(out, "$(basename(splitext(path_ms)[1])).linear.TargetXView.csv"))
-    UniMS.safe_save(p -> CSV.write(p, df_mono), joinpath(out, "$(basename(splitext(path_ms)[1])).monolink.TargetXView.csv"))
-    UniMS.safe_save(p -> CSV.write(p, df_loop), joinpath(out, "$(basename(splitext(path_ms)[1])).looplink.TargetXView.csv"))
+    UniMS.safe_save(p -> CSV.write(p, df_tg_ext), joinpath(out, "$(basename(splitext(path_ms)[1])).tg.TargetViewX.csv"))
+    UniMS.safe_save(p -> CSV.write(p, df_psm), joinpath(out, "$(basename(splitext(path_ms)[1])).crosslink.TargetViewX.csv"))
+    UniMS.safe_save(p -> CSV.write(p, df_linear), joinpath(out, "$(basename(splitext(path_ms)[1])).linear.TargetViewX.csv"))
+    UniMS.safe_save(p -> CSV.write(p, df_mono), joinpath(out, "$(basename(splitext(path_ms)[1])).monolink.TargetViewX.csv"))
+    UniMS.safe_save(p -> CSV.write(p, df_loop), joinpath(out, "$(basename(splitext(path_ms)[1])).looplink.TargetViewX.csv"))
 
     @async begin
         sleep(4)
@@ -412,7 +412,7 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="TargetXView")
+    settings = ArgParse.ArgParseSettings(prog="TargetViewX")
     ArgParse.@add_arg_table! settings begin
         "target"
             help = "target list"
