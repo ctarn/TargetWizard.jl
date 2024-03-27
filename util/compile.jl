@@ -3,7 +3,7 @@ import TOML
 
 exes = [
     "TargetSelect", "TargetSelectX", "TargetBind",
-    "BasicAquisitionReport", "TargetSelectionReport", "CoverageReport" "XLCoverageReport",
+    "BasicAquisitionReport", "TargetSelectionReport", "CoverageReport" "CoverageReportX",
     "TargetXView", "TargetXDualView", "XSiteView", "XExhaustiveSearchView",
 ]
 

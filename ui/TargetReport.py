@@ -57,7 +57,7 @@ def run_peptidecoveragereport():
     )
 
 def run_crosslinkedpeptidecoveragereport():
-    task.call(os.path.join(V["generators"].get(), "XLCoverageReport"), V["psm"].get(),
+    task.call(os.path.join(V["generators"].get(), "CoverageReportX"), V["psm"].get(),
         "--ms", *(V["ms"].get().split(";")),
         "--out", V["out"].get(),
         "--linker", V["linker"].get(),

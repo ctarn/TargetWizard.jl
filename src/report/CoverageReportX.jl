@@ -1,4 +1,4 @@
-module XLCoverageReport
+module CoverageReportX
 
 using Statistics
 
@@ -55,10 +55,10 @@ process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
     calc_cov_monolink!(df_mono, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
     calc_cov_looplink!(df_loop, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
 
-    UniMS.safe_save(p -> CSV.write(p, df_xl), joinpath(out, basename(path) * ".crosslink.XLCoverageReport.csv"))
-    UniMS.safe_save(p -> CSV.write(p, df_linear), joinpath(out, basename(path) * ".linear.XLCoverageReport.csv"))
-    UniMS.safe_save(p -> CSV.write(p, df_mono), joinpath(out, basename(path) * ".monolink.XLCoverageReport.csv"))
-    UniMS.safe_save(p -> CSV.write(p, df_loop), joinpath(out, basename(path) * ".looplink.XLCoverageReport.csv"))
+    UniMS.safe_save(p -> CSV.write(p, df_xl), joinpath(out, basename(path) * ".crosslink.CoverageReportX.csv"))
+    UniMS.safe_save(p -> CSV.write(p, df_linear), joinpath(out, basename(path) * ".linear.CoverageReportX.csv"))
+    UniMS.safe_save(p -> CSV.write(p, df_mono), joinpath(out, basename(path) * ".monolink.CoverageReportX.csv"))
+    UniMS.safe_save(p -> CSV.write(p, df_loop), joinpath(out, basename(path) * ".looplink.CoverageReportX.csv"))
 
     data = """
 const FDR = [$(join(string.(df_xl.fdr .* 100), ","))]
@@ -74,20 +74,20 @@ const COV_B_$(sym) = [$(join(string.(df_xl[!, "cov_b_ion_$(sym)"] .* 100), ","))
 """
     end |> join
 
-    main = replace(read(joinpath(DIR_DATA, "XLCoverageReport.html"), String),
+    main = replace(read(joinpath(DIR_DATA, "CoverageReportX.html"), String),
         "{{ section }}" => "Overall Peptide Fragment Ion Coverage",
         "{{ id }}" => "all",
     )
     main *= map(ion_syms) do sym
-        replace(read(joinpath(DIR_DATA, "XLCoverageReport.html"), String),
+        replace(read(joinpath(DIR_DATA, "CoverageReportX.html"), String),
             "{{ section }}" => "Peptide Fragment Ion Coverage of $(sym) Ions",
             "{{ id }}" => "$(sym)",
         )
     end |> join
 
-    script = replace(read(joinpath(DIR_DATA, "XLCoverageReport.js"), String), "{{ id }}" => "all")
+    script = replace(read(joinpath(DIR_DATA, "CoverageReportX.js"), String), "{{ id }}" => "all")
     script *= map(ion_syms) do sym
-        replace(read(joinpath(DIR_DATA, "XLCoverageReport.js"), String), "{{ id }}" => "$(sym)")
+        replace(read(joinpath(DIR_DATA, "CoverageReportX.js"), String), "{{ id }}" => "$(sym)")
     end |> join
 
     html = replace(read(joinpath(DIR_DATA, "base.html"), String),
@@ -98,13 +98,13 @@ const COV_B_$(sym) = [$(join(string.(df_xl[!, "cov_b_ion_$(sym)"] .* 100), ","))
         "{{ data }}" => data,
         "{{ script }}" => script,
     )
-    path_out = joinpath(out, basename(path) * ".XLCoverageReport.html")
+    path_out = joinpath(out, basename(path) * ".CoverageReportX.html")
     UniMS.safe_save(io -> write(io, html), path_out)
     UniMS.open_url(path_out)
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="XLCoverageReport")
+    settings = ArgParse.ArgParseSettings(prog="CoverageReportX")
     ArgParse.@add_arg_table! settings begin
         "data"
             help = "pLink PSM path"
