@@ -76,7 +76,7 @@ process(path; path_ms, path_psm, out, fmt, linker, ε, fdr, ion_syms, cfg) = beg
         mzs = map(x -> x[1], tmp)
         ids = map(x -> x[2], tmp)
         return map(eachrow(df_tg)) do r
-            psm = sort(filter(x -> df_psm[x, :z] == r.z, ids[UniMS.argquery_ε(mzs, r.mz, ε)]))
+            psm = sort(filter(x -> df_psm[x, :z] == r.z, ids[UniMS.argquery_δ(mzs, r.mz, 10)]))
             psm = filter(i -> r.start ≤ df_psm.rt[i] ≤ r.stop, psm)
             psm = filter(i -> is_same_xl(df_psm[i, :], r), psm)
             return psm
