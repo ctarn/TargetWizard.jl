@@ -142,11 +142,6 @@ prepare(args) = begin
     return (; path_ms, paths_ms_old, path_psm, out, path_ft, fmt, ε, fdr, decoy, τ_ms_sim, cfg, host, port)
 end
 
-psmstr(x) = "$(x.scan)($(round(x.cov; digits=2))):$(x.pep)($(x.mod))"
-is_same_pepmod(a, b) = (a.pep == b.pep) && (a.mod == b.mod)
-
-unify_mods_str(s) = (!ismissing(s) && startswith(s, "Any[") && endswith(s, "]")) ? s[5:end-1] : s
-
 process(path; path_ms, paths_ms_old, path_psm, out, path_ft, fmt, ε, fdr, decoy, τ_ms_sim, cfg, host, port) = begin
     M = UniMS.read_ms(path_ms)
     df_m1 = map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1) |> DataFrames.DataFrame

@@ -341,7 +341,7 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
     
     df_tg_ext = DataFrames.DataFrame(df_tg)
-    for (k, s, d) in zip(["", "_linear", "_mono", "_loop"], [psmstr_link, psmstr_linear, psmstr_mono, psmstr_loop], [df_psm, df_linear, df_mono, df_loop])
+    for (k, s, d) in zip(["", "_linear", "_mono", "_loop"], [psmstr_link, psmstr, psmstr_mono, psmstr_loop], [df_psm, df_linear, df_mono, df_loop])
         for K in Ks
             df_tg_ext[!, "iden$(k)$(K)"] = map(df_tg_ext[!, "psm$(k)$(K)_"]) do psms
                 map(s, eachrow(d[psms, :])) |> xs -> join(xs, ";")
