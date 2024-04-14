@@ -94,7 +94,7 @@ util.add_entry(main, I, "Output Directory:", V["out"], "Select", util.askdir(V["
 I += 1
 task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I, columnspan=3)
 
-t_ms = (("MES file", "*.mes"), ("MS2 file", "*.ms2"), ("All", "*.*"))
+t_ms = (("UMS file", "*.ums"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 t_target = (("Target List", "*.csv"), ("All", "*.*"))
 t_psm = (("PSM", "*.psm"), ("All", "*.*"))
 
