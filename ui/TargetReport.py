@@ -77,9 +77,9 @@ def run_snr_report_dx():
         "--out", V["out"].get(),
         "--fmt", target_fmts[V["target_fmt"].get()],
         "--linker", V["linker"].get(),
-        "--error", V["error2"].get(),
         "--fdr", V["fdr"].get(),
         "--ion", ",".join([t for t in ion_types if V[f"ion_{t}"].get()]),
+        "--error", V["error2"].get(),
         "--cfg", V["cfg_pl"].get(),
     )
 

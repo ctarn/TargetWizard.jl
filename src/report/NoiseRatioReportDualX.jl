@@ -19,14 +19,14 @@ prepare(args) = begin
     out = mkpath(args["out"])
     fmt = args["fmt"] |> Symbol
     linker = Symbol(args["linker"])
-    ε = parse(Float64, args["error"]) * 1.0e-6
     fdr = parse(Float64, args["fdr"]) / 100
     ion_syms = split(args["ion"], ",") .|> strip
+    ε = parse(Float64, args["error"]) * 1.0e-6
     cfg = args["cfg"]
-    return (; path_ms, path_psm, out, fmt, linker, ε, fdr, ion_syms, cfg)
+    return (; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, cfg)
 end
 
-process(path; path_ms, path_psm, out, fmt, linker, ε, fdr, ion_syms, cfg) = begin
+process(path; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, cfg) = begin
     ion_types = map(i -> getfield(UniMS, Symbol("ion_$(i)")), ion_syms)
 
     M = UniMS.read_all(p -> UniMS.dict_by_id(UniMS.read_ums(p, split=false)), path_ms, "ums")
@@ -162,10 +162,6 @@ main() = begin
             help = "default linker"
             metavar = "DSSO"
             default = "DSSO"
-        "--error"
-            help = "m/z error"
-            metavar = "ppm"
-            default = "20.0"
         "--fdr"
             help = "FDR threshold (%)"
             default = "Inf"
@@ -173,6 +169,10 @@ main() = begin
             help = "fragment ion type: a, b, c, x, y, z, a_NH3, b_NH3, y_NH3, a_H2O, b_H2O, y_H2O"
             metavar = "b,y,b_NH3,b_H2O,y_NH3,y_H2O"
             default = "b,y,b_NH3,b_H2O,y_NH3,y_H2O"
+        "--error"
+            help = "m/z error"
+            metavar = "ppm"
+            default = "20.0"
         "--cfg"
             help = "pLink config directory"
             default = ""
