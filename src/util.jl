@@ -40,7 +40,7 @@ end
 calc_cov_crosslink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl) = begin
     @info "cross-linked peptide processing"
     @info "fragment ion calculating"
-    df.ion = @showprogress map(eachrow(df)) do r
+    df.ion_ = @showprogress map(eachrow(df)) do r
         peaks = M[r.file][r.scan].peaks
         seqs = (r.pep_a, r.pep_b)
         modss = (r.mod_a, r.mod_b)
@@ -51,16 +51,16 @@ calc_cov_crosslink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, ta
     end
 
     @info "coverage calculating"
-    df.ion_a = first.(df.ion)
-    df.ion_b = last.(df.ion)
-    foreach(r -> filter!(i -> i.loc < length(r.pep_a), r.ion_a), eachrow(df))
-    foreach(r -> filter!(i -> i.loc < length(r.pep_b), r.ion_b), eachrow(df))
+    df.ion_a_ = first.(df.ion_)
+    df.ion_b_ = last.(df.ion_)
+    foreach(r -> filter!(i -> i.loc < length(r.pep_a), r.ion_a_), eachrow(df))
+    foreach(r -> filter!(i -> i.loc < length(r.pep_b), r.ion_b_), eachrow(df))
 
     match_a = [falses(length(r.pep_a)-1) for r in eachrow(df)]
     match_b = [falses(length(r.pep_b)-1) for r in eachrow(df)]
     for idx in 1:size(df, 1)
-        foreach(i -> match_a[idx][i.loc] = true, df.ion_a[idx])
-        foreach(i -> match_b[idx][i.loc] = true, df.ion_b[idx])
+        foreach(i -> match_a[idx][i.loc] = true, df.ion_a_[idx])
+        foreach(i -> match_b[idx][i.loc] = true, df.ion_b_[idx])
     end
 
     df.cov = round.(mean.(vcat.(match_a, match_b)); digits=4)
@@ -69,8 +69,8 @@ calc_cov_crosslink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, ta
 
     @info "coverage of each type of fragment ion calculating"
     @showprogress for (sym, ion_type) in zip(ion_syms, ion_types)
-        ion_a = map(r -> filter(i -> i.type == ion_type.type, r.ion_a), eachrow(df))
-        ion_b = map(r -> filter(i -> i.type == ion_type.type, r.ion_b), eachrow(df))
+        ion_a = map(r -> filter(i -> i.type == ion_type.type, r.ion_a_), eachrow(df))
+        ion_b = map(r -> filter(i -> i.type == ion_type.type, r.ion_b_), eachrow(df))
         match_a = [falses(length(r.pep_a)-1) for r in eachrow(df)]
         match_b = [falses(length(r.pep_b)-1) for r in eachrow(df)]
         for idx in 1:size(df, 1)
@@ -82,10 +82,8 @@ calc_cov_crosslink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, ta
         df[!, "cov_b_ion_$(sym)"] = round.(mean.(match_b); digits=4)
     end
 
-    DataFrames.select!(df, DataFrames.Not([:ion, :ion_a, :ion_b]), :ion_a, :ion_b)
-    df.ion_a = map(ions -> join(getfield.(ions, :text_abbr), ','), df.ion_a)
-    df.ion_b = map(ions -> join(getfield.(ions, :text_abbr), ','), df.ion_b)
-
+    df.ion_a = map(ions -> join(getfield.(ions, :text_abbr), ','), df.ion_a_)
+    df.ion_b = map(ions -> join(getfield.(ions, :text_abbr), ','), df.ion_b_)
     return df
 end
 
@@ -214,3 +212,11 @@ nearbymax(M, i, mz, ε, τ=2) = begin
     ri, rv = _nearbymax(M, i, mz, ε, τ, 1)
     return lv ≥ rv ? (li, lv) : (ri, rv)
 end
+
+unify_mods_str(s) = (!ismissing(s) && startswith(s, "Any[") && endswith(s, "]")) ? s[5:end-1] : s
+psmstr_linear(x) = "$(x.scan)($(round(x.cov; digits=2))):$(x.pep)($(x.mod))"
+psmstr_mono(x) = "$(x.scan)($(round(x.cov; digits=2))):$(x.pep)($(x.mod))@$(x.site)"
+psmstr_loop(x) = "$(x.scan)($(round(x.cov; digits=2))):$(x.pep)($(x.mod))@$(x.site_a)-$(x.site_b)"
+psmstr_link(x) = "$(x.scan)($(round(x.cov_a; digits=2))|$(round(x.cov_b; digits=2))):$(x.pep_a)($(x.mod_a))@$(x.site_a)-$(x.pep_b)($(x.mod_b))@$(x.site_b)"
+is_same_xl(a, b) = (a.pep_a == b.pep_a) && (a.pep_b == b.pep_b) && (a.mod_a == b.mod_a) && (a.mod_b == b.mod_b) && (a.site_a == b.site_a) && (a.site_b == b.site_b)
+is_same_xl_pepmod(a, b) = (a.pep_a == b.pep_a) && (a.pep_b == b.pep_b) && (a.mod_a == b.mod_a) && (a.mod_b == b.mod_b)
