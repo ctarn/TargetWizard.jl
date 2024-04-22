@@ -8,8 +8,8 @@ import CSV
 import DataFrames
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
-import UniMS
-import UniMSUtil: pLink
+import UniMZ
+import UniMZUtil: pLink
 
 include("../util.jl")
 
@@ -27,19 +27,19 @@ prepare(args) = begin
 end
 
 process(path; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, cfg) = begin
-    ion_types = map(i -> getfield(UniMS, Symbol("ion_$(i)")), ion_syms)
+    ion_types = map(i -> getfield(UniMZ, Symbol("ion_$(i)")), ion_syms)
 
-    M = UniMS.read_all(p -> UniMS.dict_by_id(UniMS.read_ums(p, split=false)), path_ms, "ums")
+    M = UniMZ.read_all(p -> UniMZ.dict_by_id(UniMZ.read_umz(p, split=false)), path_ms, "umz")
 
     if isempty(cfg)
         tab_ele = pLink.read_element() |> NamedTuple
-        tab_aa = map(x -> UniMS.mass(x, tab_ele), pLink.read_amino_acid() |> NamedTuple)
-        tab_mod = UniMS.mapvalue(x -> x.mass, pLink.read_modification())
+        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pLink.read_amino_acid() |> NamedTuple)
+        tab_mod = UniMZ.mapvalue(x -> x.mass, pLink.read_modification())
         tab_xl = pLink.read_linker() |> NamedTuple
     else
         tab_ele = pLink.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
-        tab_aa = map(x -> UniMS.mass(x, tab_ele), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
-        tab_mod = UniMS.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
+        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
+        tab_mod = UniMZ.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
         tab_xl = pLink.read_linker(joinpath(cfg, "xlink.ini")) |> NamedTuple
     end
 
@@ -67,8 +67,8 @@ process(path; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, cfg) = beg
     df_tg.id = Vector(1:size(df_tg, 1))
     parse_target_list!(df_tg, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
-    "mod_a" ∈ names(df_tg) && (df_tg.mod_a = parse.(Array{UniMS.Mod}, unify_mods_str.(df_tg.mod_a)))
-    "mod_b" ∈ names(df_tg) && (df_tg.mod_b = parse.(Array{UniMS.Mod}, unify_mods_str.(df_tg.mod_b)))
+    "mod_a" ∈ names(df_tg) && (df_tg.mod_a = parse.(Array{UniMZ.Mod}, unify_mods_str.(df_tg.mod_a)))
+    "mod_b" ∈ names(df_tg) && (df_tg.mod_b = parse.(Array{UniMZ.Mod}, unify_mods_str.(df_tg.mod_b)))
 
     @info "PSM mapping"
     df_tg.psm_A, df_tg.psm_B = map(dfs_psm) do df_psm
@@ -76,7 +76,7 @@ process(path; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, cfg) = beg
         mzs = map(x -> x[1], tmp)
         ids = map(x -> x[2], tmp)
         return map(eachrow(df_tg)) do r
-            psm = sort(filter(x -> df_psm[x, :z] == r.z, ids[UniMS.argquery_δ(mzs, r.mz, 10)]))
+            psm = sort(filter(x -> df_psm[x, :z] == r.z, ids[UniMZ.argquery_δ(mzs, r.mz, 10)]))
             psm = filter(i -> r.start ≤ df_psm.rt[i] ≤ r.stop, psm)
             psm = filter(i -> is_same_xl(df_psm[i, :], r), psm)
             return psm
@@ -131,9 +131,9 @@ process(path; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, cfg) = beg
         DataFrames.select!(df, filter(n -> !endswith(n, '_'), names(df)))
     end
 
-    UniMS.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path)[1])).NoiseRatioReportDualX.csv"))
-    UniMS.safe_save(p -> CSV.write(p, dfs_psm[1]), joinpath(out, "$(basename(splitext(path_psm[1])[1])).NoiseRatioReportDualX.csv"))
-    UniMS.safe_save(p -> CSV.write(p, dfs_psm[2]), joinpath(out, "$(basename(splitext(path_psm[2])[1])).NoiseRatioReportDualX.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path)[1])).NoiseRatioReportDualX.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, dfs_psm[1]), joinpath(out, "$(basename(splitext(path_psm[1])[1])).NoiseRatioReportDualX.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, dfs_psm[2]), joinpath(out, "$(basename(splitext(path_psm[2])[1])).NoiseRatioReportDualX.csv"))
 end
 
 main() = begin
@@ -143,7 +143,7 @@ main() = begin
             help = "target list"
             required = true
         "--ms"
-            help = "two .ums files"
+            help = "two .umz files"
             required = true
             nargs = 2
         "--psm"

@@ -112,7 +112,7 @@ util.add_entry(main, I, "Output Directory:", V["out"], "Select", util.askdir(V["
 I += 1
 task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I, columnspan=3)
 
-t_ms = (("UMS file", "*.ums"), ("MS2 file", "*.ms2"), ("All", "*.*"))
+t_ms = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 t_target = (("Target List", "*.csv"), ("All", "*.*"))
 t_psm = (("PSM", "*.psm"), ("All", "*.*"))
 
@@ -191,7 +191,7 @@ I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 ttk.Label(f, text="Data A").grid(column=0, row=I)
 I += 1
-t = (("UMS file", "*.ums"), ("MS2 file", "*.ms2"), ("All", "*.*"))
+t = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
 I += 1
 t = (("XL PSM", "*.csv"), ("All", "*.*"))
@@ -200,7 +200,7 @@ I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 ttk.Label(f, text="Data B").grid(column=0, row=I)
 I += 1
-t = (("UMS file", "*.ums"), ("MS2 file", "*.ms2"), ("All", "*.*"))
+t = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 util.add_entry(f, I, "MS Data:", V["ms_"], "Select", util.askfile(V["ms_"], filetypes=t))
 I += 1
 t = (("XL PSM", "*.csv"), ("All", "*.*"))

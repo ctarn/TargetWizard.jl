@@ -9,8 +9,8 @@ import CSV
 import DataFrames
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
-import UniMS
-import UniMSUtil: pLink
+import UniMZ
+import UniMZUtil: pLink
 
 using Dash
 using PlotlyBase
@@ -21,10 +21,10 @@ const DIR_DATA = @path joinpath(@__DIR__, "../../data/dash")
 
 Δ = 1.00335
 
-build_ions(seq, mods, tab_ele, tab_aa, tab_mod; types=[(UniMS.ion_b, 1:3), (UniMS.ion_y, 1:3)]) = begin
-    ts = [(; t..., mass=UniMS.mass(t.Δ, tab_ele), zs) for (t, zs) in types]
-    base = UniMS.calc_ion_base(UniMS.lsum_seq(seq, mods, tab_aa, tab_mod))
-    ions = [UniMS.calc_ion(i, t.mass, z, t.type, t.sym, t.color) for t in ts for z in t.zs for i in base[t.part]]
+build_ions(seq, mods, tab_ele, tab_aa, tab_mod; types=[(UniMZ.ion_b, 1:3), (UniMZ.ion_y, 1:3)]) = begin
+    ts = [(; t..., mass=UniMZ.mass(t.Δ, tab_ele), zs) for (t, zs) in types]
+    base = UniMZ.calc_ion_base(UniMZ.lsum_seq(seq, mods, tab_aa, tab_mod))
+    ions = [UniMZ.calc_ion(i, t.mass, z, t.type, t.sym, t.color) for t in ts for z in t.zs for i in base[t.part]]
     return ions
 end
 
@@ -57,7 +57,7 @@ seq_crosslink(seqs, modss, site_pairs, ionss; font=18) = begin
     return Plot(ls, Layout(; showlegend=false, yaxis=attr(showticklabels=false, range=(-8, 8)), xaxis=attr(showticklabels=false), height=300))
 end
 
-get_inten(mz, ps, ε) = maximum(p -> p.inten, UniMS.query_ε(ps, mz, ε); init=0.0)
+get_inten(mz, ps, ε) = maximum(p -> p.inten, UniMZ.query_ε(ps, mz, ε); init=0.0)
 
 smooth(x, k) = begin
     n = length(k)
@@ -241,9 +241,9 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
         modss = (r.mod_a, r.mod_b)
         linker = getproperty(tab_xl, Symbol(r.linker))
         sites = (r.site_a, r.site_b)
-        ionss = UniMS.build_ions_crosslink(m2.peaks, seqs, modss, linker, sites, ε, tab_ele, tab_aa, tab_mod)
-        p_seq = UniMS.Plotly.seq_crosslink(seqs, modss, sites, ionss)
-        p_psm = UniMS.Plotly.spec(m2.peaks, filter(i -> i.peak > 0, vcat(ionss...)))
+        ionss = UniMZ.build_ions_crosslink(m2.peaks, seqs, modss, linker, sites, ε, tab_ele, tab_aa, tab_mod)
+        p_seq = UniMZ.Plotly.seq_crosslink(seqs, modss, sites, ionss)
+        p_psm = UniMZ.Plotly.spec(m2.peaks, filter(i -> i.peak > 0, vcat(ionss...)))
         return p_seq, p_psm
     end
 
@@ -302,9 +302,9 @@ end
 
 process(; path_psm, path_ms, out, linker,  ε, τ, smooth_size, cfg, host, port) = begin
     smooth_k = vcat(Vector(1:smooth_size), Vector(smooth_size-1:-1:1))
-    M = UniMS.read_all(UniMS.read_ms, path_ms)
-    M1 = UniMS.mapvalue(m -> m.MS1, M)
-    M2 = UniMS.mapvalue(m -> m.MS2, M)
+    M = UniMZ.read_all(UniMZ.read_ms, path_ms)
+    M1 = UniMZ.mapvalue(m -> m.MS1, M)
+    M2 = UniMZ.mapvalue(m -> m.MS2, M)
     M1I = map(((k, v),) -> k => (map(m -> m[2].id => m[1], enumerate(v)) |> Dict), collect(M1)) |> Dict
     M2I = map(((k, v),) -> k => (map(m -> m[2].id => m[1], enumerate(v)) |> Dict), collect(M2)) |> Dict
     M1D = map(((k, v),) -> k => (map(m -> m.id => m, v) |> Dict), collect(M1)) |> Dict
@@ -344,24 +344,24 @@ process(; path_psm, path_ms, out, linker,  ε, τ, smooth_size, cfg, host, port)
         df_grp.n_range_diff[id] = sum(.!df_range.same_site)
     end
 
-    UniMS.safe_save(p -> CSV.write(p, df_grp), joinpath(out, splitext(basename(path_psm))[1] * ".grp.csv"))
-    UniMS.safe_save(p -> CSV.write(p, df_psm), joinpath(out, splitext(basename(path_psm))[1] * ".psm.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_grp), joinpath(out, splitext(basename(path_psm))[1] * ".grp.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_psm), joinpath(out, splitext(basename(path_psm))[1] * ".psm.csv"))
 
     if length(cfg) == 0
         tab_ele = pLink.read_element() |> NamedTuple
-        tab_aa = map(x -> UniMS.mass(x, tab_ele), pLink.read_amino_acid() |> NamedTuple)
-        tab_mod = UniMS.mapvalue(x -> x.mass, pLink.read_modification())
+        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pLink.read_amino_acid() |> NamedTuple)
+        tab_mod = UniMZ.mapvalue(x -> x.mass, pLink.read_modification())
         tab_xl = pLink.read_linker() |> NamedTuple
     else
         tab_ele = pLink.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
-        tab_aa = map(x -> UniMS.mass(x, tab_ele), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
-        tab_mod = UniMS.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
+        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
+        tab_mod = UniMZ.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
         tab_xl = pLink.read_linker(joinpath(cfg, "xlink.ini")) |> NamedTuple
     end
 
     @async begin
         sleep(4)
-        UniMS.open_url("http://$(host):$(port)")
+        UniMZ.open_url("http://$(host):$(port)")
     end
     app = build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, tab_mod, tab_xl)
     run_server(app, host, port)
@@ -374,7 +374,7 @@ main() = begin
             help = "PSM path"
             required = true
         "--ms"
-            help = ".mes or .ms1/2 file; .ms2/1 file should be in the same directory for .ms1/2"
+            help = ".umz or .ms1/2 file; .ms2/1 file should be in the same directory for .ms1/2"
             required = true
         "--out"
             help = "output directory"

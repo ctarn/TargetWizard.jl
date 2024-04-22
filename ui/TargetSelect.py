@@ -108,7 +108,7 @@ task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I, columnspan=3)
 
 f = F[FormSelect]
 I = 0
-t = (("UMS file", "*.ums"), ("MS2 file", "*.ms2"), ("All", "*.*"))
+t = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 util.add_entry(f, I, "Data:", V["data"], "Select", util.askfiles(V["data"], V["out"], filetypes=t))
 I += 1
 t = (("PSM", "*.spectra"), ("All", "*.*"))
@@ -131,7 +131,7 @@ for t in tds: ttk.Checkbutton(tmp, text=t, variable=V[f"td_{t}"]).pack(side="lef
 
 f = F[FormSelectX]
 I = 0
-t = (("UMS file", "*.ums"), ("MS2 file", "*.ms2"), ("All", "*.*"))
+t = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 util.add_entry(f, I, "Data:", V["data"], "Select", util.askfiles(V["data"], V["out"], filetypes=t))
 I += 1
 t = (("PSM", "*.csv"), ("All", "*.*"))

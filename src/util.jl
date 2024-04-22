@@ -2,7 +2,7 @@ using Statistics
 
 import DataFrames
 import ProgressMeter: @showprogress
-import UniMS
+import UniMZ
 
 parse_target_list!(df, fmt) = begin
     if fmt == :auto
@@ -32,7 +32,7 @@ parse_target_list!(df, fmt) = begin
         df.start = df.start .* 60
         df.stop = df.stop .* 60
     end
-    df.m = UniMS.mz_to_m.(df.mz, df.z)
+    df.m = UniMZ.mz_to_m.(df.mz, df.z)
     df.rt = (df.start .+ df.stop) ./ 2
     return df
 end
@@ -46,7 +46,7 @@ calc_cov_crosslink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, ta
         modss = (r.mod_a, r.mod_b)
         sites = (r.site_a, r.site_b)
         types = [(i, 1:(r.z-1)) for i in ion_types]
-        ionss = UniMS.build_ions_crosslink(peaks, seqs, modss, tab_xl[r.linker], sites, ε, tab_ele, tab_aa, tab_mod; types)
+        ionss = UniMZ.build_ions_crosslink(peaks, seqs, modss, tab_xl[r.linker], sites, ε, tab_ele, tab_aa, tab_mod; types)
         return filter.(i -> i.peak > 0 && i.loc > 0, ionss)
     end
 
@@ -93,7 +93,7 @@ calc_cov_linear!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod) = beg
     df.ion = @showprogress map(eachrow(df)) do r
         peaks = M[r.file][r.scan].peaks
         types = [(i, 1:(r.z-1)) for i in ion_types]
-        ions = UniMS.build_ions(peaks, r.pep, r.mod, ε, tab_ele, tab_aa, tab_mod; types)
+        ions = UniMZ.build_ions(peaks, r.pep, r.mod, ε, tab_ele, tab_aa, tab_mod; types)
         return filter(i -> i.peak > 0 && 0 < i.loc < length(r.pep), ions)
     end
 
@@ -127,7 +127,7 @@ calc_cov_monolink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab
     df.ion = @showprogress map(eachrow(df)) do r
         peaks = M[r.file][r.scan].peaks
         types = [(i, 1:(r.z-1)) for i in ion_types]
-        ions = UniMS.build_ions_monolink(peaks, r.pep, r.mod, tab_xl[r.linker], r.site, ε, tab_ele, tab_aa, tab_mod; types)
+        ions = UniMZ.build_ions_monolink(peaks, r.pep, r.mod, tab_xl[r.linker], r.site, ε, tab_ele, tab_aa, tab_mod; types)
         return filter(i -> i.peak > 0 && 0 < i.loc < length(r.pep), ions)
     end
 
@@ -161,7 +161,7 @@ calc_cov_looplink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab
     df.ion = @showprogress map(eachrow(df)) do r
         peaks = M[r.file][r.scan].peaks
         types = [(i, 1:(r.z-1)) for i in ion_types]
-        ions = UniMS.build_ions_looplink(peaks, r.pep, r.mod, tab_xl[r.linker], r.site_a, r.site_b, ε, tab_ele, tab_aa, tab_mod; types)
+        ions = UniMZ.build_ions_looplink(peaks, r.pep, r.mod, tab_xl[r.linker], r.site_a, r.site_b, ε, tab_ele, tab_aa, tab_mod; types)
         return filter(i -> i.peak > 0 && 0 < i.loc < length(r.pep), ions)
     end
 
@@ -194,7 +194,7 @@ _nearbymax(M, i, mz, ε, τ, δ) = begin
     v = -Inf
     i_max = i
     while 1 ≤ (i + δ) ≤ length(M) && skip ≤ τ
-        v_ = UniMS.max_inten_ε(M[i].peaks, mz, ε)
+        v_ = UniMZ.max_inten_ε(M[i].peaks, mz, ε)
         if v_ > v
             skip = 0
             v = v_

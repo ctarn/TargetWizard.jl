@@ -3,8 +3,8 @@ module TargetSelectX
 import ArgParse
 import CSV
 import DataFrames
-import UniMS
-import UniMSUtil: TMS, pFind, pLink
+import UniMZ
+import UniMZUtil: TMS, pFind, pLink
 
 include("util.jl")
 
@@ -27,9 +27,9 @@ prepare(args) = begin
 end
 
 process(paths; df, out, name, ε, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt) = begin
-    Ms = map(p -> UniMS.read_ms(p), paths)
-    M1 = map((p, M) -> splitext(basename(p))[1] => UniMS.dict_by_id(M.MS1), paths, Ms) |> Dict
-    M2 = map((p, M) -> splitext(basename(p))[1] => UniMS.dict_by_id(M.MS2), paths, Ms) |> Dict
+    Ms = map(p -> UniMZ.read_ms(p), paths)
+    M1 = map((p, M) -> splitext(basename(p))[1] => UniMZ.dict_by_id(M.MS1), paths, Ms) |> Dict
+    M2 = map((p, M) -> splitext(basename(p))[1] => UniMZ.dict_by_id(M.MS2), paths, Ms) |> Dict
     M1V = map((p, M) -> splitext(basename(p))[1] => M.MS1, paths, Ms) |> Dict
     M1I = map((p, M) -> splitext(basename(p))[1] => [m.id => i for (i, m) in enumerate(M.MS1)] |> Dict, paths, Ms) |> Dict
 
@@ -52,7 +52,7 @@ process(paths; df, out, name, ε, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batc
     df.inten = map(eachrow(df)) do r
         m2 = M2[r.file][r.scan]
         m1 = M1[r.file][m2.pre]
-        return UniMS.max_inten_ε(m1.peaks, r.mz, ε)
+        return UniMZ.max_inten_ε(m1.peaks, r.mz, ε)
     end
     vs = map(eachrow(df)) do r
         m2 = M2[r.file][r.scan]
@@ -77,14 +77,14 @@ process(paths; df, out, name, ε, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batc
     tmqe = :TmQE ∈ fmt
     tmfu = :TmFu ∈ fmt
     p = joinpath(out, name)
-    tw && UniMS.safe_save(p -> CSV.write(p, df), "$(p).all.TW.target.csv", "list")
+    tw && UniMZ.safe_save(p -> CSV.write(p, df), "$(p).all.TW.target.csv", "list")
 
     for i in 1:n_batch
         df_ = df[df.batch .== i, :]
         @info "batch $(i): $(size(df_, 1))"
-        tw && UniMS.safe_save(p -> CSV.write(p, df_), "$(p).batch$(i).TW.target.csv", "list")
-        tmqe && UniMS.safe_save(p -> CSV.write(p, TMS.build_target_TmQE(df_)), "$(p).batch$(i).TmQE.target.csv", "list (Thermo Q Exactive)")
-        tmfu && UniMS.safe_save(p -> CSV.write(p, TMS.build_target_TmFu(df_)), "$(p).batch$(i).TmFu.target.csv", "list (Thermo Fusion)")
+        tw && UniMZ.safe_save(p -> CSV.write(p, df_), "$(p).batch$(i).TW.target.csv", "list")
+        tmqe && UniMZ.safe_save(p -> CSV.write(p, TMS.build_target_TmQE(df_)), "$(p).batch$(i).TmQE.target.csv", "list (Thermo Q Exactive)")
+        tmfu && UniMZ.safe_save(p -> CSV.write(p, TMS.build_target_TmFu(df_)), "$(p).batch$(i).TmFu.target.csv", "list (Thermo Fusion)")
     end
 end
 
@@ -92,7 +92,7 @@ main() = begin
     settings = ArgParse.ArgParseSettings(prog="TargetSelectX")
     ArgParse.@add_arg_table! settings begin
         "data"
-            help = "list of .mes or .ms1/2 files; .ms2/1 files should be in the same directory for .ms1/2"
+            help = "list of .umz or .ms1/2 files; .ms2/1 files should be in the same directory for .ms1/2"
             nargs = '+'
             required = true
         "--psm"
@@ -151,7 +151,7 @@ main() = begin
             default = "TW,TmQE,TmFu"
     end
     args = ArgParse.parse_args(settings)
-    paths = reduce(vcat, UniMS.match_path.(args["data"], ".mes")) |> unique |> sort
+    paths = reduce(vcat, UniMZ.match_path.(args["data"], ".umz")) |> unique |> sort
     @info "file paths of selected data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
     process(paths; prepare(args)...)

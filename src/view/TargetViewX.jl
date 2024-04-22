@@ -7,8 +7,8 @@ import CSV
 import DataFrames
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
-import UniMS
-import UniMSUtil: pFind, pLink
+import UniMZ
+import UniMZUtil: pFind, pLink
 
 using Dash
 using PlotlyBase
@@ -28,7 +28,7 @@ get_rect(ft, y) = (x=[ft.rtime_start, ft.rtime_start, ft.rtime_stop, ft.rtime_st
 
 plot_lc(tg, df_ft, df_m1, df_m2, p_hit, ε) = begin
     x = df_m1.rt
-    ys = map(n -> map(p -> UniMS.max_inten_ε(p, tg.mz + n * Δ / tg.z, ε), df_m1.peaks), -1:2)
+    ys = map(n -> map(p -> UniMZ.max_inten_ε(p, tg.mz + n * Δ / tg.z, ε), df_m1.peaks), -1:2)
     ls = [scatter(x=x, y=ys[2], mode="lines", name="M")]
     push!(ls, scatter(x=x, y=ys[3], mode="lines", name="M + 1 Da"))
     push!(ls, scatter(x=x, y=ys[4], mode="lines", name="M + 2 Da"))
@@ -37,7 +37,7 @@ plot_lc(tg, df_ft, df_m1, df_m2, p_hit, ε) = begin
     ls = [scatter(; get_rect(df_ft[i, :], ε/2)..., mode="lines", line_dash="dash", line_color="green", name="FT#$(i)") for i in tg.ft_]
     push!(ls, scatter(x=ones(2) * tg.start, y=[-ε, ε], mode="lines", line_dash="dash", line_color="red", name="RT start"))
     push!(ls, scatter(x=ones(2) * tg.stop, y=[-ε, ε], mode="lines", line_dash="dash", line_color="red", name="RT stop"))
-    append!(ls, [scatter(x=df_m2.rt[i:i], y=[UniMS.error_rel(tg.mz, df_m2.mz[i])], name="MS2#$(df_m2.id[i])", customdata=[i], mode="markers", marker_size=4 * (1 + length(df_m2.psm[i]))) for i in tg.m2_all_])
+    append!(ls, [scatter(x=df_m2.rt[i:i], y=[UniMZ.error_rel(tg.mz, df_m2.mz[i])], name="MS2#$(df_m2.id[i])", customdata=[i], mode="markers", marker_size=4 * (1 + length(df_m2.psm[i]))) for i in tg.m2_all_])
     p2 = Plot(ls, Layout(; yaxis_title="m/z error"))
     p = [p1; p2; p_hit]
     relayout!(p, Layout(Subplots(rows=3, cols=1, row_heights=[2, 1, 2], vertical_spacing=0.02, shared_xaxes=true), clickmode="event+select"), height=600)
@@ -134,13 +134,13 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, m
             modss = (r.mod_a, r.mod_b)
             linker = xl_plink[Symbol(r.linker)]
             sites = (r.site_a, r.site_b)
-            ionss = UniMS.build_ions_crosslink(m2.peaks, seqs, modss, linker, sites, ε, ele_plink, aa_plink, mod_plink)
-            p_seq = UniMS.Plotly.seq_crosslink(seqs, modss, sites, ionss)
-            p_psm = UniMS.Plotly.spec(m2.peaks, filter(i -> i.peak > 0, vcat(ionss...)))
+            ionss = UniMZ.build_ions_crosslink(m2.peaks, seqs, modss, linker, sites, ε, ele_plink, aa_plink, mod_plink)
+            p_seq = UniMZ.Plotly.seq_crosslink(seqs, modss, sites, ionss)
+            p_psm = UniMZ.Plotly.spec(m2.peaks, filter(i -> i.peak > 0, vcat(ionss...)))
         elseif r.engine == :pFind
-            ions = UniMS.build_ions(m2.peaks, r.pep_a, r.mod_a, ε, ele_pfind, aa_pfind, mod_pfind)
-            p_seq = UniMS.Plotly.seq(r.pep_a, r.mod_a, ions)
-            p_psm = UniMS.Plotly.spec(m2.peaks, filter(i -> i.peak > 0, ions))
+            ions = UniMZ.build_ions(m2.peaks, r.pep_a, r.mod_a, ε, ele_pfind, aa_pfind, mod_pfind)
+            p_seq = UniMZ.Plotly.seq(r.pep_a, r.mod_a, ions)
+            p_psm = UniMZ.Plotly.spec(m2.peaks, filter(i -> i.peak > 0, ions))
         end
         return p_seq, p_psm
     end
@@ -151,7 +151,7 @@ prepare(args) = begin
     path_ms = args["ms"]
     @info "file path of selected data:"
     println("\t$(path_ms)")
-    paths_ms_old = reduce(vcat, UniMS.match_path.(args["ms_old"], ".mes")) |> unique |> sort
+    paths_ms_old = reduce(vcat, UniMZ.match_path.(args["ms_old"], ".umz")) |> unique |> sort
     @info "file paths of selected original data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths_ms_old))
     path_psm = args["psm"]
@@ -173,33 +173,33 @@ prepare(args) = begin
 end
 
 process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_pf, fmt, linker, ε, fdr, decoy, τ_ms_sim, cfg, cfg_pf, host, port) = begin
-    M = UniMS.read_ms(path_ms)
+    M = UniMZ.read_ms(path_ms)
     df_m1 = map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1) |> DataFrames.DataFrame
     df_m2 = map(m -> (; m.id, mz=m.activation_center, rt=m.retention_time, m.peaks), M.MS2) |> DataFrames.DataFrame
     M2I = map(x -> x[2] => x[1], enumerate(df_m2.id)) |> Dict
 
-    M_old = map(p -> splitext(basename(p))[1] => UniMS.dict_by_id(UniMS.read_ms(p).MS2), paths_ms_old) |> Dict
+    M_old = map(p -> splitext(basename(p))[1] => UniMZ.dict_by_id(UniMZ.read_ms(p).MS2), paths_ms_old) |> Dict
 
     if isempty(cfg)
         ele_plink = pLink.read_element() |> NamedTuple
-        aa_plink = map(x -> UniMS.mass(x, ele_plink), pLink.read_amino_acid() |> NamedTuple)
-        mod_plink = UniMS.mapvalue(x -> x.mass, pLink.read_modification())
+        aa_plink = map(x -> UniMZ.mass(x, ele_plink), pLink.read_amino_acid() |> NamedTuple)
+        mod_plink = UniMZ.mapvalue(x -> x.mass, pLink.read_modification())
         xl_plink = pLink.read_linker() |> NamedTuple
     else
         ele_plink = pLink.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
-        aa_plink = map(x -> UniMS.mass(x, ele_plink), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
-        mod_plink = UniMS.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
+        aa_plink = map(x -> UniMZ.mass(x, ele_plink), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
+        mod_plink = UniMZ.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
         xl_plink = pLink.read_linker(joinpath(cfg, "xlink.ini")) |> NamedTuple
     end
 
     if isempty(cfg_pf)
         ele_pfind = pFind.read_element() |> NamedTuple
-        aa_pfind = map(x -> UniMS.mass(x, ele_pfind), pFind.read_amino_acid() |> NamedTuple)
-        mod_pfind = UniMS.mapvalue(x -> x.mass, pFind.read_modification())
+        aa_pfind = map(x -> UniMZ.mass(x, ele_pfind), pFind.read_amino_acid() |> NamedTuple)
+        mod_pfind = UniMZ.mapvalue(x -> x.mass, pFind.read_modification())
     else
         ele_pfind = pFind.read_element(joinpath(cfg_pf, "element.ini")) |> NamedTuple
-        aa_pfind = map(x -> UniMS.mass(x, ele_pfind), pFind.read_amino_acid(joinpath(cfg_pf, "aa.ini")) |> NamedTuple)
-        mod_pfind = UniMS.mapvalue(x -> x.mass, pFind.read_modification(joinpath(cfg_pf, "modification.ini")))
+        aa_pfind = map(x -> UniMZ.mass(x, ele_pfind), pFind.read_amino_acid(joinpath(cfg_pf, "aa.ini")) |> NamedTuple)
+        mod_pfind = UniMZ.mapvalue(x -> x.mass, pFind.read_modification(joinpath(cfg_pf, "modification.ini")))
     end
 
     dfs = pLink.read_psm_full(path_psm)
@@ -228,8 +228,8 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     DataFrames.select!(df_psm, ns, DataFrames.Not(ns))
 
     ion_syms = ["b", "y"]
-    ion_types = map(i -> getfield(UniMS, Symbol("ion_$(i)")), ion_syms)
-    M_ = [splitext(basename(path_ms))[1] => UniMS.dict_by_id(M.MS2)] |> Dict
+    ion_types = map(i -> getfield(UniMZ, Symbol("ion_$(i)")), ion_syms)
+    M_ = [splitext(basename(path_ms))[1] => UniMZ.dict_by_id(M.MS2)] |> Dict
     calc_cov_crosslink!(df_psm, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink, xl_plink)
     calc_cov_linear!(df_linear, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink)
     calc_cov_monolink!(df_mono, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink, xl_plink)
@@ -281,31 +281,31 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     df_tg.id = Vector(1:size(df_tg, 1))
     parse_target_list!(df_tg, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
-    "mod_a" ∈ names(df_tg) && (df_tg.mod_a = parse.(Array{UniMS.Mod}, unify_mods_str.(df_tg.mod_a)))
-    "mod_b" ∈ names(df_tg) && (df_tg.mod_b = parse.(Array{UniMS.Mod}, unify_mods_str.(df_tg.mod_b)))
+    "mod_a" ∈ names(df_tg) && (df_tg.mod_a = parse.(Array{UniMZ.Mod}, unify_mods_str.(df_tg.mod_a)))
+    "mod_b" ∈ names(df_tg) && (df_tg.mod_b = parse.(Array{UniMZ.Mod}, unify_mods_str.(df_tg.mod_b)))
 
     @info "XL Candidtes mapping"
     tmp = sort!([(x.mz::Float64, x.id::Int) for x in eachrow(df_xl)])
     mzs = map(x -> x[1], tmp)
     ids = map(x -> x[2], tmp)
-    df_tg.xl_ = [sort(filter(x -> df_xl[x, :z] == r.z, ids[UniMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
+    df_tg.xl_ = [sort(filter(x -> df_xl[x, :z] == r.z, ids[UniMZ.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
 
     @info "Feature mapping"
     tmp = sort!([(x.mz::Float64, x.id::Int) for x in eachrow(df_ft)])
     mzs = map(x -> x[1], tmp)
     ids = map(x -> x[2], tmp)
-    df_tg.ft_ = [sort(filter(x -> df_ft[x, :z] == r.z, ids[UniMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
+    df_tg.ft_ = [sort(filter(x -> df_ft[x, :z] == r.z, ids[UniMZ.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
     df_tg.n_ft = length.(df_tg.ft_)
 
     Ks = ["", "_allsim", "_all"]
 
-    calc_sim(dda, tda) = map(p -> !isempty(UniMS.argquery_ε(tda.peaks, p.mz, ε)), M_old[dda.file][dda.scan].peaks) |> mean
+    calc_sim(dda, tda) = map(p -> !isempty(UniMZ.argquery_ε(tda.peaks, p.mz, ε)), M_old[dda.file][dda.scan].peaks) |> mean
 
     @info "MS2 mapping"
     tmp = sort!([(x.mz::Float64, x.id::Int) for x in eachrow(df_m2)])
     mzs = map(x -> x[1], tmp)
     ids = map(x -> x[2], tmp)
-    df_tg.m2_all_ = [map(x -> M2I[x], sort(ids[UniMS.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
+    df_tg.m2_all_ = [map(x -> M2I[x], sort(ids[UniMZ.argquery_ε(mzs, r.mz, ε)])) for r in eachrow(df_tg)]
     df_tg.m2_allsim_ = [filter(i -> calc_sim(r, df_m2[i, :]) ≥ τ_ms_sim, r.m2_all_) for r in eachrow(df_tg)]
     df_tg.m2_ = [filter(i -> r.start ≤ df_m2.rt[i] ≤ r.stop, r.m2_all_) for r in eachrow(df_tg)]
     for K in Ks
@@ -388,15 +388,15 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
         end
     end
 
-    UniMS.safe_save(p -> CSV.write(p, df_tg_ext), joinpath(out, "$(basename(splitext(path_ms)[1])).tg.TargetViewX.csv"))
-    UniMS.safe_save(p -> CSV.write(p, df_psm), joinpath(out, "$(basename(splitext(path_ms)[1])).crosslink.TargetViewX.csv"))
-    UniMS.safe_save(p -> CSV.write(p, df_linear), joinpath(out, "$(basename(splitext(path_ms)[1])).linear.TargetViewX.csv"))
-    UniMS.safe_save(p -> CSV.write(p, df_mono), joinpath(out, "$(basename(splitext(path_ms)[1])).monolink.TargetViewX.csv"))
-    UniMS.safe_save(p -> CSV.write(p, df_loop), joinpath(out, "$(basename(splitext(path_ms)[1])).looplink.TargetViewX.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_tg_ext), joinpath(out, "$(basename(splitext(path_ms)[1])).tg.TargetViewX.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_psm), joinpath(out, "$(basename(splitext(path_ms)[1])).crosslink.TargetViewX.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_linear), joinpath(out, "$(basename(splitext(path_ms)[1])).linear.TargetViewX.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_mono), joinpath(out, "$(basename(splitext(path_ms)[1])).monolink.TargetViewX.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_loop), joinpath(out, "$(basename(splitext(path_ms)[1])).looplink.TargetViewX.csv"))
 
     @async begin
         sleep(4)
-        UniMS.open_url("http://$(host):$(port)")
+        UniMZ.open_url("http://$(host):$(port)")
     end
     app = build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, ele_plink, aa_plink, mod_plink, xl_plink, ele_pfind, aa_pfind, mod_pfind, ε)
     run_server(app, host, port)
@@ -409,10 +409,10 @@ main() = begin
             help = "target list"
             required = true
         "--ms"
-            help = ".mes or .ms1/2 file; .ms2/1 file should be in the same directory for .ms1/2"
+            help = ".umz or .ms1/2 file; .ms2/1 file should be in the same directory for .ms1/2"
             required = true
         "--ms_old"
-            help = "origianl .mes or .ms1/2 files; .ms2/1 files should be in the same directory for .ms1/2"
+            help = "origianl .umz or .ms1/2 files; .ms2/1 files should be in the same directory for .ms1/2"
             nargs = '+'
             required = true
         "--psm"

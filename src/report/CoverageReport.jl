@@ -7,8 +7,8 @@ import CSV
 import DataFrames
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
-import UniMS: UniMS, Plot
-import UniMSUtil: pFind, pLink
+import UniMZ: UniMZ, Plot
+import UniMZUtil: pFind, pLink
 
 const DIR_DATA = @path joinpath(@__DIR__, "../../data")
 
@@ -24,25 +24,25 @@ prepare(args) = begin
 end
 
 process(path, paths_ms; out, ε, ion_syms, cfg) = begin
-    ion_types = map(i -> getfield(UniMS, Symbol("ion_$(i)")), ion_syms)
+    ion_types = map(i -> getfield(UniMZ, Symbol("ion_$(i)")), ion_syms)
 
-    M = map(p -> splitext(basename(p))[1] => UniMS.dict_by_id(UniMS.read_ms(p).MS2), paths_ms) |> Dict
+    M = map(p -> splitext(basename(p))[1] => UniMZ.dict_by_id(UniMZ.read_ms(p).MS2), paths_ms) |> Dict
 
     if isempty(cfg)
         tab_ele = pFind.read_element() |> NamedTuple
-        tab_aa = map(x -> UniMS.mass(x, tab_ele), pFind.read_amino_acid() |> NamedTuple)
-        tab_mod = UniMS.mapvalue(x -> x.mass, pFind.read_modification())
+        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pFind.read_amino_acid() |> NamedTuple)
+        tab_mod = UniMZ.mapvalue(x -> x.mass, pFind.read_modification())
     else
         tab_ele = pFind.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
-        tab_aa = map(x -> UniMS.mass(x, tab_ele), pFind.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
-        tab_mod = UniMS.mapvalue(x -> x.mass, pFind.read_modification(joinpath(cfg, "modification.ini")))
+        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pFind.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
+        tab_mod = UniMZ.mapvalue(x -> x.mass, pFind.read_modification(joinpath(cfg, "modification.ini")))
     end
 
     df = pFind.read_psm(path)
 
     calc_cov_linear!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod)
 
-    UniMS.safe_save(p -> CSV.write(p, df), joinpath(out, basename(path) * ".CoverageReport.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df), joinpath(out, basename(path) * ".CoverageReport.csv"))
 
     data = """
 const FDR = [$(join(string.(df.fdr .* 100), ","))]
@@ -79,8 +79,8 @@ const COV_$(sym) = [$(join(string.(df[!, "cov_ion_$(sym)"] .* 100), ","))]
         "{{ script }}" => script,
     )
     path_out = joinpath(out, basename(path) * ".CoverageReport.html")
-    UniMS.safe_save(io -> write(io, html), path_out)
-    UniMS.open_url(path_out)
+    UniMZ.safe_save(io -> write(io, html), path_out)
+    UniMZ.open_url(path_out)
 end
 
 main() = begin
@@ -90,7 +90,7 @@ main() = begin
             help = "pFind PSM path"
             required = true
         "--ms"
-            help = "list of .mes or .ms2 files"
+            help = "list of .umz or .ms2 files"
             nargs = '+'
             required = true
         "--out", "-o"
@@ -110,7 +110,7 @@ main() = begin
             default = ""
     end
     args = ArgParse.parse_args(settings)
-    paths = reduce(vcat, UniMS.match_path.(args["ms"], ".mes")) |> unique |> sort
+    paths = reduce(vcat, UniMZ.match_path.(args["ms"], ".umz")) |> unique |> sort
     @info "file paths of selected data:"
     foreach(x -> println("$(x[1]):\t$(x[2])"), enumerate(paths))
     process(args["data"], paths; prepare(args)...)

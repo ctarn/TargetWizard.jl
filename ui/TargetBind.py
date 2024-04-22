@@ -37,7 +37,7 @@ def run():
 
 util.init_form(main)
 I = 0
-t = (("UMS", "*.ums"), ("MS2", "*.ms2"), ("All", "*.*"))
+t = (("UMZ", "*.umz"), ("MS2", "*.ms2"), ("All", "*.*"))
 util.add_entry(main, I, "Targeted MS Data:", V["data"], "Select", util.askfiles(V["data"], V["out"], filetypes=t))
 I += 1
 t = (("Target List", "*.csv"), ("All", "*.*"))
