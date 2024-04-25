@@ -16,12 +16,12 @@ CXView = "Comparative Cross-linked Peptide View"
 XSView = "Cross-link Site View"
 XESView = "Cross-link Exhaustive Search View"
 views = [RView, CView, RXView, CXView, XSView, XESView]
-target_fmts = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
+fmt_targets = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
 vars_spec = {
     "view": {"type": tk.StringVar, "value": RXView},
     "out": {"type": tk.StringVar, "value": ""},
     "tg": {"type": tk.StringVar, "value": ""},
-    "target_fmt": {"type": tk.StringVar, "value": "Auto Detect"},
+    "fmt_target": {"type": tk.StringVar, "value": "Auto Detect"},
     "ms": {"type": tk.StringVar, "value": ""},
     "ms_": {"type": tk.StringVar, "value": ""},
     "psm": {"type": tk.StringVar, "value": ""},
@@ -49,7 +49,7 @@ def run_view():
         "--psm", V["psm"].get(),
         "--out", V["out"].get(),
         "--ft", V["ft"].get(),
-        "--fmt", target_fmts[V["target_fmt"].get()],
+        "--fmt", fmt_targets[V["fmt_target"].get()],
         "--error", V["error"].get(),
         "--ms_sim_thres", V["ms_sim_thres"].get(),
         "--fdr", V["fdr"].get(),
@@ -71,7 +71,7 @@ def run_xview():
         "--xl", V["xl"].get(),
         "--ft", V["ft"].get(),
         "--psm_pf", V["psm"].get(),
-        "--fmt", target_fmts[V["target_fmt"].get()],
+        "--fmt", fmt_targets[V["fmt_target"].get()],
         "--linker", V["linker"].get(),
         "--error", V["error"].get(),
         "--ms_sim_thres", V["ms_sim_thres"].get(),
@@ -90,7 +90,7 @@ def run_xdualview():
         "--out", V["out"].get(),
         "--xl", V["xl"].get(),
         "--ft", V["ft"].get(), V["ft_"].get(),
-        "--fmt", target_fmts[V["target_fmt"].get()],
+        "--fmt", fmt_targets[V["fmt_target"].get()],
         "--linker", V["linker"].get(),
         "--error", V["error"].get(),
         "--fdr", V["fdr"].get(),
@@ -167,7 +167,7 @@ I = 0
 t = (("Target List", "*.csv"), ("All", "*.*"))
 util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=t))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["target_fmt"], values=list(target_fmts.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(fmt_targets.keys()), state="readonly", justify="center"))
 I += 1
 t = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 util.add_entry(f, I, "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
@@ -201,7 +201,7 @@ I = 0
 t = (("Target List", "*.csv"), ("All", "*.*"))
 util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=t))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["target_fmt"], values=list(target_fmts.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(fmt_targets.keys()), state="readonly", justify="center"))
 I += 1
 t = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
 util.add_entry(f, I, "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
@@ -239,7 +239,7 @@ I = 0
 t = (("Target List", "*.csv"), ("All", "*.*"))
 util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=t))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["target_fmt"], values=list(target_fmts.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(fmt_targets.keys()), state="readonly", justify="center"))
 I += 1
 t = (("Candidate XL List", "*.csv"), ("All", "*.*"))
 util.add_entry(f, I, "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=t))

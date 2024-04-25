@@ -16,7 +16,7 @@ PCReport = "Peptide Coverage Report"
 XPCReport = "Cross-linked Peptide Coverage Report"
 SNRReportDX = "Comparative Cross-link Signal-to-Noise Ratio Report"
 reports = [BAReport, TSReport, TAReport, IDReport, PCReport, XPCReport, SNRReportDX]
-target_fmts = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
+fmts_target = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
 ion_types = ["a", "b", "c", "x", "y", "z", "a_NH3", "b_NH3", "y_NH3", "a_H2O", "b_H2O", "y_H2O"]
 ion_names = ["a", "b", "c", "x", "y", "z", "a-NH₃", "b-NH₃", "y-NH₃", "a-H₂O", "b-H₂O", "y-H₂O"]
 vars_spec = {
@@ -25,7 +25,7 @@ vars_spec = {
     "ms": {"type": tk.StringVar, "value": ""},
     "ms_": {"type": tk.StringVar, "value": ""},
     "target": {"type": tk.StringVar, "value": ""},
-    "target_fmt": {"type": tk.StringVar, "value": "Auto Detect"},
+    "fmt_target": {"type": tk.StringVar, "value": "Auto Detect"},
     "psm": {"type": tk.StringVar, "value": ""},
     "psm_": {"type": tk.StringVar, "value": ""},
     "linker": {"type": tk.StringVar, "value": "DSSO"},
@@ -42,7 +42,7 @@ def run_basicaquisitionreport():
 def run_targetselectionreport():
     task.call(os.path.join(V["generators"].get(), "TargetSelectionReport"),
         *(V["target"].get().split(";")), "--out", V["out"].get(),
-        "--fmt", target_fmts[V["target_fmt"].get()],
+        "--fmt", fmts_target[V["fmt_target"].get()],
     )
 
 def run_targetaquisitionreport():
@@ -75,7 +75,7 @@ def run_snr_report_dx():
         "--ms", V["ms"].get(), V["ms_"].get(),
         "--psm", V["psm"].get(), V["psm_"].get(),
         "--out", V["out"].get(),
-        "--fmt", target_fmts[V["target_fmt"].get()],
+        "--fmt", fmts_target[V["fmt_target"].get()],
         "--linker", V["linker"].get(),
         "--fdr", V["fdr"].get(),
         "--ion", ",".join([t for t in ion_types if V[f"ion_{t}"].get()]),
@@ -125,7 +125,7 @@ f = F[TSReport]
 I = 0
 util.add_entry(f, I, "Target List:", V["target"], "Select", util.askfiles(V["target"], V["out"], filetypes=t_target))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["target_fmt"], values=list(target_fmts.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(fmts_target.keys()), state="readonly", justify="center"))
 I += 1
 
 f = F[TAReport]
@@ -186,7 +186,7 @@ I = 0
 t = (("Target List", "*.csv"), ("All", "*.*"))
 util.add_entry(f, I, "Target List:", V["target"], "Select", util.askfiles(V["target"], V["out"], filetypes=t))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["target_fmt"], values=list(target_fmts.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(fmts_target.keys()), state="readonly", justify="center"))
 I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 ttk.Label(f, text="Data A").grid(column=0, row=I)

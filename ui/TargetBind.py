@@ -12,10 +12,12 @@ PrecModeIC = "by isolation center"
 PrecModeIW = "by isolation window"
 PrecModeExIW = "by extended isolation window"
 PrecModes = {PrecModeIC: "center", PrecModeIW: "window", PrecModeExIW: "extended_window"}
+fmts_target = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
 fmts = ["csv", "tsv", "ms2", "mgf", "pf2"]
 vars_spec = {
     "data": {"type": tk.StringVar, "value": ""},
     "target": {"type": tk.StringVar, "value": ""},
+    "fmt_target": {"type": tk.StringVar, "value": "Auto Detect"},
     "out": {"type": tk.StringVar, "value": ""},
     "mode": {"type": tk.StringVar, "value": PrecModeExIW},
     "error_rt": {"type": tk.StringVar, "value": "16"},
@@ -32,6 +34,7 @@ def run():
         "--mode", PrecModes[V["mode"].get()],
         "--error_rt", V["error_rt"].get(),
         "--error_mz", V["error_mz"].get(),
+        "--fmt_target", fmts_target[V["fmt_target"].get()],
         "--fmt", ",".join(filter(lambda x: V[f"fmt_{x}"].get(), fmts)),
     )
 
@@ -42,6 +45,8 @@ util.add_entry(main, I, "Targeted MS Data:", V["data"], "Select", util.askfiles(
 I += 1
 t = (("Target List", "*.csv"), ("All", "*.*"))
 util.add_entry(main, I, "Target List:", V["target"], "Select", util.askfile(V["target"], filetypes=t))
+I += 1
+util.add_entry(main, I, "List Format:", ttk.Combobox(main, textvariable=V["fmt_target"], values=list(fmts_target.keys()), state="readonly", justify="center"))
 I += 1
 c = ttk.Combobox(main, textvariable=V["mode"], values=list(PrecModes.keys()), state="readonly", justify="center")
 util.add_entry(main, I, "Binding Mode:", c)

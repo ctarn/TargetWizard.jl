@@ -6,6 +6,8 @@ import DataFrames
 import ProgressMeter: @showprogress
 import UniMZ: UniMZ, XLMS
 
+include("util.jl")
+
 prepare(args) = begin
     @info "reading from " * args["target"]
     df = args["target"] |> CSV.File |> DataFrames.DataFrame
@@ -14,13 +16,17 @@ prepare(args) = begin
     (mode ∉ [:center, :window, :extended_window]) && error("unknown mode: $(mode)")
     εt = parse(Float64, args["error_rt"])
     εm = parse(Float64, args["error_mz"]) * 1.0e-6
+    fmt_target = Symbol(args["fmt_target"])
+    @info "specified target format: $(fmt)"
     fmts = split(args["fmt"], ",") .|> strip .|> Symbol
-    return (; df, out, mode, εt, εm, fmts)
+    return (; df, out, mode, εt, εm, fmt_target, fmts)
 end
 
-process(path; df, out, mode, εt, εm, fmts) = begin
+process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
     M = UniMZ.read_ms(path; MS1=false).MS2
     name = basename(path) |> splitext |> first
+
+    df = parse_target_list!(copy(df), fmt_target)
 
     S = @showprogress map(M) do ms
         rt = ((df.start .- εt) .≤ ms.retention_time .≤ (df.stop .+ εt))
@@ -69,6 +75,10 @@ main() = begin
             help = "MS1 mass error"
             metavar = "ppm"
             default = "10.0"
+        "--fmt_target", "--ft"
+            help = "target list format: auto, TW, TmQE, TmFu"
+            metavar = "auto|TW|TmQE|TmFu"
+            default = "auto"
         "--fmt", "-f"
             help = "output format"
             metavar = "csv,tsv,ms2,mgf,pf2"
