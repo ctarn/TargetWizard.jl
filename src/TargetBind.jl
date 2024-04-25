@@ -5,7 +5,7 @@ import CSV
 import DataFrames
 import ProgressMeter: @showprogress
 import UniMZ: UniMZ, XLMS
-import UniMZ: TMS
+import UniMZUtil: TMS
 
 include("util.jl")
 
@@ -18,7 +18,7 @@ prepare(args) = begin
     εt = parse(Float64, args["error_rt"])
     εm = parse(Float64, args["error_mz"]) * 1.0e-6
     fmt_target = Symbol(args["fmt_target"])
-    @info "specified target format: $(fmt)"
+    @info "specified target format: $(fmt_target)"
     fmts = split(args["fmt"], ",") .|> strip .|> Symbol
     return (; df, out, mode, εt, εm, fmt_target, fmts)
 end
