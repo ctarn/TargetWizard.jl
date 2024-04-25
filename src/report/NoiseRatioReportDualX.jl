@@ -9,7 +9,7 @@ import DataFrames
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
 import UniMZ
-import UniMZUtil: pLink
+import UniMZUtil: UniMZUtil, TMS, pLink
 
 include("../util.jl")
 
@@ -50,7 +50,7 @@ process(path; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, cfg) = beg
         df.id = Vector(1:size(df, 1))
         DataFrames.select!(df, :id, DataFrames.Not([:id]))
         df.rt = [M[r.file][r.scan].retention_time for r in eachrow(df)]
-        calc_cov_crosslink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
+        UniMZUtil.calc_cov_crosslink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
         df.ion_ = map(eachrow(df)) do r
             m = M[r.file][r.scan]
             map(xs -> map(x -> (; x..., snr=m.peaks[x.peak].inten / m.noises[x.peak]), xs), r.ion_)
@@ -65,7 +65,7 @@ process(path; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, cfg) = beg
     @info "Target loading from " * path
     df_tg = DataFrames.DataFrame(CSV.File(path))
     df_tg.id = Vector(1:size(df_tg, 1))
-    parse_target_list!(df_tg, fmt)
+    TMS.parse_target_list!(df_tg, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
     "mod_a" ∈ names(df_tg) && (df_tg.mod_a = parse.(Array{UniMZ.Mod}, unify_mods_str.(df_tg.mod_a)))
     "mod_b" ∈ names(df_tg) && (df_tg.mod_b = parse.(Array{UniMZ.Mod}, unify_mods_str.(df_tg.mod_b)))

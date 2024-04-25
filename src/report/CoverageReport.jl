@@ -8,7 +8,7 @@ import DataFrames
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
 import UniMZ: UniMZ, Plot
-import UniMZUtil: pFind, pLink
+import UniMZUtil: UniMZUtil, pFind, pLink
 
 const DIR_DATA = @path joinpath(@__DIR__, "../../data")
 
@@ -40,7 +40,7 @@ process(path, paths_ms; out, ε, ion_syms, cfg) = begin
 
     df = pFind.read_psm(path)
 
-    calc_cov_linear!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod)
+    UniMZUtil.calc_cov_linear!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod)
 
     UniMZ.safe_save(p -> CSV.write(p, df), joinpath(out, basename(path) * ".CoverageReport.csv"))
 

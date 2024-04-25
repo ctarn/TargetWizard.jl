@@ -5,6 +5,7 @@ import CSV
 import DataFrames
 import RelocatableFolders: @path
 import UniMZ
+import UniMZUtil: TMS
 
 const DIR_DATA = @path joinpath(@__DIR__, "../../data")
 
@@ -20,7 +21,7 @@ end
 process(path; out, fmt) = begin
     @info "reading " * path
     df = DataFrames.DataFrame(CSV.File(path))
-    parse_target_list!(df, fmt)
+    TMS.parse_target_list!(df, fmt)
 
     data = """
 const M = [$(join(string.(df.m), ","))]

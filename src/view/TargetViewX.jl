@@ -8,7 +8,7 @@ import DataFrames
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
 import UniMZ
-import UniMZUtil: pFind, pLink
+import UniMZUtil: UniMZUtil, TMS, pFind, pLink
 
 using Dash
 using PlotlyBase
@@ -230,10 +230,10 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     ion_syms = ["b", "y"]
     ion_types = map(i -> getfield(UniMZ, Symbol("ion_$(i)")), ion_syms)
     M_ = [splitext(basename(path_ms))[1] => UniMZ.dict_by_id(M.MS2)] |> Dict
-    calc_cov_crosslink!(df_psm, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink, xl_plink)
-    calc_cov_linear!(df_linear, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink)
-    calc_cov_monolink!(df_mono, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink, xl_plink)
-    calc_cov_looplink!(df_loop, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink, xl_plink)
+    UniMZUtil.calc_cov_crosslink!(df_psm, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink, xl_plink)
+    UniMZUtil.calc_cov_linear!(df_linear, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink)
+    UniMZUtil.calc_cov_monolink!(df_mono, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink, xl_plink)
+    UniMZUtil.calc_cov_looplink!(df_loop, M_, ε, ion_syms, ion_types, ele_plink, aa_plink, mod_plink, xl_plink)
 
     df_psm.cov_min = min.(df_psm.cov_a, df_psm.cov_b)
     df_psm.credible = map(eachrow(df_psm)) do r
@@ -279,7 +279,7 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
     @info "Target loading from " * path
     df_tg = CSV.File(path) |> DataFrames.DataFrame
     df_tg.id = Vector(1:size(df_tg, 1))
-    parse_target_list!(df_tg, fmt)
+    TMS.parse_target_list!(df_tg, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
     "mod_a" ∈ names(df_tg) && (df_tg.mod_a = parse.(Array{UniMZ.Mod}, unify_mods_str.(df_tg.mod_a)))
     "mod_b" ∈ names(df_tg) && (df_tg.mod_b = parse.(Array{UniMZ.Mod}, unify_mods_str.(df_tg.mod_b)))

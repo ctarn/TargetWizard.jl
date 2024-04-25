@@ -8,7 +8,7 @@ import DataFrames
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
 import UniMZ
-import UniMZUtil: pLink
+import UniMZUtil: TMS, pLink
 
 using Dash
 using PlotlyBase
@@ -304,7 +304,7 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
     @info "Target loading from " * path
     df_tg = DataFrames.DataFrame(CSV.File(path))
     df_tg.id = Vector(1:size(df_tg, 1))
-    parse_target_list!(df_tg, fmt)
+    TMS.parse_target_list!(df_tg, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
     df_tg.start = round.(df_tg.start; digits=2)
     df_tg.stop = round.(df_tg.stop; digits=2)

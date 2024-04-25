@@ -5,6 +5,7 @@ import CSV
 import DataFrames
 import ProgressMeter: @showprogress
 import UniMZ: UniMZ, XLMS
+import UniMZ: TMS
 
 include("util.jl")
 
@@ -26,7 +27,7 @@ process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
     M = UniMZ.read_ms(path; MS1=false).MS2
     name = basename(path) |> splitext |> first
 
-    df = parse_target_list!(copy(df), fmt_target)
+    df = TMS.parse_target_list!(copy(df), fmt_target)
 
     S = @showprogress map(M) do ms
         rt = ((df.start .- εt) .≤ ms.retention_time .≤ (df.stop .+ εt))

@@ -8,7 +8,7 @@ import DataFrames
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
 import UniMZ: UniMZ, Plot
-import UniMZUtil: pFind, pLink
+import UniMZUtil: UniMZUtil, pFind, pLink
 
 const DIR_DATA = @path joinpath(@__DIR__, "../../data")
 
@@ -50,10 +50,10 @@ process(path, paths_ms; out, linker, ε, ion_syms, cfg) = begin
     df_mono.linker .= linker
     df_loop.linker .= linker
 
-    calc_cov_crosslink!(df_xl, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
-    calc_cov_linear!(df_linear, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod)
-    calc_cov_monolink!(df_mono, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
-    calc_cov_looplink!(df_loop, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
+    UniMZUtil.calc_cov_crosslink!(df_xl, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
+    UniMZUtil.calc_cov_linear!(df_linear, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod)
+    UniMZUtil.calc_cov_monolink!(df_mono, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
+    UniMZUtil.calc_cov_looplink!(df_loop, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
 
     UniMZ.safe_save(p -> CSV.write(p, df_xl), joinpath(out, basename(path) * ".crosslink.CoverageReportX.csv"))
     UniMZ.safe_save(p -> CSV.write(p, df_linear), joinpath(out, basename(path) * ".linear.CoverageReportX.csv"))

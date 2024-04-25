@@ -8,7 +8,7 @@ import DataFrames
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
 import UniMZ
-import UniMZUtil: pFind
+import UniMZUtil: UniMZUtil, TMS, pFind
 
 using Dash
 using PlotlyBase
@@ -177,7 +177,7 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_ft, fmt, ε, fdr, decoy
     ion_syms = ["b", "y"]
     ion_types = map(i -> getfield(UniMZ, Symbol("ion_$(i)")), ion_syms)
     M_ = [splitext(basename(path_ms))[1] => UniMZ.dict_by_id(M.MS2)] |> Dict
-    calc_cov_linear!(df, M_, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod)
+    UniMZUtil.calc_cov_linear!(df, M_, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod)
 
     df.credible = map(r -> r.cov_ion_y ≥ 0.6 && r.cov_ion_b ≥ 0.4, eachrow(df))
 
@@ -201,7 +201,7 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_ft, fmt, ε, fdr, decoy
     @info "Target loading from " * path
     df_tg = CSV.File(path) |> DataFrames.DataFrame
     df_tg.id = Vector(1:size(df_tg, 1))
-    parse_target_list!(df_tg, fmt)
+    TMS.parse_target_list!(df_tg, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
     "mod_a" ∈ names(df_tg) && (df_tg.mod_a = parse.(Array{UniMZ.Mod}, unify_mods_str.(df_tg.mod_a)))
     "mod_b" ∈ names(df_tg) && (df_tg.mod_b = parse.(Array{UniMZ.Mod}, unify_mods_str.(df_tg.mod_b)))
