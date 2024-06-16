@@ -1,33 +1,16 @@
 module CoverageReport
 
-using Statistics
-
 import ArgParse
-import CSV
-import DataFrames
-import ProgressMeter: @showprogress
-import RelocatableFolders: @path
-import UniMZ: UniMZ, Plot
-import UniMZUtil: UniMZUtil, pFind, pLink
-
-const DIR_DATA = @path joinpath(@__DIR__, "../../data")
-
-include("../util.jl")
+import UniMZ: UniMZ
+import UniMZUtil: Proteomics, pFind
 
 prepare(args) = begin
-    out = mkpath(args["out"])
+    out = args["out"]
+    mkpath(out)
     ε = parse(Float64, args["error"]) * 1.0e-6
     ion_syms = split(args["ion"], ",") .|> strip
     @info "selected fragment ion type: $(join(ion_syms, ", "))"
     cfg = args["cfg"]
-    return (; out, ε, ion_syms, cfg)
-end
-
-process(path, paths_ms; out, ε, ion_syms, cfg) = begin
-    ion_types = map(i -> getfield(UniMZ, Symbol("ion_$(i)")), ion_syms)
-
-    M = map(p -> splitext(basename(p))[1] => UniMZ.dict_by_id(UniMZ.read_ms(p).MS2), paths_ms) |> Dict
-
     if isempty(cfg)
         tab_ele = pFind.read_element() |> NamedTuple
         tab_aa = map(x -> UniMZ.mass(x, tab_ele), pFind.read_amino_acid() |> NamedTuple)
@@ -37,50 +20,13 @@ process(path, paths_ms; out, ε, ion_syms, cfg) = begin
         tab_aa = map(x -> UniMZ.mass(x, tab_ele), pFind.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
         tab_mod = UniMZ.mapvalue(x -> x.mass, pFind.read_modification(joinpath(cfg, "modification.ini")))
     end
+    return (; out, ε, ion_syms, tab_ele, tab_aa, tab_mod)
+end
 
+process(path, paths_ms; out, ε, ion_syms, tab_ele, tab_aa, tab_mod) = begin
+    M = map(p -> splitext(basename(p))[1] => UniMZ.dict_by_id(UniMZ.read_ms(p).MS2), paths_ms) |> Dict
     df = pFind.read_psm(path)
-
-    UniMZUtil.calc_cov_linear!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod)
-
-    UniMZ.safe_save(p -> CSV.write(p, df), joinpath(out, basename(path) * ".CoverageReport.csv"))
-
-    data = """
-const FDR = [$(join(string.(df.fdr .* 100), ","))]
-const COV_all = [$(join(string.(df.cov .* 100), ","))]
-"""
-    data *= map(ion_syms) do sym
-"""
-const COV_$(sym) = [$(join(string.(df[!, "cov_ion_$(sym)"] .* 100), ","))]
-"""
-    end |> join
-
-    main = replace(read(joinpath(DIR_DATA, "CoverageReport.html"), String),
-        "{{ section }}" => "Overall Peptide Fragment Ion Coverage",
-        "{{ id }}" => "all",
-    )
-    main *= map(ion_syms) do sym
-        replace(read(joinpath(DIR_DATA, "CoverageReport.html"), String),
-            "{{ section }}" => "Peptide Fragment Ion Coverage of $(sym) Ions",
-            "{{ id }}" => "$(sym)",
-        )
-    end |> join
-
-    script = replace(read(joinpath(DIR_DATA, "CoverageReport.js"), String), "{{ id }}" => "all")
-    script *= map(ion_syms) do sym
-        replace(read(joinpath(DIR_DATA, "CoverageReport.js"), String), "{{ id }}" => "$(sym)")
-    end |> join
-
-    html = replace(read(joinpath(DIR_DATA, "base.html"), String),
-        "{{ title }}" => "TargetWizard Fragment Ion Coverage Report",
-        "{{ subtitle }}" => basename(path),
-        "{{ main }}" => main,
-        "{{ lib }}" => read(joinpath(DIR_DATA, "lib", "chartjs-4.2.1.js"), String),
-        "{{ data }}" => data,
-        "{{ script }}" => script,
-    )
-    path_out = joinpath(out, basename(path) * ".CoverageReport.html")
-    UniMZ.safe_save(io -> write(io, html), path_out)
-    UniMZ.open_url(path_out)
+    Proteomics.Report.peptide_coverage(df, M, joinpath(out, basename(path)); name=path, ε, ion_syms, tab_ele, tab_aa, tab_mod)
 end
 
 main() = begin
