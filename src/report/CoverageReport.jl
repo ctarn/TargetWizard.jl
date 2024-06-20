@@ -10,16 +10,7 @@ prepare(args) = begin
     ε = parse(Float64, args["error"]) * 1.0e-6
     ion_syms = split(args["ion"], ",") .|> strip
     @info "selected fragment ion type: $(join(ion_syms, ", "))"
-    cfg = args["cfg"]
-    if isempty(cfg)
-        tab_ele = pFind.read_element() |> NamedTuple
-        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pFind.read_amino_acid() |> NamedTuple)
-        tab_mod = UniMZ.mapvalue(x -> x.mass, pFind.read_modification())
-    else
-        tab_ele = pFind.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
-        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pFind.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
-        tab_mod = UniMZ.mapvalue(x -> x.mass, pFind.read_modification(joinpath(cfg, "modification.ini")))
-    end
+    tab_ele, tab_aa, tab_mod = pFind.read_mass_table(args["cfg"])
     return (; out, ε, ion_syms, tab_ele, tab_aa, tab_mod)
 end
 
