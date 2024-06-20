@@ -1,7 +1,7 @@
 module CoverageReport
 
 import ArgParse
-import UniMZ: UniMZ
+import UniMZ
 import UniMZUtil: Proteomics, pFind
 
 prepare(args) = begin
