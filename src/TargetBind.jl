@@ -4,7 +4,7 @@ import ArgParse
 import CSV
 import DataFrames
 import ProgressMeter: @showprogress
-import UniMZ: UniMZ, XLMS
+import UniMZ
 import UniMZUtil: TMS
 
 include("util.jl")
@@ -26,22 +26,17 @@ end
 process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
     M = UniMZ.read_ms(path; MS1=false).MS2
     name = basename(path) |> splitext |> first
-
     df = TMS.parse_target_list!(copy(df), fmt_target)
-
-    S = @showprogress map(M) do ms
-        rt = ((df.start .- εt) .≤ ms.retention_time .≤ (df.stop .+ εt))
+    I = @showprogress map(M) do ms
         if mode == :extended_window
-            return ((ms.activation_center - ms.isolation_width / 2 - 1) .< df.mz .< (ms.activation_center + ms.isolation_width / 2)) .& rt
+            s = ((ms.activation_center - ms.isolation_width / 2 - 1) .< df.mz .< (ms.activation_center + ms.isolation_width / 2))
         elseif mode == :window
-            return ((ms.activation_center - ms.isolation_width / 2) .< df.mz .< (ms.activation_center + ms.isolation_width / 2)) .& rt
+            s = ((ms.activation_center - ms.isolation_width / 2) .< df.mz .< (ms.activation_center + ms.isolation_width / 2))
         else # :center
-            return UniMZ.in_moe.(df.mz, ms.activation_center, εm) .& rt
+            s = UniMZ.in_moe.(df.mz, ms.activation_center, εm)
         end
-    end
-
-    I = @showprogress map(S) do s
-        map(r -> UniMZ.Ion(r.mz, r.z), eachrow(df[s, :]))
+        s = s .& ((df.start .- εt) .≤ ms.retention_time .≤ (df.stop .+ εt))
+        return map(r -> UniMZ.Ion(r.mz, r.z), eachrow(df[s, :]))
     end
     for fmt in fmts
         ext = fmt ∈ [:csv, :tsv] ? "scan_precursor.$(fmt)" : fmt
