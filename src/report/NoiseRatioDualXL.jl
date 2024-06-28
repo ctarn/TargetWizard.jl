@@ -1,4 +1,4 @@
-module NoiseRatioReportDualX
+module NoiseRatioDualXLReport
 
 using Printf
 using Statistics
@@ -9,48 +9,36 @@ import DataFrames
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
 import UniMZ
-import UniMZUtil: UniMZUtil, TMS, pLink
+import UniMZUtil: Crosslink, TMS, pLink
 
 include("../util.jl")
 
 prepare(args) = begin
     path_ms = args["ms"]
     path_psm = args["psm"]
-    out = mkpath(args["out"])
+    out = args["out"]
+    mkpath(out)
     fmt = args["fmt"] |> Symbol
     linker = Symbol(args["linker"])
     fdr = parse(Float64, args["fdr"]) / 100
     ion_syms = split(args["ion"], ",") .|> strip
     ε = parse(Float64, args["error"]) * 1.0e-6
-    cfg = args["cfg"]
-    return (; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, cfg)
+    tab_ele, tab_aa, tab_mod, tab_xl = pLink.read_mass_table(args["cfg"])
+    return (; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, tab_ele, tab_aa, tab_mod, tab_xl)
 end
 
-process(path; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, cfg) = begin
+process(path; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, tab_ele, tab_aa, tab_mod, tab_xl) = begin
     ion_types = map(i -> getfield(UniMZ, Symbol("ion_$(i)")), ion_syms)
 
     M = UniMZ.read_all(p -> UniMZ.dict_by_id(UniMZ.read_umz(p, split=false)), path_ms, "umz")
 
-    if isempty(cfg)
-        tab_ele = pLink.read_element() |> NamedTuple
-        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pLink.read_amino_acid() |> NamedTuple)
-        tab_mod = UniMZ.mapvalue(x -> x.mass, pLink.read_modification())
-        tab_xl = pLink.read_linker() |> NamedTuple
-    else
-        tab_ele = pLink.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
-        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
-        tab_mod = UniMZ.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
-        tab_xl = pLink.read_linker(joinpath(cfg, "xlink.ini")) |> NamedTuple
-    end
-
     dfs_psm = map(path_psm) do p
-        df = pLink.read_psm_full(p).xl
+        df = pLink.read_psm_full(p; linker).xl
         df = df[df.fdr .≤ fdr, :]
-        ("linker" ∉ names(df)) && (df.linker .= linker)
-        df.id = Vector(1:size(df, 1))
-        DataFrames.select!(df, :id, DataFrames.Not([:id]))
+        UniMZ.assign_id!(df; force=true)
         df.rt = [M[r.file][r.scan].retention_time for r in eachrow(df)]
-        UniMZUtil.calc_cov_crosslink!(df, M, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod, tab_xl)
+        df.ion_ = @showprogress map(r -> Crosslink.match_crosslink_frag_ion(r, M, ε, ion_types, tab_ele, tab_aa, tab_mod, tab_xl), eachrow(df))
+        Crosslink.calc_cov_crosslink!(df, df.ion_, ion_syms, ion_types)
         df.ion_ = map(eachrow(df)) do r
             m = M[r.file][r.scan]
             map(xs -> map(x -> (; x..., snr=m.peaks[x.peak].inten / m.noises[x.peak]), xs), r.ion_)
@@ -64,7 +52,7 @@ process(path; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, cfg) = beg
 
     @info "Target loading from " * path
     df_tg = DataFrames.DataFrame(CSV.File(path))
-    df_tg.id = Vector(1:size(df_tg, 1))
+    UniMZ.assign_id!(df_tg)
     TMS.parse_target_list!(df_tg, fmt)
     DataFrames.select!(df_tg, [:id, :mz, :z, :start, :stop], DataFrames.Not([:id, :mz, :z, :start, :stop]))
     "mod_a" ∈ names(df_tg) && (df_tg.mod_a = parse.(Array{UniMZ.Mod}, unify_mods_str.(df_tg.mod_a)))
@@ -73,13 +61,14 @@ process(path; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, cfg) = beg
     @info "PSM mapping"
     df_tg.psm_A, df_tg.psm_B = map(dfs_psm) do df_psm
         tmp = sort!([(x.mz::Float64, x.id::Int) for x in eachrow(df_psm)])
-        mzs = map(x -> x[1], tmp)
-        ids = map(x -> x[2], tmp)
+        mzs, ids = first.(tmp), last.(tmp)
         return map(eachrow(df_tg)) do r
-            psm = sort(filter(x -> df_psm[x, :z] == r.z, ids[UniMZ.argquery_δ(mzs, r.mz, 10)]))
+            # ok to use δ = 1.0 since will be further filtered
+            psm = ids[UniMZ.argquery_δ(mzs, r.mz, 1.0)]
+            psm = filter(i -> df_psm[i, :z] == r.z, psm)
             psm = filter(i -> r.start ≤ df_psm.rt[i] ≤ r.stop, psm)
             psm = filter(i -> is_same_xl(df_psm[i, :], r), psm)
-            return psm
+            return psm |> sort
         end
     end
 
@@ -131,13 +120,13 @@ process(path; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, cfg) = beg
         DataFrames.select!(df, filter(n -> !endswith(n, '_'), names(df)))
     end
 
-    UniMZ.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path)[1])).NoiseRatioReportDualX.csv"))
-    UniMZ.safe_save(p -> CSV.write(p, dfs_psm[1]), joinpath(out, "$(basename(splitext(path_psm[1])[1])).NoiseRatioReportDualX.csv"))
-    UniMZ.safe_save(p -> CSV.write(p, dfs_psm[2]), joinpath(out, "$(basename(splitext(path_psm[2])[1])).NoiseRatioReportDualX.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path)[1])).NoiseRatioDualXLReport.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, dfs_psm[1]), joinpath(out, "$(basename(splitext(path_psm[1])[1])).NoiseRatioDualXLReport.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, dfs_psm[2]), joinpath(out, "$(basename(splitext(path_psm[2])[1])).NoiseRatioDualXLReport.csv"))
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="NoiseRatioReportDualX")
+    settings = ArgParse.ArgParseSettings(prog="NoiseRatioDualXLReport")
     ArgParse.@add_arg_table! settings begin
         "target"
             help = "target list"
