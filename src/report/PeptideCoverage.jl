@@ -1,34 +1,30 @@
-module CoverageReportX
+module PeptideCoverageReport
 
 import ArgParse
 import UniMZ
-import UniMZUtil: Crosslink, pLink
+import UniMZUtil: Proteomics, pFind
 
 prepare(args) = begin
     out = args["out"]
     mkpath(out)
-    linker = Symbol(args["linker"])
     ε = parse(Float64, args["error"]) * 1.0e-6
     ion_syms = split(args["ion"], ",") .|> strip
     @info "selected fragment ion type: $(join(ion_syms, ", "))"
-    tab_ele, tab_aa, tab_mod, tab_xl = pLink.read_mass_table(args["cfg"])
-    return (; out, linker, ε, ion_syms, tab_ele, tab_aa, tab_mod, tab_xl)
+    tab_ele, tab_aa, tab_mod = pFind.read_mass_table(args["cfg"])
+    return (; out, ε, ion_syms, tab_ele, tab_aa, tab_mod)
 end
 
-process(path, paths_ms; out, linker, ε, ion_syms, tab_ele, tab_aa, tab_mod, tab_xl) = begin
+process(path, paths_ms; out, ε, ion_syms, tab_ele, tab_aa, tab_mod) = begin
     M = map(p -> splitext(basename(p))[1] => UniMZ.dict_by_id(UniMZ.read_ms(p).MS2), paths_ms) |> Dict
-    dfs = pLink.read_psm_full(path; linker)
-    Crosslink.Report.peptide_coverage_linear(dfs.linear, M, joinpath(out, basename(path)); name=path, ε, ion_syms, tab_ele, tab_aa, tab_mod)
-    Crosslink.Report.peptide_coverage_monolink(dfs.mono, M, joinpath(out, basename(path)); name=path, ε, ion_syms, tab_ele, tab_aa, tab_mod, tab_xl)
-    Crosslink.Report.peptide_coverage_looplink(dfs.loop, M, joinpath(out, basename(path)); name=path, ε, ion_syms, tab_ele, tab_aa, tab_mod, tab_xl)
-    Crosslink.Report.peptide_coverage_crosslink(dfs.xl, M, joinpath(out, basename(path)); name=path, ε, ion_syms, tab_ele, tab_aa, tab_mod, tab_xl)
+    df = pFind.read_psm(path)
+    Proteomics.Report.peptide_coverage(df, M, joinpath(out, basename(path)); name=path, ε, ion_syms, tab_ele, tab_aa, tab_mod)
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="CoverageReportX")
+    settings = ArgParse.ArgParseSettings(prog="PeptideCoverageReport")
     ArgParse.@add_arg_table! settings begin
         "data"
-            help = "pLink PSM path"
+            help = "pFind PSM path"
             required = true
         "--ms"
             help = "list of .umz or .ms2 files"
@@ -38,9 +34,6 @@ main() = begin
             help = "output directory"
             metavar = "./out/"
             default = "./out/"
-        "--linker"
-            help = "default linker"
-            default = "DSSO"
         "--error"
             help = "m/z error"
             metavar = "ppm"
@@ -50,7 +43,7 @@ main() = begin
             metavar = "b,y,b_NH3,b_H2O,y_NH3,y_H2O"
             default = "b,y,b_NH3,b_H2O,y_NH3,y_H2O"
         "--cfg"
-            help = "pLink config directory"
+            help = "pFind config directory"
             default = ""
     end
     args = ArgParse.parse_args(settings)
