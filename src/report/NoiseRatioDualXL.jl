@@ -76,6 +76,8 @@ process(path; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, tab_ele, t
     df_tg.psm_B_best .= 0
     df_tg.snr_num_a .= 0
     df_tg.snr_num_b .= 0
+    df_tg.snr_median_a .= ""
+    df_tg.snr_median_b .= ""
     df_tg.snr_mean_a .= ""
     df_tg.snr_mean_b .= ""
     df_tg.snr_sum_a .= ""
@@ -105,14 +107,18 @@ process(path; path_ms, path_psm, out, fmt, linker, fdr, ion_syms, ε, tab_ele, t
         r.snr_num_a = length(ion_A_a)
         r.snr_num_b = length(ion_A_b)
         if r.snr_num_a != 0
-            r.snr_mean_a = @sprintf("%.2f|%.2f", mean(getfield.(ion_A_a, :snr)), mean(getfield.(ion_B_a, :snr)))
-            r.snr_sum_a = @sprintf("%.2f|%.2f", sum(getfield.(ion_A_a, :snr)), sum(getfield.(ion_B_a, :snr)))
-            r.snr_min_a = @sprintf("%.2f|%.2f", minimum(getfield.(ion_A_a, :snr)), minimum(getfield.(ion_B_a, :snr)))
+            xs, ys = getfield.(ion_A_a, :snr), getfield.(ion_B_a, :snr)
+            r.snr_median_a = @sprintf("%.2f|%.2f", median(xs), median(ys))
+            r.snr_mean_a = @sprintf("%.2f|%.2f", mean(xs), mean(ys))
+            r.snr_sum_a = @sprintf("%.2f|%.2f", sum(xs), sum(ys))
+            r.snr_min_a = @sprintf("%.2f|%.2f", minimum(xs), minimum(ys))
         end
         if r.snr_num_b != 0
-            r.snr_mean_b = @sprintf("%.2f|%.2f", mean(getfield.(ion_A_b, :snr)), mean(getfield.(ion_B_b, :snr)))
-            r.snr_sum_b = @sprintf("%.2f|%.2f", sum(getfield.(ion_A_b, :snr)), sum(getfield.(ion_B_b, :snr)))
-            r.snr_min_b = @sprintf("%.2f|%.2f", maximum(getfield.(ion_A_b, :snr)), maximum(getfield.(ion_B_b, :snr)))
+            xs, ys = getfield.(ion_A_b, :snr), getfield.(ion_B_b, :snr)
+            r.snr_median_b = @sprintf("%.2f|%.2f", median(xs), median(ys))
+            r.snr_mean_b = @sprintf("%.2f|%.2f", mean(xs), mean(ys))
+            r.snr_sum_b = @sprintf("%.2f|%.2f", sum(xs), sum(ys))
+            r.snr_min_b = @sprintf("%.2f|%.2f", minimum(xs), minimum(ys))
         end
     end
 
