@@ -1,6 +1,7 @@
 module TargetView
 
 using Sockets
+using Statistics
 
 import ArgParse
 import CSV
@@ -8,7 +9,7 @@ import DataFrames
 import ProgressMeter: @showprogress
 import RelocatableFolders: @path
 import UniMZ
-import UniMZUtil: UniMZUtil, TMS, pFind
+import UniMZUtil: Proteomics, TMS, pFind
 
 using Dash
 using PlotlyBase
@@ -136,29 +137,19 @@ prepare(args) = begin
     fdr = parse(Float64, args["fdr"]) / 100
     decoy = args["decoy"]::Bool
     τ_ms_sim = parse(Float64, args["ms_sim_thres"])
-    cfg = args["cfg"]
+    tab_ele, tab_aa, tab_mod = pFind.read_mass_table(args["cfg"])
     host = parse(IPAddr, args["host"])
     port = parse(Int, args["port"])
-    return (; path_ms, paths_ms_old, path_psm, out, path_ft, fmt, ε, fdr, decoy, τ_ms_sim, cfg, host, port)
+    return (; path_ms, paths_ms_old, path_psm, out, path_ft, fmt, ε, fdr, decoy, τ_ms_sim, tab_ele, tab_aa, tab_mod, host, port)
 end
 
-process(path; path_ms, paths_ms_old, path_psm, out, path_ft, fmt, ε, fdr, decoy, τ_ms_sim, cfg, host, port) = begin
+process(path; path_ms, paths_ms_old, path_psm, out, path_ft, fmt, ε, fdr, decoy, τ_ms_sim, tab_ele, tab_aa, tab_mod, host, port) = begin
     M = UniMZ.read_ms(path_ms)
     df_m1 = map(m -> (; m.id, rt=m.retention_time, m.peaks), M.MS1) |> DataFrames.DataFrame
     df_m2 = map(m -> (; m.id, mz=m.activation_center, rt=m.retention_time, m.peaks), M.MS2) |> DataFrames.DataFrame
     M2I = map(x -> x[2] => x[1], enumerate(df_m2.id)) |> Dict
 
     M_old = map(p -> splitext(basename(p))[1] => UniMZ.dict_by_id(UniMZ.read_ms(p).MS2), paths_ms_old) |> Dict
-
-    if isempty(cfg)
-        tab_ele = pFind.read_element() |> NamedTuple
-        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pFind.read_amino_acid() |> NamedTuple)
-        tab_mod = UniMZ.mapvalue(x -> x.mass, pFind.read_modification())
-    else
-        tab_ele = pFind.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
-        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pFind.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
-        tab_mod = UniMZ.mapvalue(x -> x.mass, pFind.read_modification(joinpath(cfg, "modification.ini")))
-    end
 
     df = pFind.read_psm(path_psm)
     df.engine .= :pFind
@@ -177,7 +168,7 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_ft, fmt, ε, fdr, decoy
     ion_syms = ["b", "y"]
     ion_types = map(i -> getfield(UniMZ, Symbol("ion_$(i)")), ion_syms)
     M_ = [splitext(basename(path_ms))[1] => UniMZ.dict_by_id(M.MS2)] |> Dict
-    UniMZUtil.calc_cov_linear!(df, M_, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod)
+    Proteomics.calc_cov!(df, M_, ε, ion_syms, ion_types, tab_ele, tab_aa, tab_mod)
 
     df.credible = map(r -> r.cov_ion_y ≥ 0.6 && r.cov_ion_b ≥ 0.4, eachrow(df))
 
@@ -246,53 +237,6 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_ft, fmt, ε, fdr, decoy
 
     ns = filter(n -> !endswith(n, '_'), names(df_tg))
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
-    
-    df_tg_ext = DataFrames.DataFrame(df_tg)
-    for K in Ks
-        df_tg_ext[!, "iden$(K)"] = map(df_tg_ext[!, "psm$(K)_"]) do psms
-            map(psmstr, eachrow(df[psms, :])) |> xs -> join(xs, ";")
-        end
-        df_tg_ext[!, "have_iden$(K)"] = .!isempty.(df_tg_ext[!, "iden$(K)"])
-        df_tg_ext[!, "iden$(K)_credible"] = map(df_tg_ext[!, "psm$(K)_"]) do psms
-            map(psmstr, eachrow(df[filter(i -> df.credible[i], psms), :])) |> xs -> join(xs, ";")
-        end
-        df_tg_ext[!, "have_iden$(K)_credible"] = .!isempty.(df_tg_ext[!, "iden$(K)_credible"])
-    end
-
-    for K in Ks
-        df_tg_ext[!, "same_iden$(K)"] = map(eachrow(df_tg_ext)) do r
-            filter(eachrow(df[r["psm$(K)_"], :])) do s
-                (s.engine != :pFind) && return false
-                return is_same_pepmod(r, s)
-            end .|> psmstr |> xs -> join(xs, ";")
-        end
-        df_tg_ext[!, "have_same_iden$(K)"] = .!isempty.(df_tg_ext[!, "same_iden$(K)"])
-
-        df_tg_ext[!, "same_iden$(K)_credible"] = map(eachrow(df_tg_ext)) do r
-            filter(eachrow(df[r["psm$(K)_"], :])) do s
-                (s.engine != :pFind) && return false
-                (!s.credible) && return false
-                return is_same_pepmod(r, s)
-            end .|> psmstr |> xs -> join(xs, ";")
-        end
-        df_tg_ext[!, "have_same_iden$(K)_credible"] = .!isempty.(df_tg_ext[!, "same_iden$(K)_credible"])
-
-        vs = map(eachrow(df_tg_ext)) do r
-            b = nothing
-            for s in eachrow(df[r["psm$(K)_"], :])
-                (s.engine != :pFind) && continue
-                isnothing(b) && (b = s)
-                (s.cov ≤ b.cov) && continue
-                b = s
-            end
-            return isnothing(b) ? ("", false) : (psmstr(b), is_same_pepmod(r, b))
-        end
-        df_tg_ext[!, "best_iden$(K)"] = first.(vs)
-        df_tg_ext[!, "best_iden$(K)_is_same_iden"] = last.(vs)
-    end
-
-    UniMZ.safe_save(p -> CSV.write(p, df_tg_ext), joinpath(out, "$(basename(splitext(path_ms)[1])).tg.TargetView.csv"))
-    UniMZ.safe_save(p -> CSV.write(p, df), joinpath(out, "$(basename(splitext(path_ms)[1])).TargetView.csv"))
 
     @async begin
         sleep(4)
