@@ -27,18 +27,11 @@ prepare(args) = begin
 end
 
 process(paths; df, out, name, ε, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt) = begin
-    Ms = map(p -> UniMZ.read_ms(p), paths)
-    M1 = map((p, M) -> splitext(basename(p))[1] => UniMZ.dict_by_id(M.MS1), paths, Ms) |> Dict
-    M2 = map((p, M) -> splitext(basename(p))[1] => UniMZ.dict_by_id(M.MS2), paths, Ms) |> Dict
-    M1V = map((p, M) -> splitext(basename(p))[1] => M.MS1, paths, Ms) |> Dict
-    M1I = map((p, M) -> splitext(basename(p))[1] => [m.id => i for (i, m) in enumerate(M.MS1)] |> Dict, paths, Ms) |> Dict
-
     s = trues(size(df, 1))
     s .&= fdr_ge ? (df.fdr .≥ fdr_min) : (df.fdr .> fdr_min)
     s .&= fdr_le ? (df.fdr .≤ fdr_max) : (df.fdr .< fdr_max)
     s .&= reduce(.|, [df.td .== t for t in td])
     s .&= reduce(.|, [df.prot_type .== t for t in pt])
-
     df = df[s, :]
 
     gd = DataFrames.groupby(df, [:pep_a, :pep_b, :site_a, :site_b, :mod_a, :mod_b, :z])
@@ -46,46 +39,8 @@ process(paths; df, out, name, ε, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batc
         [:td, :prot_type, :fdr, :score, :mz, :mz_calc, :scan, :file] .=> first,
         renamecols=false,
     )
-
-    df.rt = [M2[r.file][r.scan].retention_time for r in eachrow(df)]
-
-    df.inten = map(eachrow(df)) do r
-        m2 = M2[r.file][r.scan]
-        m1 = M1[r.file][m2.pre]
-        return UniMZ.max_inten_ε(m1.peaks, r.mz, ε)
-    end
-    vs = map(eachrow(df)) do r
-        m2 = M2[r.file][r.scan]
-        i = M1I[r.file][m2.pre]
-        i, v = nearbymax(M1V[r.file], i, r.mz, ε, 2)
-        return v, (M1V[r.file][i].retention_time - m2.retention_time)
-    end
-    df.inten_max = first.(vs)
-    df.inten_max_delta_rt = last.(vs)
-
-    df.start = min.(lc * 60, max.(0, df.rt .- (rt / 2)))
-    df.stop = min.(lc * 60, max.(0, df.rt .+ (rt / 2)))
-
-    n_batch = isinf(batch_size) ? 1 : ceil(Int, size(df, 1) / batch_size)
-    df = sort(df, :rt)
-    df.id = 1:size(df, 1)
-    df.batch = (df.id .- 1) .% n_batch .+ 1
-
-    @info "$(size(df, 1)) features splitting into $(n_batch) batches"
-
-    tw = :TW ∈ fmt
-    tmqe = :TmQE ∈ fmt
-    tmfu = :TmFu ∈ fmt
-    p = joinpath(out, name)
-    tw && UniMZ.safe_save(p -> CSV.write(p, df), "$(p).all.TW.target.csv", "list")
-
-    for i in 1:n_batch
-        df_ = df[df.batch .== i, :]
-        @info "batch $(i): $(size(df_, 1))"
-        tw && UniMZ.safe_save(p -> CSV.write(p, df_), "$(p).batch$(i).TW.target.csv", "list")
-        tmqe && UniMZ.safe_save(p -> CSV.write(p, TMS.build_target_TmQE(df_)), "$(p).batch$(i).TmQE.target.csv", "list (Thermo Q Exactive)")
-        tmfu && UniMZ.safe_save(p -> CSV.write(p, TMS.build_target_TmFu(df_)), "$(p).batch$(i).TmFu.target.csv", "list (Thermo Fusion)")
-    end
+    Ms = map(p -> UniMZ.read_ms(p), paths)
+    build_target(df, Ms, paths, out, name, ε, batch_size, rt, lc, fmt)
 end
 
 main() = begin
