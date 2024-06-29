@@ -4,7 +4,7 @@ import ArgParse
 import CSV
 import DataFrames
 import UniMZ
-import UniMZUtil: TMS, pFind, pLink
+import UniMZUtil: TMS, pFind
 
 include("util.jl")
 
