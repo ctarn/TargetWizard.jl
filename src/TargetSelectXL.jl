@@ -1,10 +1,10 @@
-module TargetSelectX
+module TargetSelectXL
 
 import ArgParse
 import CSV
 import DataFrames
 import UniMZ
-import UniMZUtil: TMS, pFind, pLink
+import UniMZUtil: TMS, pLink
 
 include("util.jl")
 
@@ -89,7 +89,7 @@ process(paths; df, out, name, ε, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batc
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="TargetSelectX")
+    settings = ArgParse.ArgParseSettings(prog="TargetSelectXL")
     ArgParse.@add_arg_table! settings begin
         "data"
             help = "list of .umz or .ms1/2 files; .ms2/1 files should be in the same directory for .ms1/2"
