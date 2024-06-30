@@ -294,13 +294,13 @@ prepare(args) = begin
     ε = parse(Float64, args["error"]) * 1.0e-6
     τ = parse(Float64, args["inten"])
     smooth_size = parse(Int, args["smooth"])
-    cfg = args["cfg"]
+    tab_ele, tab_aa, tab_mod, tab_xl = pLink.read_mass_table(args["cfg"])
     host = parse(IPAddr, args["host"])
     port = parse(Int, args["port"])
-    return (; path_psm, path_ms, out, linker, ε, τ, smooth_size, cfg, host, port)
+    return (; path_psm, path_ms, out, linker, ε, τ, smooth_size, tab_ele, tab_aa, tab_mod, tab_xl, host, port)
 end
 
-process(; path_psm, path_ms, out, linker,  ε, τ, smooth_size, cfg, host, port) = begin
+process(; path_psm, path_ms, out, linker,  ε, τ, smooth_size, tab_ele, tab_aa, tab_mod, tab_xl, host, port) = begin
     smooth_k = vcat(Vector(1:smooth_size), Vector(smooth_size-1:-1:1))
     M = UniMZ.read_all(UniMZ.read_ms, path_ms)
     M1 = UniMZ.mapvalue(m -> m.MS1, M)
@@ -309,9 +309,7 @@ process(; path_psm, path_ms, out, linker,  ε, τ, smooth_size, cfg, host, port)
     M2I = map(((k, v),) -> k => (map(m -> m[2].id => m[1], enumerate(v)) |> Dict), collect(M2)) |> Dict
     M1D = map(((k, v),) -> k => (map(m -> m.id => m, v) |> Dict), collect(M1)) |> Dict
     M2D = map(((k, v),) -> k => (map(m -> m.id => m, v) |> Dict), collect(M2)) |> Dict
-    df_psm = pLink.read_psm(path_psm)
-
-    df_psm.linker .= linker
+    df_psm = pLink.read_psm(path_psm; linker)
     df_psm.group_id .= -1
     df_psm.range_id .= -1
     df_psm.rt = [M2D[r.file][r.scan].retention_time for r in eachrow(df_psm)]
@@ -346,18 +344,6 @@ process(; path_psm, path_ms, out, linker,  ε, τ, smooth_size, cfg, host, port)
 
     UniMZ.safe_save(p -> CSV.write(p, df_grp), joinpath(out, splitext(basename(path_psm))[1] * ".grp.csv"))
     UniMZ.safe_save(p -> CSV.write(p, df_psm), joinpath(out, splitext(basename(path_psm))[1] * ".psm.csv"))
-
-    if length(cfg) == 0
-        tab_ele = pLink.read_element() |> NamedTuple
-        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pLink.read_amino_acid() |> NamedTuple)
-        tab_mod = UniMZ.mapvalue(x -> x.mass, pLink.read_modification())
-        tab_xl = pLink.read_linker() |> NamedTuple
-    else
-        tab_ele = pLink.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
-        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
-        tab_mod = UniMZ.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
-        tab_xl = pLink.read_linker(joinpath(cfg, "xlink.ini")) |> NamedTuple
-    end
 
     @async begin
         sleep(4)
