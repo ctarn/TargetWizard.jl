@@ -2,9 +2,10 @@ import PackageCompiler
 import TOML
 
 exes = [
-    "TargetSelect", "TargetSelectX", "TargetBind",
-    "BasicAquisitionReport", "TargetSelectionReport", "CoverageReport", "CoverageReportX", "NoiseRatioReportDualX",
-    "TargetView", "TargetViewX", "TargetDualViewX", "CrossLinkSiteView", "ExhaustiveSearchViewX",
+    "TargetSelect", "TargetSelectXL", "TargetBind",
+    "BasicAquisitionReport", "TargetSelectionReport", "TargetAquisitionReport", "TargetAquisitionXLReport",
+    "PeptideCoverageReport", "PeptideCoverageXLReport", "NoiseRatioDualXLReport",
+    "TargetView", "TargetXLView", "TargetDualXLView", "CrossLinkSiteView", "ExhaustiveSearchXLView",
 ]
 
 cfg = TOML.parsefile("Project.toml")
