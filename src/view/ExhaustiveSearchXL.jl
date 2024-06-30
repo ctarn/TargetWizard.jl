@@ -1,4 +1,4 @@
-module ExhaustiveSearchViewX
+module ExhaustiveSearchXLView
 
 using Sockets
 
@@ -142,13 +142,13 @@ prepare(args) = begin
     out = mkpath(args["out"])
     linker = Symbol(args["linker"])
     ε = parse(Float64, args["error"]) * 1.0e-6
-    cfg = args["cfg"]
+    tab_ele, tab_aa, tab_mod, tab_xl = pLink.read_mass_table(args["cfg"])
     host = parse(IPAddr, args["host"])
     port = parse(Int, args["port"])
-    return (; out, linker, ε, cfg, host, port)
+    return (; out, linker, ε, tab_ele, tab_aa, tab_mod, tab_xl, host, port)
 end
 
-process(path, path_ms; out, linker, ε, cfg, host, port) = begin
+process(path, path_ms; out, linker, ε, tab_ele, tab_aa, tab_mod, tab_xl, host, port) = begin
     Ms = map(UniMZ.read_ms, path_ms)
     runs = [splitext(basename(p))[1] for p in path_ms] .|> Symbol
     dfs_m1 = map(Ms, runs) do M, p
@@ -158,22 +158,7 @@ process(path, path_ms; out, linker, ε, cfg, host, port) = begin
         p => [(; idx, m.id, mz=m.activation_center, rt=m.retention_time, m.peaks) for (idx, m) in enumerate(M.MS2)] |> DataFrames.DataFrame
     end |> Dict
 
-    if isempty(cfg)
-        tab_ele = pLink.read_element() |> NamedTuple
-        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pLink.read_amino_acid() |> NamedTuple)
-        tab_mod = UniMZ.mapvalue(x -> x.mass, pLink.read_modification())
-        tab_xl = pLink.read_linker() |> NamedTuple
-    else
-        tab_ele = pLink.read_element(joinpath(cfg, "element.ini")) |> NamedTuple
-        tab_aa = map(x -> UniMZ.mass(x, tab_ele), pLink.read_amino_acid(joinpath(cfg, "aa.ini")) |> NamedTuple)
-        tab_mod = UniMZ.mapvalue(x -> x.mass, pLink.read_modification(joinpath(cfg, "modification.ini")))
-        tab_xl = pLink.read_linker(joinpath(cfg, "xlink.ini")) |> NamedTuple
-    end
-
-    df = DataFrames.DataFrame(CSV.File(path))
-
-    df = unique(df)
-
+    df = DataFrames.DataFrame(CSV.File(path)) |> unique
     df.id = Vector(1:size(df, 1))
     src = [:peptide, :modification]
     dst = [:pep_a, :mod_a, :site_a, :prot_a, :pep_b, :mod_b, :site_b, :prot_b]
