@@ -12,7 +12,6 @@ PrecModeIC = "by isolation center"
 PrecModeIW = "by isolation window"
 PrecModeExIW = "by extended isolation window"
 PrecModes = {PrecModeIC: "center", PrecModeIW: "window", PrecModeExIW: "extended_window"}
-fmts_target = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
 fmts = ["csv", "tsv", "ms2", "mgf", "pf2"]
 vars_spec = {
     "data": {"type": tk.StringVar, "value": ""},
@@ -34,22 +33,19 @@ def run():
         "--mode", PrecModes[V["mode"].get()],
         "--error_rt", V["error_rt"].get(),
         "--error_mz", V["error_mz"].get(),
-        "--fmt_target", fmts_target[V["fmt_target"].get()],
+        "--fmt_target", meta.fmts_tg[V["fmt_target"].get()],
         "--fmt", ",".join(filter(lambda x: V[f"fmt_{x}"].get(), fmts)),
     )
 
 util.init_form(main)
 I = 0
-t = (("UMZ", "*.umz"), ("MS2", "*.ms2"), ("All", "*.*"))
-util.add_entry(main, I, "Targeted MS Data:", V["data"], "Select", util.askfiles(V["data"], V["out"], filetypes=t))
+util.add_entry(main, I, "Targeted MS Data:", V["data"], "Select", util.askfiles(V["data"], V["out"], filetypes=meta.filetype_ms))
 I += 1
-t = (("Target List", "*.csv"), ("All", "*.*"))
-util.add_entry(main, I, "Target List:", V["target"], "Select", util.askfile(V["target"], filetypes=t))
+util.add_entry(main, I, "Target List:", V["target"], "Select", util.askfile(V["target"], filetypes=meta.filetype_tg))
 I += 1
-util.add_entry(main, I, "List Format:", ttk.Combobox(main, textvariable=V["fmt_target"], values=list(fmts_target.keys()), state="readonly", justify="center"))
+util.add_entry(main, I, "List Format:", ttk.Combobox(main, textvariable=V["fmt_target"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
 I += 1
-c = ttk.Combobox(main, textvariable=V["mode"], values=list(PrecModes.keys()), state="readonly", justify="center")
-util.add_entry(main, I, "Binding Mode:", c)
+util.add_entry(main, I, "Binding Mode:", ttk.Combobox(main, textvariable=V["mode"], values=list(PrecModes.keys()), state="readonly", justify="center"))
 I += 1
 util.add_entry(main, I, "Max. RTime Error:", V["error_rt"], "sec")
 I += 1

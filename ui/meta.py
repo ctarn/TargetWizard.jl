@@ -9,7 +9,7 @@ version = "0.0.0"
 author = "Tarn Yeong Ching"
 url = f"http://{name.lower()}.ctarn.io"
 server = f"http://api.ctarn.io/{name}/{version}"
-copyright = f"{name} {version}\nCopyright © 2023 {author}\n{url}"
+copyright = f"{name} {version}\nCopyright © 2024 {author}\n{url}"
 homedir = os.path.join(Path.home(), f".{name}", f"v{'.'.join(version.split('.')[0:2])}")
 
 os.makedirs(homedir, exist_ok=True)
@@ -28,9 +28,18 @@ vars_spec = {
     "cfg_pl": {"type": tk.StringVar, "value": ""},
     "cfg_pf": {"type": tk.StringVar, "value": ""},
     "targetselect": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "TargetSelect")},
-    "targetselectx": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "TargetSelectX")},
+    "targetselectxl": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "TargetSelectXL")},
     "targetbind": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin", "TargetBind")},
     "generators": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin")},
     "viewers": {"type": tk.StringVar, "value": util.get_content("TargetWizard", "bin")},
 }
 vars = {k: v["type"](value=v["value"]) for k, v in vars_spec.items()}
+
+filetype_tg = (("Target List", "*.csv"), ("All", "*.*"))
+filetype_ms = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
+filetype_psm = (("PSM", "*.csv"), ("PSM", "*.spectra"), ("All", "*.*"))
+filetype_psm_xl = (("XL PSM", "*.csv"), ("All", "*.*"))
+filetype_prec = (("Peptide Precursor List", "*.csv"), ("All", "*.*"))
+filetype_xl = (("Candidate XL List", "*.csv"), ("All", "*.*"))
+
+fmts_tg = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}

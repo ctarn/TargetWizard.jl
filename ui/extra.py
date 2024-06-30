@@ -18,7 +18,7 @@ util.add_entry(main, I, "pFind Cfg. Directory:", V["cfg_pf"], "Select", util.ask
 I += 1
 util.add_entry(main, I, "TargetSelect:", V["targetselect"], "Select", util.askfile(V["targetselect"]))
 I += 1
-util.add_entry(main, I, "TargetSelectX:", V["targetselectx"], "Select", util.askfile(V["targetselectx"]))
+util.add_entry(main, I, "TargetSelectXL:", V["targetselectxl"], "Select", util.askfile(V["targetselectxl"]))
 I += 1
 util.add_entry(main, I, "TargetBind:", V["targetbind"], "Select", util.askfile(V["targetbind"]))
 I += 1

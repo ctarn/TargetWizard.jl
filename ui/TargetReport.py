@@ -8,19 +8,18 @@ import util
 main = ttk.Frame()
 main.pack(fill="both")
 
-BAReport = "Basic Aquisition Report"
-TSReport = "Target Selection Report"
-TAReport = "Target Aquisition Report"
-IDReport = "Identification Report"
-PCReport = "Peptide Coverage Report"
-XPCReport = "Cross-linked Peptide Coverage Report"
-SNRReportDX = "Comparative Cross-link Signal-to-Noise Ratio Report"
-reports = [BAReport, TSReport, TAReport, IDReport, PCReport, XPCReport, SNRReportDX]
-fmts_target = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
+FlowBA = "Basic Aquisition Report"
+FlowTS = "Target Selection Report"
+FlowTA = "Target Aquisition Report"
+FlowTAXL = "Target Aquisition Cross-linked Peptide Report"
+FlowPC = "Peptide Coverage Report"
+FlowPCXL = "Cross-linked Peptide Coverage Report"
+FlowSNRDXL = "Comparative Cross-link Signal-to-Noise Ratio Report"
+flows = [FlowBA, FlowTS, FlowTA, FlowTAXL, FlowPC, FlowPCXL, FlowSNRDXL]
 ion_types = ["a", "b", "c", "x", "y", "z", "a_NH3", "b_NH3", "y_NH3", "a_H2O", "b_H2O", "y_H2O"]
 ion_names = ["a", "b", "c", "x", "y", "z", "a-NH₃", "b-NH₃", "y-NH₃", "a-H₂O", "b-H₂O", "y-H₂O"]
 vars_spec = {
-    "report": {"type": tk.StringVar, "value": BAReport},
+    "flow": {"type": tk.StringVar, "value": FlowBA},
     "out": {"type": tk.StringVar, "value": ""},
     "ms": {"type": tk.StringVar, "value": ""},
     "ms_": {"type": tk.StringVar, "value": ""},
@@ -36,23 +35,23 @@ for t in ion_types: vars_spec[f"ion_{t}"] = {"type": tk.IntVar, "value": 1}
 task = util.Task("TargetReport", vars_spec, path=meta.homedir, shared_vars_spec=meta.vars_spec, shared_vars=meta.vars)
 V = task.vars
 
-def run_basicaquisitionreport():
+def run_basic_aquisition_report():
     task.call(os.path.join(V["generators"].get(), "BasicAquisitionReport"), *(V["ms"].get().split(";")), "--out", V["out"].get())
 
-def run_targetselectionreport():
+def run_target_selection_report():
     task.call(os.path.join(V["generators"].get(), "TargetSelectionReport"),
         *(V["target"].get().split(";")), "--out", V["out"].get(),
-        "--fmt", fmts_target[V["fmt_target"].get()],
+        "--fmt", meta.fmts_tg[V["fmt_target"].get()],
     )
 
-def run_targetaquisitionreport():
+def run_target_aquisition_report():
     pass
 
-def run_identificationreport():
+def run_target_aquisition_xl_report():
     pass
 
-def run_peptidecoveragereport():
-    task.call(os.path.join(V["generators"].get(), "CoverageReport"), V["psm"].get(),
+def run_peptide_coverage_report():
+    task.call(os.path.join(V["generators"].get(), "PeptideCoverageReport"), V["psm"].get(),
         "--ms", *(V["ms"].get().split(";")),
         "--out", V["out"].get(),
         "--error", V["error2"].get(),
@@ -60,8 +59,8 @@ def run_peptidecoveragereport():
         "--cfg", V["cfg_pl"].get(),
     )
 
-def run_crosslinkedpeptidecoveragereport():
-    task.call(os.path.join(V["generators"].get(), "CoverageReportX"), V["psm"].get(),
+def run_peptide_coverage_xl_report():
+    task.call(os.path.join(V["generators"].get(), "PeptideCoverageXLReport"), V["psm"].get(),
         "--ms", *(V["ms"].get().split(";")),
         "--out", V["out"].get(),
         "--linker", V["linker"].get(),
@@ -70,12 +69,12 @@ def run_crosslinkedpeptidecoveragereport():
         "--cfg", V["cfg_pl"].get(),
     )
 
-def run_snr_report_dx():
-    task.call(os.path.join(V["generators"].get(), "NoiseRatioReportDualX"), V["target"].get(),
+def run_noise_ratio_dual_xl():
+    task.call(os.path.join(V["generators"].get(), "NoiseRatioDualXLReport"), V["target"].get(),
         "--ms", V["ms"].get(), V["ms_"].get(),
         "--psm", V["psm"].get(), V["psm_"].get(),
         "--out", V["out"].get(),
-        "--fmt", fmts_target[V["fmt_target"].get()],
+        "--fmt", meta.fmts_tg[V["fmt_target"].get()],
         "--linker", V["linker"].get(),
         "--fdr", V["fdr"].get(),
         "--ion", ",".join([t for t in ion_types if V[f"ion_{t}"].get()]),
@@ -84,73 +83,66 @@ def run_snr_report_dx():
     )
 
 def run():
-    if V["report"].get() == BAReport: run_basicaquisitionreport()
-    elif V["report"].get() == TSReport: run_targetselectionreport()
-    elif V["report"].get() == TAReport: run_targetaquisitionreport()
-    elif V["report"].get() == IDReport: run_identificationreport()
-    elif V["report"].get() == PCReport: run_peptidecoveragereport()
-    elif V["report"].get() == XPCReport: run_crosslinkedpeptidecoveragereport()
-    elif V["report"].get() == SNRReportDX: run_snr_report_dx()
-    else: print("Unknown Report Type:", V["report"].get())
+    if V["flow"].get() == FlowBA: run_basic_aquisition_report()
+    elif V["flow"].get() == FlowTS: run_target_selection_report()
+    elif V["flow"].get() == FlowTA: run_target_aquisition_report()
+    elif V["flow"].get() == FlowTAXL: run_target_aquisition_xl_report()
+    elif V["flow"].get() == FlowPC: run_peptide_coverage_report()
+    elif V["flow"].get() == FlowPCXL: run_peptide_coverage_xl_report()
+    elif V["flow"].get() == FlowSNRDXL: run_noise_ratio_dual_xl()
+    else: print("Unknown Flow Type:", V["flow"].get())
 
-def select_report(_=None, verbose=True):
-    for r in reports:
-        F[r].grid_forget()
-    if verbose: print("selected report type:", V["report"].get())
-    F[V["report"].get()].grid(column=0, row=I_fs, columnspan=3, sticky="EW")
+def select_flow(_=None, verbose=True):
+    for f in flows: F[f].grid_forget()
+    if verbose: print("selected flow type:", V["flow"].get())
+    F[V["flow"].get()].grid(column=0, row=I_fs, columnspan=3, sticky="EW")
 
 util.init_form(main)
 I = 0
-c = ttk.Combobox(main, textvariable=V["report"], values=reports, state="readonly", justify="center")
-c.bind("<<ComboboxSelected>>", select_report)
+c = ttk.Combobox(main, textvariable=V["flow"], values=flows, state="readonly", justify="center")
+c.bind("<<ComboboxSelected>>", select_flow)
 c.grid(column=0, row=I, columnspan=3, sticky="EW", padx=16, pady=4)
 I += 1
-F = {r: util.init_form(ttk.Frame(main)) for r in reports}
+F = {r: util.init_form(ttk.Frame(main)) for r in flows}
 I_fs = I
 I += 1
 util.add_entry(main, I, "Output Directory:", V["out"], "Select", util.askdir(V["out"]))
 I += 1
 task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I, columnspan=3)
 
-t_ms = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
-t_target = (("Target List", "*.csv"), ("All", "*.*"))
-t_psm = (("PSM", "*.psm"), ("All", "*.*"))
-
-f = F[BAReport]
+f = F[FlowBA]
 I = 0
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=t_ms))
+util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
 I += 1
 
-f = F[TSReport]
+f = F[FlowTS]
 I = 0
-util.add_entry(f, I, "Target List:", V["target"], "Select", util.askfiles(V["target"], V["out"], filetypes=t_target))
+util.add_entry(f, I, "Target List:", V["target"], "Select", util.askfiles(V["target"], V["out"], filetypes=meta.filetype_tg))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(fmts_target.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
 I += 1
 
-f = F[TAReport]
+f = F[FlowTA]
 I = 0
-ttk.Label(f, text=f"{TAReport} Not Available").grid(column=0, row=I, columnspan=3)
+ttk.Label(f, text=f"{FlowTA} Not Available").grid(column=0, row=I, columnspan=3)
 I += 1
-util.add_entry(f, I, "Target List:", V["target"], "Select", util.askfiles(V["target"], V["out"], filetypes=t_target))
+util.add_entry(f, I, "Target List:", V["target"], "Select", util.askfiles(V["target"], V["out"], filetypes=meta.filetype_tg))
 I += 1
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=t_ms))
+util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
 I += 1
 
-f = F[IDReport]
+f = F[FlowTAXL]
 I = 0
-ttk.Label(f, text=f"{IDReport} Not Available").grid(column=0, row=I, columnspan=3)
+ttk.Label(f, text=f"{FlowTAXL} Not Available").grid(column=0, row=I, columnspan=3)
 I += 1
-t = (("PSM", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))
+util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm_xl))
 I += 1
 
-f = F[PCReport]
+f = F[FlowPC]
 I = 0
-t = (("PSM", "*.csv"), ("PSM", "*.spectra"), ("All", "*.*"))
-util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], V["out"], filetypes=t))
+util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], V["out"], filetypes=meta.filetype_psm))
 I += 1
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=t_ms))
+util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
 I += 1
 _, f_ion, _ = util.add_entry(f, I, "Ion Type:", ttk.Frame(f, height=24))
 f_ion1 = ttk.Frame(f_ion)
@@ -162,12 +154,11 @@ for n, t in zip(ion_names[6:], ion_types[6:]): ttk.Checkbutton(f_ion2, text=n, v
 I += 1
 util.add_entry(f, I, "Fragment Mass Error:", V["error2"], "ppm")
 
-f = F[XPCReport]
+f = F[FlowPCXL]
 I = 0
-t = (("PSM", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], V["out"], filetypes=t))
+util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], V["out"], filetypes=meta.filetype_psm_xl))
 I += 1
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=t_ms))
+util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
 I += 1
 _, f_ion, _ = util.add_entry(f, I, "Ion Type:", ttk.Frame(f, height=24))
 f_ion1 = ttk.Frame(f_ion)
@@ -181,30 +172,25 @@ util.add_entry(f, I, "Default Linker:", V["linker"])
 I += 1
 util.add_entry(f, I, "Fragment Mass Error:", V["error2"], "ppm")
 
-f = F[SNRReportDX]
+f = F[FlowSNRDXL]
 I = 0
-t = (("Target List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Target List:", V["target"], "Select", util.askfiles(V["target"], V["out"], filetypes=t))
+util.add_entry(f, I, "Target List:", V["target"], "Select", util.askfiles(V["target"], V["out"], filetypes=meta.filetype_tg))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(fmts_target.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
 I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 ttk.Label(f, text="Data A").grid(column=0, row=I)
 I += 1
-t = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
+util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
 I += 1
-t = (("XL PSM", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "XL PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))
+util.add_entry(f, I, "XL PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm_xl))
 I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 ttk.Label(f, text="Data B").grid(column=0, row=I)
 I += 1
-t = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
-util.add_entry(f, I, "MS Data:", V["ms_"], "Select", util.askfile(V["ms_"], filetypes=t))
+util.add_entry(f, I, "MS Data:", V["ms_"], "Select", util.askfile(V["ms_"], filetypes=meta.filetype_ms))
 I += 1
-t = (("XL PSM", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "XL PSM:", V["psm_"], "Select", util.askfile(V["psm_"], filetypes=t))
+util.add_entry(f, I, "XL PSM:", V["psm_"], "Select", util.askfile(V["psm_"], filetypes=meta.filetype_psm_xl))
 I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 I += 1
@@ -222,4 +208,4 @@ for n, t in zip(ion_names[6:], ion_types[6:]): ttk.Checkbutton(f_ion2, text=n, v
 I += 1
 util.add_entry(f, I, "Fragment Mass Error:", V["error2"], "ppm")
 
-select_report(None, False)
+select_flow(None, False)

@@ -9,16 +9,14 @@ import util
 main = ttk.Frame()
 main.pack(fill="both")
 
-RView = "Regular Linear Peptide View"
-CView = "Comparative Linear Peptide View"
-RXView = "Regular Cross-linked Peptide View"
-CXView = "Comparative Cross-linked Peptide View"
-XSView = "Cross-link Site View"
-XESView = "Cross-link Exhaustive Search View"
-views = [RView, CView, RXView, CXView, XSView, XESView]
-fmt_targets = {"Auto Detect": "auto", "TargetWizard": "TW", "Thermo Q Exactive": "TmQE", "Thermo Fusion": "TmFu"}
+FlowR = "Regular Linear Peptide View"
+FlowXL = "Regular Cross-linked Peptide View"
+FlowDXL = "Comparative Cross-linked Peptide View"
+FlowXLS = "Cross-link Site View"
+FlowESXL = "Cross-link Exhaustive Search View"
+flows = [FlowR, FlowXL, FlowDXL, FlowXLS, FlowESXL]
 vars_spec = {
-    "view": {"type": tk.StringVar, "value": RXView},
+    "flow": {"type": tk.StringVar, "value": FlowXL},
     "out": {"type": tk.StringVar, "value": ""},
     "tg": {"type": tk.StringVar, "value": ""},
     "fmt_target": {"type": tk.StringVar, "value": "Auto Detect"},
@@ -49,7 +47,7 @@ def run_view():
         "--psm", V["psm"].get(),
         "--out", V["out"].get(),
         "--ft", V["ft"].get(),
-        "--fmt", fmt_targets[V["fmt_target"].get()],
+        "--fmt", meta.fmts_tg[V["fmt_target"].get()],
         "--error", V["error"].get(),
         "--ms_sim_thres", V["ms_sim_thres"].get(),
         "--fdr", V["fdr"].get(),
@@ -58,11 +56,8 @@ def run_view():
         "--port", V["url"].get().split(":")[1],
     )
 
-def run_dualview():
-    pass
-
-def run_xview():
-    task.call(os.path.join(V["viewers"].get(), "TargetViewX"),
+def run_xl_view():
+    task.call(os.path.join(V["viewers"].get(), "TargetXLView"),
         V["tg"].get(),
         "--ms", V["ms"].get(),
         "--ms_old", *(V["ms_"].get().split(";")),
@@ -71,7 +66,7 @@ def run_xview():
         "--xl", V["xl"].get(),
         "--ft", V["ft"].get(),
         "--psm_pf", V["psm"].get(),
-        "--fmt", fmt_targets[V["fmt_target"].get()],
+        "--fmt", meta.fmts_tg[V["fmt_target"].get()],
         "--linker", V["linker"].get(),
         "--error", V["error"].get(),
         "--ms_sim_thres", V["ms_sim_thres"].get(),
@@ -82,15 +77,15 @@ def run_xview():
         "--port", V["url"].get().split(":")[1],
     )
 
-def run_xdualview():
-    task.call(os.path.join(V["viewers"].get(), "TargetDualViewX"),
+def run_dual_xl_view():
+    task.call(os.path.join(V["viewers"].get(), "TargetDualXLView"),
         V["tg"].get(),
         "--ms", V["ms"].get(), V["ms_"].get(),
         "--psm", V["psm_xl"].get(), V["psm_xl_"].get(),
         "--out", V["out"].get(),
         "--xl", V["xl"].get(),
         "--ft", V["ft"].get(), V["ft_"].get(),
-        "--fmt", fmt_targets[V["fmt_target"].get()],
+        "--fmt", meta.fmts_tg[V["fmt_target"].get()],
         "--linker", V["linker"].get(),
         "--error", V["error"].get(),
         "--fdr", V["fdr"].get(),
@@ -99,7 +94,7 @@ def run_xdualview():
         "--port", V["url"].get().split(":")[1],
     )
 
-def run_xsview():
+def run_cross_link_site_view():
     task.call(os.path.join(V["viewers"].get(), "CrossLinkSiteView"),
         "--ms", V["ms"].get(),
         "--psm", V["psm_xl"].get(),
@@ -113,8 +108,8 @@ def run_xsview():
         "--port", V["url"].get().split(":")[1],
     )
 
-def run_xesview():
-    task.call(os.path.join(V["viewers"].get(), "ExhaustiveSearchViewX"),
+def run_exhaustive_search_xl_view():
+    task.call(os.path.join(V["viewers"].get(), "ExhaustiveSearchXLView"),
         V["tg"].get(),
         "--ms", *(V["ms"].get().split(";")),
         "--out", V["out"].get(),
@@ -126,13 +121,12 @@ def run_xesview():
     )
 
 def run():
-    if V["view"].get() == RView: run_view()
-    elif V["view"].get() == CView: run_dualview()
-    elif V["view"].get() == RXView: run_xview()
-    elif V["view"].get() == CXView: run_xdualview()
-    elif V["view"].get() == XSView: run_xsview()
-    elif V["view"].get() == XESView: run_xesview()
-    else: print("Unknown View Type:", V["view"].get())
+    if V["flow"].get() == FlowR: run_view()
+    elif V["flow"].get() == FlowXL: run_xl_view()
+    elif V["flow"].get() == FlowDXL: run_dual_xl_view()
+    elif V["flow"].get() == FlowXLS: run_cross_link_site_view()
+    elif V["flow"].get() == FlowESXL: run_exhaustive_search_xl_view()
+    else: print("Unknown Flow Type:", V["flow"].get())
 
 def new_port():
     p = str(random.randint(49152, 65535))
@@ -141,19 +135,18 @@ def new_port():
 
 new_port()
 
-def select_view(_=None, verbose=True):
-    for v in views:
-        F[v].grid_forget()
-    if verbose: print("selected view type:", V["view"].get())
-    F[V["view"].get()].grid(column=0, row=I_fs, columnspan=3, sticky="EW")
+def select_flow(_=None, verbose=True):
+    for f in flows: F[f].grid_forget()
+    if verbose: print("selected flow type:", V["flow"].get())
+    F[V["flow"].get()].grid(column=0, row=I_fs, columnspan=3, sticky="EW")
 
 util.init_form(main)
 I = 0
-c = ttk.Combobox(main, textvariable=V["view"], values=views, state="readonly", justify="center")
-c.bind("<<ComboboxSelected>>", select_view)
+c = ttk.Combobox(main, textvariable=V["flow"], values=flows, state="readonly", justify="center")
+c.bind("<<ComboboxSelected>>", select_flow)
 c.grid(column=0, row=I, columnspan=3, sticky="EW", padx=16, pady=4)
 I += 1
-F = {v: util.init_form(ttk.Frame(main)) for v in views}
+F = {v: util.init_form(ttk.Frame(main)) for v in flows}
 I_fs = I
 I += 1
 util.add_entry(main, I, "URL:", V["url"], "New Port", new_port)
@@ -162,21 +155,17 @@ util.add_entry(main, I, "Output Directory:", V["out"], "Select", util.askdir(V["
 I += 1
 task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I, columnspan=3)
 
-f = F[RView]
+f = F[FlowR]
 I = 0
-t = (("Target List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=t))
+util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(fmt_targets.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
 I += 1
-t = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
-util.add_entry(f, I, "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
+util.add_entry(f, I, "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
 I += 1
-t = (("PSM", "*.csv"), ("PSM", "*.spectra"), ("All", "*.*"))
-util.add_entry(f, I, "Targeted MS PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))
+util.add_entry(f, I, "Targeted MS PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm))
 I += 1
-t = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
-util.add_entry(f, I, "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=t))
+util.add_entry(f, I, "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=meta.filetype_ms))
 I += 1
 util.add_entry(f, I, "Max. MS1 Mass Error:", V["error"], "ppm")
 I += 1
@@ -187,30 +176,21 @@ I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 ttk.Label(f, text="Optional").grid(column=0, row=I)
 I += 1
-t = (("Peptide Feature List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=t))
+util.add_entry(f, I, "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=meta.filetype_prec))
 I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 
-f = F[CView]
+f = F[FlowXL]
 I = 0
-ttk.Label(f, text=f"{CView} Not Available").grid(column=0, row=I, columnspan=3)
-
-f = F[RXView]
-I = 0
-t = (("Target List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=t))
+util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(fmt_targets.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
 I += 1
-t = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
-util.add_entry(f, I, "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
+util.add_entry(f, I, "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
 I += 1
-t = (("XL PSM", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Targeted MS PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], filetypes=t))
+util.add_entry(f, I, "Targeted MS PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], filetypes=meta.filetype_psm_xl))
 I += 1
-t = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
-util.add_entry(f, I, "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=t))
+util.add_entry(f, I, "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=meta.filetype_ms))
 I += 1
 util.add_entry(f, I, "Default Linker:", V["linker"])
 I += 1
@@ -223,50 +203,39 @@ I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 ttk.Label(f, text="Optional").grid(column=0, row=I)
 I += 1
-t = (("Candidate XL List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=t))
+util.add_entry(f, I, "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=meta.filetype_xl))
 I += 1
-t = (("Peptide Feature List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=t))
+util.add_entry(f, I, "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=meta.filetype_prec))
 I += 1
-t = (("Linear PSM", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Linear PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=t))
+util.add_entry(f, I, "Linear PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm))
 I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 
-f = F[CXView]
+f = F[FlowDXL]
 I = 0
-t = (("Target List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=t))
+util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(fmt_targets.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
 I += 1
-t = (("Candidate XL List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=t))
+util.add_entry(f, I, "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=meta.filetype_xl))
 I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 ttk.Label(f, text="Data A").grid(column=0, row=I)
 I += 1
-t = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
+util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
 I += 1
-t = (("Peptide Feature List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=t))
+util.add_entry(f, I, "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=meta.filetype_prec))
 I += 1
-t = (("XL PSM", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "XL PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], filetypes=t))
+util.add_entry(f, I, "XL PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], filetypes=meta.filetype_psm_xl))
 I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 ttk.Label(f, text="Data B").grid(column=0, row=I)
 I += 1
-t = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
-util.add_entry(f, I, "MS Data:", V["ms_"], "Select", util.askfile(V["ms_"], filetypes=t))
+util.add_entry(f, I, "MS Data:", V["ms_"], "Select", util.askfile(V["ms_"], filetypes=meta.filetype_ms))
 I += 1
-t = (("Peptide Feature List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Feature List:", V["ft_"], "Select", util.askfile(V["ft_"], filetypes=t))
+util.add_entry(f, I, "Feature List:", V["ft_"], "Select", util.askfile(V["ft_"], filetypes=meta.filetype_prec))
 I += 1
-t = (("XL PSM", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "XL PSM:", V["psm_xl_"], "Select", util.askfile(V["psm_xl_"], filetypes=t))
+util.add_entry(f, I, "XL PSM:", V["psm_xl_"], "Select", util.askfile(V["psm_xl_"], filetypes=meta.filetype_psm_xl))
 I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 I += 1
@@ -276,13 +245,11 @@ util.add_entry(f, I, "MS1 Mass Error:", V["error"], "ppm")
 I += 1
 util.add_entry(f, I, "FDR:", V["fdr"], "%")
 
-f = F[XSView]
+f = F[FlowXLS]
 I = 0
-t = (("XL PSM", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "XL PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], V["out"], filetypes=t))
+util.add_entry(f, I, "XL PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], V["out"], filetypes=meta.filetype_psm_xl))
 I += 1
-t = (("UMZ file", "*.umz"), ("MS1 file", "*.ms1"), ("All", "*.*"))
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=t))
+util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
 I += 1
 util.add_entry(f, I, "Default Linker:", V["linker"])
 I += 1
@@ -292,16 +259,14 @@ util.add_entry(f, I, "Intensity Thres.:", V["inten_thres"])
 I += 1
 util.add_entry(f, I, "Smooth Width:", V["smooth"])
 
-f = F[XESView]
+f = F[FlowESXL]
 I = 0
-t = (("List", "*.csv"), ("All", "*.*"))
-util.add_entry(f, I, "Peptide List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=t))
+util.add_entry(f, I, "Peptide List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
 I += 1
-t = (("UMZ file", "*.umz"), ("MS1 file", "*.ms1"), ("All", "*.*"))
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], filetypes=t))
+util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], filetypes=meta.filetype_ms))
 I += 1
 util.add_entry(f, I, "Default Linker:", V["linker"])
 I += 1
 util.add_entry(f, I, "Max. Mass Error:", V["error"], "ppm")
 
-select_view(None, False)
+select_flow(None, False)
