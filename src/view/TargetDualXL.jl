@@ -1,4 +1,4 @@
-module TargetDualViewX
+module TargetDualXLView
 
 using Sockets
 
@@ -78,7 +78,7 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
     df_tg_tab = DataFrames.select(df_tg, filter(n -> !endswith(n, "_"), names(df_tg)))
     app = dash(; assets_folder=DIR_DATA)
     app.layout = html_div() do
-        html_h1("TargetDualViewX", style=Dict("text-align"=>"center")),
+        html_h1("TargetDualXLView", style=Dict("text-align"=>"center")),
         dash_datatable(
             id="tg_table",
             style_table=Dict("min-width"=>"100%", "overflow-x"=>"auto"),
@@ -108,7 +108,7 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
             export_format="csv",
             export_headers="display",
         ),
-        dcc_graph(id="lc_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetDualViewX_LC"))),
+        dcc_graph(id="lc_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetDualXLView_LC"))),
         html_h4("PSM List of Selected Data A MS2(s) (may differ from the selected target)"),
         dash_datatable(
             id="psm_table_a",
@@ -155,10 +155,10 @@ build_app(df_tg, df_xl, dfs_ft, dfs_m1, dfs_m2, dfs_psm, M2Is, ele_plink, aa_pli
                 end
             end
         end,
-        dcc_graph(id="seq_graph_a", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetDualViewX_SEQ_A"))),
-        dcc_graph(id="seq_graph_b", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetDualViewX_SEQ_B"))),
-        dcc_graph(id="psm_graph_a", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetDualViewX_PSM_A"))),
-        dcc_graph(id="psm_graph_b", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetDualViewX_PSM_B")))
+        dcc_graph(id="seq_graph_a", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetDualXLView_SEQ_A"))),
+        dcc_graph(id="seq_graph_b", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetDualXLView_SEQ_B"))),
+        dcc_graph(id="psm_graph_a", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetDualXLView_PSM_A"))),
+        dcc_graph(id="psm_graph_b", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetDualXLView_PSM_B")))
     end
 
     callback!(app,
@@ -251,7 +251,7 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
     M2Is = map(df -> map(x -> x[2] => x[1], enumerate(df.id)), dfs_m2) .|> Dict
 
     dfs_psm = map(path_psm, dfs_m2, M2Is) do p, df_m2, M2I
-        df_psm = pLink.read_psm_full(p).xl
+        df_psm = pLink.read_psm_full(p; linker).xl
         df_psm = df_psm[df_psm.fdr .≤ fdr, :]
         df_psm.engine .= :pLink
         ns = [
@@ -265,7 +265,6 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
             "prot_a", "prot_b", "error", "title", "file", "scan", "idx_pre",
         ]
         DataFrames.select!(df_psm, ns, DataFrames.Not(ns))
-        ("linker" ∉ names(df_psm)) && (df_psm.linker .= linker)
         df_psm.id = Vector(1:size(df_psm, 1))
         DataFrames.select!(df_psm, :id, DataFrames.Not([:id]))
         df_psm.rt = [df_m2[M2I[r.scan], :rt] for r in eachrow(df_psm)]
@@ -375,7 +374,7 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
     ns = filter(n -> !endswith(n, '_'), names(df_tg))
     DataFrames.select!(df_tg, ns, DataFrames.Not(ns))
 
-    UniMZ.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path)[1])).TargetDualViewX.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path)[1])).TargetDualXLView.csv"))
 
     @async begin
         sleep(4)
@@ -386,7 +385,7 @@ process(path; path_ms, path_psm, out, path_xl, path_ft, fmt, linker, ε, fdr, cf
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="TargetDualViewX")
+    settings = ArgParse.ArgParseSettings(prog="TargetDualXLView")
     ArgParse.@add_arg_table! settings begin
         "target"
             help = "target list"
