@@ -1,0 +1,146 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>TargetWizard</title>
+<style>
+* {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: dimgrey;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: purple;
+}
+
+body, header, main, footer {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+div.header, div.main, div.footer {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 960px;
+    min-width: 320px;
+    margin: 0 auto;
+    padding: 4px;
+}
+
+div.header {
+    height: 60px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+div.main {
+    min-height: 600px;
+    padding: 16px;
+}
+
+div.footer {
+    height: 40px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+div.header a, div.footer a {
+    text-decoration: none;
+}
+
+div.header img {
+    height: 100%;
+}
+
+div.toc {
+    width: 240px;
+    max-width: 100%;
+    float: right;
+}
+
+div.ui {
+    width: 320px;
+    max-width: 100%;
+    float: right;
+}
+
+div.toc img, div.ui img {
+    width: 100%;
+}
+
+div.badge {
+    margin-bottom: 8px;
+}
+
+div.badge img.badge {
+    height: 32px;
+    margin-right: 16px;
+}
+
+div.release section {
+    margin: 16px 0;
+}
+
+div.release section > time {
+    width: 100px;
+    padding: 1px;
+    border: dashed thin;
+    border-radius: 4px;
+    text-align: center;
+    font-size: small;
+    float: right;
+}
+
+div.release section > h4, div.release section > div {
+    margin: 4px 0;
+}
+
+div.release section > div > ol {
+    margin: 0;
+}
+
+pre.citation {
+    width: 100%;
+    overflow-x: scroll;
+}
+
+pre.citation::-webkit-scrollbar {
+    display: none;
+}
+</style>
+</head>
+<body>
+<header>
+<div class="header">
+<img src="fig/TargetWizard.svg" alt="logo"/><h1>TargetWizard</h1>
+</div>
+</header>
+
+<main>
+<div class="main">
+<div class="badge">
+    <a href="https://targetwizard.ctarn.io/doc/dev/"><img class="badge" src='https://img.shields.io/badge/doc-latest-red.svg'/></a>
+    <a href="https://targetwizard.ctarn.io/doc/stable/"><img class="badge" src='https://img.shields.io/badge/doc-stable-blue.svg'/></a>
+    <a href="https://targetwizard.ctarn.io/doc/dev/faq/"><img class="badge" src='https://img.shields.io/badge/doc-FAQ-yellow.svg'/></a>
+    <a href="https://github.com/ctarn/TargetWizard.jl"><img class="badge" src='https://img.shields.io/badge/code-GitHub-green.svg'/></a>
+</div>
+
+<h2>Release</h2>
+<div class="ui"><img src="fig/TargetWizard_ui.png" alt="ui"/></div>
+{{ release }}
+</div>
+</main>
+
+<footer>
+<div class="footer">
+<span><a href="http://ctarn.io">http://ctarn.io</a></span>
+<span>Copyright &copy; Tarn Yeong Ching</span>
+<span><a href="mailto:i@ctarn.io">i@ctarn.io</a></span>
+</div>
+</footer>
+</body>
+</html>
