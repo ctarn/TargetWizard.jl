@@ -24,12 +24,15 @@ vars_spec = {
     "ms": {"type": tk.StringVar, "value": ""},
     "ms_": {"type": tk.StringVar, "value": ""},
     "tg": {"type": tk.StringVar, "value": ""},
+    "ft": {"type": tk.StringVar, "value": ""},
+    "xl": {"type": tk.StringVar, "value": ""},
     "fmt_tg": {"type": tk.StringVar, "value": "Auto Detect"},
     "psm": {"type": tk.StringVar, "value": ""},
     "psm_": {"type": tk.StringVar, "value": ""},
     "linker": {"type": tk.StringVar, "value": "DSSO"},
-    "error2": {"type": tk.StringVar, "value": "20.0"},
+    "error": {"type": tk.StringVar, "value": "20.0"},
     "fdr": {"type": tk.StringVar, "value": "5.0"},
+    "ms_sim_thres": {"type": tk.StringVar, "value": "0.5"},
 }
 for t in ion_types: vars_spec[f"ion_{t}"] = {"type": tk.IntVar, "value": 1}
 task = util.Task("TargetReport", vars_spec, path=meta.homedir, shared_vars_spec=meta.vars_spec, shared_vars=meta.vars)
@@ -45,16 +48,44 @@ def run_target_selection_report():
     )
 
 def run_target_aquisition_report():
-    pass
+    task.call(os.path.join(V["generators"].get(), "TargetAquisitionReport"),
+        V["tg"].get(),
+        "--ms", V["ms"].get(),
+        "--ms_old", *(V["ms_"].get().split(";")),
+        "--psm", V["psm"].get(),
+        "--out", V["out"].get(),
+        "--ft", V["ft"].get(),
+        "--fmt", meta.fmts_tg[V["fmt_tg"].get()],
+        "--error", V["error"].get(),
+        "--ms_sim_thres", V["ms_sim_thres"].get(),
+        "--fdr", V["fdr"].get(),
+        "--cfg", V["cfg_pf"].get(),
+    )
 
 def run_target_aquisition_xl_report():
-    pass
+    task.call(os.path.join(V["generators"].get(), "TargetAquisitionXLReport"),
+        V["tg"].get(),
+        "--ms", V["ms"].get(),
+        "--ms_old", *(V["ms_"].get().split(";")),
+        "--psm", V["psm"].get(),
+        "--out", V["out"].get(),
+        "--xl", V["xl"].get(),
+        "--ft", V["ft"].get(),
+        "--psm_pf", V["psm_"].get(),
+        "--fmt", meta.fmts_tg[V["fmt_tg"].get()],
+        "--linker", V["linker"].get(),
+        "--error", V["error"].get(),
+        "--ms_sim_thres", V["ms_sim_thres"].get(),
+        "--fdr", V["fdr"].get(),
+        "--cfg", V["cfg_pl"].get(),
+        "--cfg_pf", V["cfg_pf"].get(),
+    )
 
 def run_peptide_coverage_report():
     task.call(os.path.join(V["generators"].get(), "PeptideCoverageReport"), V["psm"].get(),
         "--ms", *(V["ms"].get().split(";")),
         "--out", V["out"].get(),
-        "--error", V["error2"].get(),
+        "--error", V["error"].get(),
         "--ion", ",".join([t for t in ion_types if V[f"ion_{t}"].get()]),
         "--cfg", V["cfg_pl"].get(),
     )
@@ -64,7 +95,7 @@ def run_peptide_coverage_xl_report():
         "--ms", *(V["ms"].get().split(";")),
         "--out", V["out"].get(),
         "--linker", V["linker"].get(),
-        "--error", V["error2"].get(),
+        "--error", V["error"].get(),
         "--ion", ",".join([t for t in ion_types if V[f"ion_{t}"].get()]),
         "--cfg", V["cfg_pl"].get(),
     )
@@ -78,7 +109,7 @@ def run_noise_ratio_dual_xl():
         "--linker", V["linker"].get(),
         "--fdr", V["fdr"].get(),
         "--ion", ",".join([t for t in ion_types if V[f"ion_{t}"].get()]),
-        "--error", V["error2"].get(),
+        "--error", V["error"].get(),
         "--cfg", V["cfg_pl"].get(),
     )
 
@@ -118,14 +149,36 @@ util.add_combobox(f, I.next(), "List Format:", V["fmt_tg"], list(meta.fmts_tg.ke
 
 f = F[FlowTA]
 I = util.Counter()
-ttk.Label(f, text=f"{FlowTA} Not Available").grid(column=0, row=I.next(), columnspan=3)
-util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
-util.add_entry(f, I.next(), "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
+util.add_combobox(f, I.next(), "List Format:", V["fmt_tg"], list(meta.fmts_tg.keys()))
+util.add_entry(f, I.next(), "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "Targeted MS PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm))
+util.add_entry(f, I.next(), "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "Max. MS1 Mass Error:", V["error"], "ppm")
+util.add_entry(f, I.next(), "FDR Threshold:", V["fdr"], "%")
+util.add_entry(f, I.next(), "MS Sim. Thres.:", V["ms_sim_thres"])
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
+ttk.Label(f, text="Optional").grid(column=0, row=I.next())
+util.add_entry(f, I.next(), "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=meta.filetype_prec))
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
 
 f = F[FlowTAXL]
 I = util.Counter()
-ttk.Label(f, text=f"{FlowTAXL} Not Available").grid(column=0, row=I.next(), columnspan=3)
-util.add_entry(f, I.next(), "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm_xl))
+util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
+util.add_combobox(f, I.next(), "List Format:", V["fmt_tg"], list(meta.fmts_tg.keys()))
+util.add_entry(f, I.next(), "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "Targeted MS PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm_xl))
+util.add_entry(f, I.next(), "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "Default Linker:", V["linker"])
+util.add_entry(f, I.next(), "Max. MS1 Mass Error:", V["error"], "ppm")
+util.add_entry(f, I.next(), "FDR Threshold:", V["fdr"], "%")
+util.add_entry(f, I.next(), "MS Sim. Thres.:", V["ms_sim_thres"])
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
+ttk.Label(f, text="Optional").grid(column=0, row=I.next())
+util.add_entry(f, I.next(), "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=meta.filetype_xl))
+util.add_entry(f, I.next(), "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=meta.filetype_prec))
+util.add_entry(f, I.next(), "Linear PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm))
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
 
 f = F[FlowPC]
 I = util.Counter()
@@ -138,7 +191,7 @@ f_ion1.pack(fill="x")
 f_ion2.pack(fill="x")
 for n, t in zip(ion_names[0:6], ion_types[0:6]): ttk.Checkbutton(f_ion1, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
 for n, t in zip(ion_names[6:], ion_types[6:]): ttk.Checkbutton(f_ion2, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
-util.add_entry(f, I.next(), "Fragment Mass Error:", V["error2"], "ppm")
+util.add_entry(f, I.next(), "Fragment Mass Error:", V["error"], "ppm")
 
 f = F[FlowPCXL]
 I = util.Counter()
@@ -152,7 +205,7 @@ f_ion2.pack(fill="x")
 for n, t in zip(ion_names[0:6], ion_types[0:6]): ttk.Checkbutton(f_ion1, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
 for n, t in zip(ion_names[6:], ion_types[6:]): ttk.Checkbutton(f_ion2, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
 util.add_entry(f, I.next(), "Default Linker:", V["linker"])
-util.add_entry(f, I.next(), "Fragment Mass Error:", V["error2"], "ppm")
+util.add_entry(f, I.next(), "Fragment Mass Error:", V["error"], "ppm")
 
 f = F[FlowSNRDXL]
 I = util.Counter()
@@ -176,6 +229,6 @@ f_ion1.pack(fill="x")
 f_ion2.pack(fill="x")
 for n, t in zip(ion_names[0:6], ion_types[0:6]): ttk.Checkbutton(f_ion1, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
 for n, t in zip(ion_names[6:], ion_types[6:]): ttk.Checkbutton(f_ion2, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
-util.add_entry(f, I.next(), "Fragment Mass Error:", V["error2"], "ppm")
+util.add_entry(f, I.next(), "Fragment Mass Error:", V["error"], "ppm")
 
 select_flow(None, False)
