@@ -45,6 +45,11 @@ Retention time window size for targeted acquisition.
 The RT values are estimated using PSM and MS1.
 The size is the total length, instead of radius.
 
+#### LC Length
+LC Length of the LC-MS/MS experiment.
+`Inf` is also valid.
+RT values will be trimmed using the length.
+
 #### List Format
 TargetWizard Support three formats:
 - TargetWizard: most detailed format, including many useful information.
