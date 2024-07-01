@@ -101,3 +101,18 @@ Used when the mode is set to `by isolation center` only.
 where output results are saved to.
 
 ![TargetWizard Target Binding UI](assets/TargetWizard_bind.png)
+
+## Analysis Reports
+TargetWizard can generate various reports automatically to assist with targeted proteomics analysis.
+- Basic Acquisition Report
+- Target Selection Report
+- Target Acquisition Report
+- Peptide Coverage Report
+
+For details of these reports, please see the [manual](@ref report).
+
+## Interactive Visualization
+In addition to the static reports, TargetWizard provides an interactive visualization feature to help with insightful case studies.
+- Regular Peptide View
+
+For details of these reports, please see the [manual](@ref view).
