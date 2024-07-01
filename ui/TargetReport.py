@@ -8,10 +8,10 @@ import util
 main = ttk.Frame()
 main.pack(fill="both")
 
-FlowBA = "Basic Aquisition Report"
+FlowBA = "Basic Acquisition Report"
 FlowTS = "Target Selection Report"
-FlowTA = "Target Aquisition Report"
-FlowTAXL = "Target Aquisition Cross-linked Peptide Report"
+FlowTA = "Target Acquisition Report"
+FlowTAXL = "Target Acquisition Cross-linked Peptide Report"
 FlowPC = "Peptide Coverage Report"
 FlowPCXL = "Cross-linked Peptide Coverage Report"
 FlowSNRDXL = "Comparative Cross-link Signal-to-Noise Ratio Report"
@@ -38,8 +38,8 @@ for t in ion_types: vars_spec[f"ion_{t}"] = {"type": tk.IntVar, "value": 1}
 task = util.Task("TargetReport", vars_spec, path=meta.homedir, shared_vars_spec=meta.vars_spec, shared_vars=meta.vars)
 V = task.vars
 
-def run_basic_aquisition_report():
-    task.call(os.path.join(V["generators"].get(), "BasicAquisitionReport"), *(V["ms"].get().split(";")), "--out", V["out"].get())
+def run_basic_acquisition_report():
+    task.call(os.path.join(V["generators"].get(), "BasicAcquisitionReport"), *(V["ms"].get().split(";")), "--out", V["out"].get())
 
 def run_target_selection_report():
     task.call(os.path.join(V["generators"].get(), "TargetSelectionReport"),
@@ -47,8 +47,8 @@ def run_target_selection_report():
         "--fmt", meta.fmts_tg[V["fmt_tg"].get()],
     )
 
-def run_target_aquisition_report():
-    task.call(os.path.join(V["generators"].get(), "TargetAquisitionReport"),
+def run_target_acquisition_report():
+    task.call(os.path.join(V["generators"].get(), "TargetAcquisitionReport"),
         V["tg"].get(),
         "--ms", V["ms"].get(),
         "--ms_old", *(V["ms_"].get().split(";")),
@@ -62,8 +62,8 @@ def run_target_aquisition_report():
         "--cfg", V["cfg_pf"].get(),
     )
 
-def run_target_aquisition_xl_report():
-    task.call(os.path.join(V["generators"].get(), "TargetAquisitionXLReport"),
+def run_target_acquisition_xl_report():
+    task.call(os.path.join(V["generators"].get(), "TargetAcquisitionXLReport"),
         V["tg"].get(),
         "--ms", V["ms"].get(),
         "--ms_old", *(V["ms_"].get().split(";")),
@@ -114,10 +114,10 @@ def run_noise_ratio_dual_xl():
     )
 
 def run():
-    if V["flow"].get() == FlowBA: run_basic_aquisition_report()
+    if V["flow"].get() == FlowBA: run_basic_acquisition_report()
     elif V["flow"].get() == FlowTS: run_target_selection_report()
-    elif V["flow"].get() == FlowTA: run_target_aquisition_report()
-    elif V["flow"].get() == FlowTAXL: run_target_aquisition_xl_report()
+    elif V["flow"].get() == FlowTA: run_target_acquisition_report()
+    elif V["flow"].get() == FlowTAXL: run_target_acquisition_xl_report()
     elif V["flow"].get() == FlowPC: run_peptide_coverage_report()
     elif V["flow"].get() == FlowPCXL: run_peptide_coverage_xl_report()
     elif V["flow"].get() == FlowSNRDXL: run_noise_ratio_dual_xl()

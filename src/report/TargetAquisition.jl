@@ -1,4 +1,4 @@
-module TargetAquisitionReport
+module TargetAcquisitionReport
 
 using Statistics
 
@@ -167,12 +167,12 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_ft, fmt, ε, fdr, decoy
         df_tg[!, "best_iden$(K)_is_same_iden"] = last.(vs)
     end
 
-    UniMZ.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path_ms)[1])).target.TargetAquisitionReport.csv"))
-    UniMZ.safe_save(p -> CSV.write(p, df), joinpath(out, "$(basename(splitext(path_ms)[1])).psm.TargetAquisitionReport.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path_ms)[1])).target.TargetAcquisitionReport.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df), joinpath(out, "$(basename(splitext(path_ms)[1])).psm.TargetAcquisitionReport.csv"))
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="TargetAquisitionReport")
+    settings = ArgParse.ArgParseSettings(prog="TargetAcquisitionReport")
     ArgParse.@add_arg_table! settings begin
         "target"
             help = "target list"

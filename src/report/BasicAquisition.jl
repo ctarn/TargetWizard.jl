@@ -1,4 +1,4 @@
-module BasicAquisitionReport
+module BasicAcquisitionReport
 
 import ArgParse
 import UniMZ
@@ -11,11 +11,11 @@ prepare(args) = begin
 end
 
 process(path; out) = begin
-    Proteomics.Report.basic_aquisition(path, out)
+    Proteomics.Report.basic_acquisition(path, out)
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="BasicAquisitionReport")
+    settings = ArgParse.ArgParseSettings(prog="BasicAcquisitionReport")
     ArgParse.@add_arg_table! settings begin
         "data"
             help = "list of .umz or .ms1/2 files; .ms2/1 files should be in the same directory for .ms1/2"

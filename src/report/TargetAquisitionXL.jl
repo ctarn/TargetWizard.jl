@@ -1,4 +1,4 @@
-module TargetAquisitionXLReport
+module TargetAcquisitionXLReport
 
 # TODO remove pfind support
 
@@ -229,15 +229,15 @@ process(path; path_ms, paths_ms_old, path_psm, out, path_xl, path_ft, path_psm_p
         end
     end
 
-    UniMZ.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path_ms)[1])).target.TargetAquisitionXLReport.csv"))
-    UniMZ.safe_save(p -> CSV.write(p, df_psm), joinpath(out, "$(basename(splitext(path_ms)[1])).crosslink.TargetAquisitionXLReport.csv"))
-    UniMZ.safe_save(p -> CSV.write(p, df_linear), joinpath(out, "$(basename(splitext(path_ms)[1])).linear.TargetAquisitionXLReport.csv"))
-    UniMZ.safe_save(p -> CSV.write(p, df_mono), joinpath(out, "$(basename(splitext(path_ms)[1])).monolink.TargetAquisitionXLReport.csv"))
-    UniMZ.safe_save(p -> CSV.write(p, df_loop), joinpath(out, "$(basename(splitext(path_ms)[1])).looplink.TargetAquisitionXLReport.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_tg), joinpath(out, "$(basename(splitext(path_ms)[1])).target.TargetAcquisitionXLReport.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_psm), joinpath(out, "$(basename(splitext(path_ms)[1])).crosslink.TargetAcquisitionXLReport.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_linear), joinpath(out, "$(basename(splitext(path_ms)[1])).linear.TargetAcquisitionXLReport.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_mono), joinpath(out, "$(basename(splitext(path_ms)[1])).monolink.TargetAcquisitionXLReport.csv"))
+    UniMZ.safe_save(p -> CSV.write(p, df_loop), joinpath(out, "$(basename(splitext(path_ms)[1])).looplink.TargetAcquisitionXLReport.csv"))
 end
 
 main() = begin
-    settings = ArgParse.ArgParseSettings(prog="TargetAquisitionXLReport")
+    settings = ArgParse.ArgParseSettings(prog="TargetAcquisitionXLReport")
     ArgParse.@add_arg_table! settings begin
         "target"
             help = "target list"
