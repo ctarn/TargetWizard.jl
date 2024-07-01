@@ -114,7 +114,7 @@ util.add_entry(f, I.next(), "MS Data:", V["ms"], "Select", util.askfiles(V["ms"]
 f = F[FlowTS]
 I = util.Counter()
 util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
-util.add_entry(f, I.next(), "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
+util.add_combobox(f, I.next(), "List Format:", V["fmt_tg"], list(meta.fmts_tg.keys()))
 
 f = F[FlowTA]
 I = util.Counter()
@@ -157,7 +157,7 @@ util.add_entry(f, I.next(), "Fragment Mass Error:", V["error2"], "ppm")
 f = F[FlowSNRDXL]
 I = util.Counter()
 util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
-util.add_entry(f, I.next(), "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
+util.add_combobox(f, I.next(), "List Format:", V["fmt_tg"], list(meta.fmts_tg.keys()))
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
 ttk.Label(f, text="Data A").grid(column=0, row=I.next())
 util.add_entry(f, I.next(), "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))

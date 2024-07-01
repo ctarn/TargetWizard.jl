@@ -213,6 +213,9 @@ def add_separator(form, row, label=None):
     ttk.Separator(form, orient=tk.HORIZONTAL).grid(column=0, row=row, columnspan=3, sticky="EW")
     if label is not None: ttk.Label(form, text=label).grid(column=0, row=row, columnspan=3)
 
+def add_combobox(form, row, label, var, values, state="readonly", justify="center"):
+    add_entry(form, row, label, ttk.Combobox(form, textvariable=var, values=values, state=state, justify=justify))
+
 def askfile(var, out=None, **kwargs):
     def f():
         path = filedialog.askopenfilename(**kwargs)

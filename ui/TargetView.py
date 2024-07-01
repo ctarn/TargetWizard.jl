@@ -154,7 +154,7 @@ task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I.next(), columnspan=3)
 f = F[FlowR]
 I = util.Counter()
 util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
-util.add_entry(f, I.next(), "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
+util.add_combobox(f, I.next(), "List Format:", V["fmt_tg"], list(meta.fmts_tg.keys()))
 util.add_entry(f, I.next(), "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
 util.add_entry(f, I.next(), "Targeted MS PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm))
 util.add_entry(f, I.next(), "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=meta.filetype_ms))
@@ -169,7 +169,7 @@ ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW",
 f = F[FlowXL]
 I = util.Counter()
 util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
-util.add_entry(f, I.next(), "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
+util.add_combobox(f, I.next(), "List Format:", V["fmt_tg"], list(meta.fmts_tg.keys()))
 util.add_entry(f, I.next(), "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
 util.add_entry(f, I.next(), "Targeted MS PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], filetypes=meta.filetype_psm_xl))
 util.add_entry(f, I.next(), "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=meta.filetype_ms))
@@ -187,7 +187,7 @@ ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW",
 f = F[FlowDXL]
 I = util.Counter()
 util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
-util.add_entry(f, I.next(), "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
+util.add_combobox(f, I.next(), "List Format:", V["fmt_tg"], list(meta.fmts_tg.keys()))
 util.add_entry(f, I.next(), "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=meta.filetype_xl))
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
 ttk.Label(f, text="Data A").grid(column=0, row=I.next())
