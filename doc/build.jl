@@ -31,9 +31,14 @@ Documenter.deploydocs(repo=repo, target=joinpath("..", out), versions=nothing)
 
 pages = [
     "Home" => "index.md",
+    "install.md",
     "usage.md",
-    "dev.md",
+    "tutorial_prot.md",
+    "tutorial_xl.md",
+    "report.md",
+    "view.md",
     "faq.md",
+    "dev.md",
 ]
 
 Documenter.makedocs(; sitename="TargetWizard", build=joinpath("..", out), pages)

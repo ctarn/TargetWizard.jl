@@ -1,1 +1,1 @@
-# [Usage](@id usage)
+# [Baisc Usages](@id usage)
