@@ -23,8 +23,8 @@ vars_spec = {
     "out": {"type": tk.StringVar, "value": ""},
     "ms": {"type": tk.StringVar, "value": ""},
     "ms_": {"type": tk.StringVar, "value": ""},
-    "target": {"type": tk.StringVar, "value": ""},
-    "fmt_target": {"type": tk.StringVar, "value": "Auto Detect"},
+    "tg": {"type": tk.StringVar, "value": ""},
+    "fmt_tg": {"type": tk.StringVar, "value": "Auto Detect"},
     "psm": {"type": tk.StringVar, "value": ""},
     "psm_": {"type": tk.StringVar, "value": ""},
     "linker": {"type": tk.StringVar, "value": "DSSO"},
@@ -40,8 +40,8 @@ def run_basic_aquisition_report():
 
 def run_target_selection_report():
     task.call(os.path.join(V["generators"].get(), "TargetSelectionReport"),
-        *(V["target"].get().split(";")), "--out", V["out"].get(),
-        "--fmt", meta.fmts_tg[V["fmt_target"].get()],
+        *(V["tg"].get().split(";")), "--out", V["out"].get(),
+        "--fmt", meta.fmts_tg[V["fmt_tg"].get()],
     )
 
 def run_target_aquisition_report():
@@ -70,11 +70,11 @@ def run_peptide_coverage_xl_report():
     )
 
 def run_noise_ratio_dual_xl():
-    task.call(os.path.join(V["generators"].get(), "NoiseRatioDualXLReport"), V["target"].get(),
+    task.call(os.path.join(V["generators"].get(), "NoiseRatioDualXLReport"), V["tg"].get(),
         "--ms", V["ms"].get(), V["ms_"].get(),
         "--psm", V["psm"].get(), V["psm_"].get(),
         "--out", V["out"].get(),
-        "--fmt", meta.fmts_tg[V["fmt_target"].get()],
+        "--fmt", meta.fmts_tg[V["fmt_tg"].get()],
         "--linker", V["linker"].get(),
         "--fdr", V["fdr"].get(),
         "--ion", ",".join([t for t in ion_types if V[f"ion_{t}"].get()]),
@@ -117,16 +117,16 @@ I += 1
 
 f = F[FlowTS]
 I = 0
-util.add_entry(f, I, "Target List:", V["target"], "Select", util.askfiles(V["target"], V["out"], filetypes=meta.filetype_tg))
+util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
 I += 1
 
 f = F[FlowTA]
 I = 0
 ttk.Label(f, text=f"{FlowTA} Not Available").grid(column=0, row=I, columnspan=3)
 I += 1
-util.add_entry(f, I, "Target List:", V["target"], "Select", util.askfiles(V["target"], V["out"], filetypes=meta.filetype_tg))
+util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
 I += 1
 util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
 I += 1
@@ -174,9 +174,9 @@ util.add_entry(f, I, "Fragment Mass Error:", V["error2"], "ppm")
 
 f = F[FlowSNRDXL]
 I = 0
-util.add_entry(f, I, "Target List:", V["target"], "Select", util.askfiles(V["target"], V["out"], filetypes=meta.filetype_tg))
+util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
 I += 1
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
 ttk.Label(f, text="Data A").grid(column=0, row=I)

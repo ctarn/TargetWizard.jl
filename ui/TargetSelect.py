@@ -18,7 +18,7 @@ fmts = ["TW", "TmQE", "TmFu"]
 fmts_name = ["TargetWizard", "Thermo Q Exactive", "Thermo Fusion"]
 vars_spec = {
     "flow": {"type": tk.StringVar, "value": FlowR},
-    "data": {"type": tk.StringVar, "value": ""},
+    "ms": {"type": tk.StringVar, "value": ""},
     "psm": {"type": tk.StringVar, "value": ""},
     "out": {"type": tk.StringVar, "value": ""},
     "name": {"type": tk.StringVar, "value": "TargetWizard"},
@@ -39,7 +39,7 @@ task = util.Task("TargetSelect", vars_spec, path=meta.homedir, shared_vars_spec=
 V = task.vars
 
 def run_select():
-    task.call(V["targetselect"].get(), *(V["data"].get().split(";")),
+    task.call(V["targetselect"].get(), *(V["ms"].get().split(";")),
         "--psm", V["psm"].get(),
         "--out", V["out"].get(),
         "--name", V["name"].get(),
@@ -56,7 +56,7 @@ def run_select():
     )
 
 def run_selectxl():
-    task.call(V["targetselectxl"].get(), *(V["data"].get().split(";")),
+    task.call(V["targetselectxl"].get(), *(V["ms"].get().split(";")),
         "--psm", V["psm"].get(),
         "--out", V["out"].get(),
         "--name", V["name"].get(),
@@ -107,7 +107,7 @@ task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I, columnspan=3)
 
 f = F[FlowR]
 I = 0
-util.add_entry(f, I, "Data:", V["data"], "Select", util.askfiles(V["data"], V["out"], filetypes=meta.filetype_ms))
+util.add_entry(f, I, "Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
 I += 1
 util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm))
 I += 1
@@ -128,7 +128,7 @@ for t in tds: ttk.Checkbutton(tmp, text=t, variable=V[f"td_{t}"]).pack(side="lef
 
 f = F[FlowXL]
 I = 0
-util.add_entry(f, I, "Data:", V["data"], "Select", util.askfiles(V["data"], V["out"], filetypes=meta.filetype_ms))
+util.add_entry(f, I, "Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
 I += 1
 util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm_xl))
 I += 1

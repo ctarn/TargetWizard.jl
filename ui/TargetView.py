@@ -19,7 +19,7 @@ vars_spec = {
     "flow": {"type": tk.StringVar, "value": FlowXL},
     "out": {"type": tk.StringVar, "value": ""},
     "tg": {"type": tk.StringVar, "value": ""},
-    "fmt_target": {"type": tk.StringVar, "value": "Auto Detect"},
+    "fmt_tg": {"type": tk.StringVar, "value": "Auto Detect"},
     "ms": {"type": tk.StringVar, "value": ""},
     "ms_": {"type": tk.StringVar, "value": ""},
     "psm": {"type": tk.StringVar, "value": ""},
@@ -47,7 +47,7 @@ def run_view():
         "--psm", V["psm"].get(),
         "--out", V["out"].get(),
         "--ft", V["ft"].get(),
-        "--fmt", meta.fmts_tg[V["fmt_target"].get()],
+        "--fmt", meta.fmts_tg[V["fmt_tg"].get()],
         "--error", V["error"].get(),
         "--ms_sim_thres", V["ms_sim_thres"].get(),
         "--fdr", V["fdr"].get(),
@@ -66,7 +66,7 @@ def run_xl_view():
         "--xl", V["xl"].get(),
         "--ft", V["ft"].get(),
         "--psm_pf", V["psm"].get(),
-        "--fmt", meta.fmts_tg[V["fmt_target"].get()],
+        "--fmt", meta.fmts_tg[V["fmt_tg"].get()],
         "--linker", V["linker"].get(),
         "--error", V["error"].get(),
         "--ms_sim_thres", V["ms_sim_thres"].get(),
@@ -85,7 +85,7 @@ def run_dual_xl_view():
         "--out", V["out"].get(),
         "--xl", V["xl"].get(),
         "--ft", V["ft"].get(), V["ft_"].get(),
-        "--fmt", meta.fmts_tg[V["fmt_target"].get()],
+        "--fmt", meta.fmts_tg[V["fmt_tg"].get()],
         "--linker", V["linker"].get(),
         "--error", V["error"].get(),
         "--fdr", V["fdr"].get(),
@@ -159,7 +159,7 @@ f = F[FlowR]
 I = 0
 util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
 I += 1
 util.add_entry(f, I, "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
 I += 1
@@ -184,7 +184,7 @@ f = F[FlowXL]
 I = 0
 util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
 I += 1
 util.add_entry(f, I, "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
 I += 1
@@ -215,7 +215,7 @@ f = F[FlowDXL]
 I = 0
 util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
 I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_target"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
+util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
 I += 1
 util.add_entry(f, I, "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=meta.filetype_xl))
 I += 1
