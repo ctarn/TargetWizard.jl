@@ -5,7 +5,7 @@
 - PSM search results of pLink, e.g., DDA.psm.csv
 - filtered PSM search results of pLink, e.g., ****.filtered_cross-linked_spectra.csv
 
-## Preprocessing
+## Preparation
 #### MS Data Format
 The raw data should be converted into an open-source format such as MS1/MS2.
 Using [ThermoRawRead](http://thermorawread.ctarn.io) is recommended.

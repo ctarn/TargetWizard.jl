@@ -4,7 +4,7 @@
 - traditional mass spectrometry data, e.g., DDA.raw
 - PSM search results of pFind, e.g., DDA.psm.csv or pFind-filtered.spectra
 
-## Preprocessing
+## Preparation
 #### MS Data Format
 The raw data should be converted into an open-source format such as MS1/MS2.
 Using [ThermoRawRead](http://thermorawread.ctarn.io) is recommended.
