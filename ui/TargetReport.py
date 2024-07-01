@@ -98,114 +98,84 @@ def select_flow(_=None, verbose=True):
     F[V["flow"].get()].grid(column=0, row=I_fs, columnspan=3, sticky="EW")
 
 util.init_form(main)
-I = 0
+I = util.Counter()
 c = ttk.Combobox(main, textvariable=V["flow"], values=flows, state="readonly", justify="center")
 c.bind("<<ComboboxSelected>>", select_flow)
-c.grid(column=0, row=I, columnspan=3, sticky="EW", padx=16, pady=4)
-I += 1
-F = {r: util.init_form(ttk.Frame(main)) for r in flows}
-I_fs = I
-I += 1
-util.add_entry(main, I, "Output Directory:", V["out"], "Select", util.askdir(V["out"]))
-I += 1
-task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I, columnspan=3)
+c.grid(column=0, row=I.next(), columnspan=3, sticky="EW", padx=16, pady=4)
+F = {f: util.init_form(ttk.Frame(main)) for f in flows}
+I_fs = I.next()
+util.add_entry(main, I.next(), "Output Directory:", V["out"], "Select", util.askdir(V["out"]))
+task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I.next(), columnspan=3)
 
 f = F[FlowBA]
-I = 0
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
-I += 1
+I = util.Counter()
+util.add_entry(f, I.next(), "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
 
 f = F[FlowTS]
-I = 0
-util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
-I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
-I += 1
+I = util.Counter()
+util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
+util.add_entry(f, I.next(), "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
 
 f = F[FlowTA]
-I = 0
-ttk.Label(f, text=f"{FlowTA} Not Available").grid(column=0, row=I, columnspan=3)
-I += 1
-util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
-I += 1
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
-I += 1
+I = util.Counter()
+ttk.Label(f, text=f"{FlowTA} Not Available").grid(column=0, row=I.next(), columnspan=3)
+util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
+util.add_entry(f, I.next(), "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
 
 f = F[FlowTAXL]
-I = 0
-ttk.Label(f, text=f"{FlowTAXL} Not Available").grid(column=0, row=I, columnspan=3)
-I += 1
-util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm_xl))
-I += 1
+I = util.Counter()
+ttk.Label(f, text=f"{FlowTAXL} Not Available").grid(column=0, row=I.next(), columnspan=3)
+util.add_entry(f, I.next(), "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm_xl))
 
 f = F[FlowPC]
-I = 0
-util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], V["out"], filetypes=meta.filetype_psm))
-I += 1
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
-I += 1
-_, f_ion, _ = util.add_entry(f, I, "Ion Type:", ttk.Frame(f, height=24))
+I = util.Counter()
+util.add_entry(f, I.next(), "PSM:", V["psm"], "Select", util.askfile(V["psm"], V["out"], filetypes=meta.filetype_psm))
+util.add_entry(f, I.next(), "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
+_, f_ion, _ = util.add_entry(f, I.next(), "Ion Type:", ttk.Frame(f, height=24))
 f_ion1 = ttk.Frame(f_ion)
 f_ion2 = ttk.Frame(f_ion)
 f_ion1.pack(fill="x")
 f_ion2.pack(fill="x")
 for n, t in zip(ion_names[0:6], ion_types[0:6]): ttk.Checkbutton(f_ion1, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
 for n, t in zip(ion_names[6:], ion_types[6:]): ttk.Checkbutton(f_ion2, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
-I += 1
-util.add_entry(f, I, "Fragment Mass Error:", V["error2"], "ppm")
+util.add_entry(f, I.next(), "Fragment Mass Error:", V["error2"], "ppm")
 
 f = F[FlowPCXL]
-I = 0
-util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], V["out"], filetypes=meta.filetype_psm_xl))
-I += 1
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
-I += 1
-_, f_ion, _ = util.add_entry(f, I, "Ion Type:", ttk.Frame(f, height=24))
+I = util.Counter()
+util.add_entry(f, I.next(), "PSM:", V["psm"], "Select", util.askfile(V["psm"], V["out"], filetypes=meta.filetype_psm_xl))
+util.add_entry(f, I.next(), "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
+_, f_ion, _ = util.add_entry(f, I.next(), "Ion Type:", ttk.Frame(f, height=24))
 f_ion1 = ttk.Frame(f_ion)
 f_ion2 = ttk.Frame(f_ion)
 f_ion1.pack(fill="x")
 f_ion2.pack(fill="x")
 for n, t in zip(ion_names[0:6], ion_types[0:6]): ttk.Checkbutton(f_ion1, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
 for n, t in zip(ion_names[6:], ion_types[6:]): ttk.Checkbutton(f_ion2, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
-I += 1
-util.add_entry(f, I, "Default Linker:", V["linker"])
-I += 1
-util.add_entry(f, I, "Fragment Mass Error:", V["error2"], "ppm")
+util.add_entry(f, I.next(), "Default Linker:", V["linker"])
+util.add_entry(f, I.next(), "Fragment Mass Error:", V["error2"], "ppm")
 
 f = F[FlowSNRDXL]
-I = 0
-util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
-I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
-I += 1
-ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
-ttk.Label(f, text="Data A").grid(column=0, row=I)
-I += 1
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
-I += 1
-util.add_entry(f, I, "XL PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm_xl))
-I += 1
-ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
-ttk.Label(f, text="Data B").grid(column=0, row=I)
-I += 1
-util.add_entry(f, I, "MS Data:", V["ms_"], "Select", util.askfile(V["ms_"], filetypes=meta.filetype_ms))
-I += 1
-util.add_entry(f, I, "XL PSM:", V["psm_"], "Select", util.askfile(V["psm_"], filetypes=meta.filetype_psm_xl))
-I += 1
-ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
-I += 1
-util.add_entry(f, I, "Default Linker:", V["linker"])
-I += 1
-util.add_entry(f, I, "FDR:", V["fdr"], "%")
-I += 1
-_, f_ion, _ = util.add_entry(f, I, "Ion Type:", ttk.Frame(f, height=24))
+I = util.Counter()
+util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
+util.add_entry(f, I.next(), "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
+ttk.Label(f, text="Data A").grid(column=0, row=I.next())
+util.add_entry(f, I.next(), "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "XL PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm_xl))
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
+ttk.Label(f, text="Data B").grid(column=0, row=I.next())
+util.add_entry(f, I.next(), "MS Data:", V["ms_"], "Select", util.askfile(V["ms_"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "XL PSM:", V["psm_"], "Select", util.askfile(V["psm_"], filetypes=meta.filetype_psm_xl))
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
+util.add_entry(f, I.next(), "Default Linker:", V["linker"])
+util.add_entry(f, I.next(), "FDR:", V["fdr"], "%")
+_, f_ion, _ = util.add_entry(f, I.next(), "Ion Type:", ttk.Frame(f, height=24))
 f_ion1 = ttk.Frame(f_ion)
 f_ion2 = ttk.Frame(f_ion)
 f_ion1.pack(fill="x")
 f_ion2.pack(fill="x")
 for n, t in zip(ion_names[0:6], ion_types[0:6]): ttk.Checkbutton(f_ion1, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
 for n, t in zip(ion_names[6:], ion_types[6:]): ttk.Checkbutton(f_ion2, text=n, variable=V[f"ion_{t}"]).pack(side="left", expand=True)
-I += 1
-util.add_entry(f, I, "Fragment Mass Error:", V["error2"], "ppm")
+util.add_entry(f, I.next(), "Fragment Mass Error:", V["error2"], "ppm")
 
 select_flow(None, False)

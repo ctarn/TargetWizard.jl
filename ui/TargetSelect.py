@@ -84,70 +84,52 @@ def select_flow(_=None, verbose=True):
     F[V["flow"].get()].grid(column=0, row=I_fs, columnspan=3, sticky="EW")
 
 util.init_form(main)
-I = 0
+I = util.Counter()
 c = ttk.Combobox(main, textvariable=V["flow"], values=flows, state="readonly", justify="center")
 c.bind("<<ComboboxSelected>>", select_flow)
-c.grid(column=0, row=I, columnspan=3, sticky="EW", padx=16, pady=4)
-I += 1
-F = {v: util.init_form(ttk.Frame(main)) for v in flows}
-I_fs = I
-I += 1
-util.add_entry(main, I, "Batch Size:", V["batch"])
-I += 1
-util.add_entry(main, I, "RT Window:", V["rtime"], "sec")
-I += 1
-util.add_entry(main, I, "LC Length:", V["lc"], "min")
-I += 1
-_, f, _ = util.add_entry(main, I, "List Format:", ttk.Frame(main))
+c.grid(column=0, row=I.next(), columnspan=3, sticky="EW", padx=16, pady=4)
+F = {f: util.init_form(ttk.Frame(main)) for f in flows}
+I_fs = I.next()
+util.add_entry(main, I.next(), "Batch Size:", V["batch"])
+util.add_entry(main, I.next(), "RT Window:", V["rtime"], "sec")
+util.add_entry(main, I.next(), "LC Length:", V["lc"], "min")
+_, f, _ = util.add_entry(main, I.next(), "List Format:", ttk.Frame(main))
 for t, n in zip(fmts, fmts_name): ttk.Checkbutton(f, text=n, variable=V[f"fmt_{t}"]).pack(side="left", expand=True)
-I += 1
-util.add_entry(main, I, "Output Directory:", V["out"], "Select", util.askdir(V["out"]))
-I += 1
-task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I, columnspan=3)
+util.add_entry(main, I.next(), "Output Directory:", V["out"], "Select", util.askdir(V["out"]))
+task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I.next(), columnspan=3)
 
 f = F[FlowR]
-I = 0
-util.add_entry(f, I, "Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
-I += 1
-util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm))
-I += 1
-util.add_entry(f, I, "Task Name:", V["name"])
-I += 1
-util.add_entry(f, I, "Max. MS1 Mass Error:", V["error"], "ppm")
-I += 1
-_, tmp, _ = util.add_entry(f, I, "FDR Range:", ttk.Frame(f), "%")
+I = util.Counter()
+util.add_entry(f, I.next(), "Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm))
+util.add_entry(f, I.next(), "Task Name:", V["name"])
+util.add_entry(f, I.next(), "Max. MS1 Mass Error:", V["error"], "ppm")
+_, tmp, _ = util.add_entry(f, I.next(), "FDR Range:", ttk.Frame(f), "%")
 ttk.Entry(tmp, textvariable=V["fdr_min"]).pack(side="left", fill="x", expand=True)
 ttk.Label(tmp, text="% ").pack(side="left")
 ttk.Combobox(tmp, textvariable=V["fdr_ge"], values=("<", "≤"), state="readonly", justify="center", width=2).pack(side="left")
 ttk.Label(tmp, text=" FDR ").pack(side="left")
 ttk.Combobox(tmp, textvariable=V["fdr_le"], values=("<", "≤"), state="readonly", justify="center", width=2).pack(side="left")
 ttk.Entry(tmp, textvariable=V["fdr_max"]).pack(side="left", fill="x", expand=True)
-I += 1
-_, tmp, _ = util.add_entry(f, I, "Target / Decoy Type:", ttk.Frame(f))
+_, tmp, _ = util.add_entry(f, I.next(), "Target / Decoy Type:", ttk.Frame(f))
 for t in tds: ttk.Checkbutton(tmp, text=t, variable=V[f"td_{t}"]).pack(side="left", expand=True)
 
 f = F[FlowXL]
-I = 0
-util.add_entry(f, I, "Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
-I += 1
-util.add_entry(f, I, "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm_xl))
-I += 1
-util.add_entry(f, I, "Task Name:", V["name"])
-I += 1
-util.add_entry(f, I, "Max. MS1 Mass Error:", V["error"], "ppm")
-I += 1
-_, tmp, _ = util.add_entry(f, I, "FDR Range:", ttk.Frame(f), "%")
+I = util.Counter()
+util.add_entry(f, I.next(), "Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm_xl))
+util.add_entry(f, I.next(), "Task Name:", V["name"])
+util.add_entry(f, I.next(), "Max. MS1 Mass Error:", V["error"], "ppm")
+_, tmp, _ = util.add_entry(f, I.next(), "FDR Range:", ttk.Frame(f), "%")
 ttk.Entry(tmp, textvariable=V["fdr_min"]).pack(side="left", fill="x", expand=True)
 ttk.Label(tmp, text="% ").pack(side="left")
 ttk.Combobox(tmp, textvariable=V["fdr_ge"], values=("<", "≤"), state="readonly", justify="center", width=2).pack(side="left")
 ttk.Label(tmp, text=" FDR ").pack(side="left")
 ttk.Combobox(tmp, textvariable=V["fdr_le"], values=("<", "≤"), state="readonly", justify="center", width=2).pack(side="left")
 ttk.Entry(tmp, textvariable=V["fdr_max"]).pack(side="left", fill="x", expand=True)
-I += 1
-_, tmp, _ = util.add_entry(f, I, "Target / Decoy Type:", ttk.Frame(f))
+_, tmp, _ = util.add_entry(f, I.next(), "Target / Decoy Type:", ttk.Frame(f))
 for t in tds_xl: ttk.Checkbutton(tmp, text=t, variable=V[f"td_{t}"]).pack(side="left", expand=True)
-I += 1
-_, tmp, _ = util.add_entry(f, I, "Inter- / Intra-Protein:", ttk.Frame(f))
+_, tmp, _ = util.add_entry(f, I.next(), "Inter- / Intra-Protein:", ttk.Frame(f))
 for t in pts: ttk.Checkbutton(tmp, text=t, variable=V[f"pt_{t}"]).pack(side="left", expand=True)
 
 select_flow(None, False)

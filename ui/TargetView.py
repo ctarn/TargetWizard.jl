@@ -141,132 +141,83 @@ def select_flow(_=None, verbose=True):
     F[V["flow"].get()].grid(column=0, row=I_fs, columnspan=3, sticky="EW")
 
 util.init_form(main)
-I = 0
+I = util.Counter()
 c = ttk.Combobox(main, textvariable=V["flow"], values=flows, state="readonly", justify="center")
 c.bind("<<ComboboxSelected>>", select_flow)
-c.grid(column=0, row=I, columnspan=3, sticky="EW", padx=16, pady=4)
-I += 1
-F = {v: util.init_form(ttk.Frame(main)) for v in flows}
-I_fs = I
-I += 1
-util.add_entry(main, I, "URL:", V["url"], "New Port", new_port)
-I += 1
-util.add_entry(main, I, "Output Directory:", V["out"], "Select", util.askdir(V["out"]))
-I += 1
-task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I, columnspan=3)
+c.grid(column=0, row=I.next(), columnspan=3, sticky="EW", padx=16, pady=4)
+F = {f: util.init_form(ttk.Frame(main)) for f in flows}
+I_fs = I.next()
+util.add_entry(main, I.next(), "URL:", V["url"], "New Port", new_port)
+util.add_entry(main, I.next(), "Output Directory:", V["out"], "Select", util.askdir(V["out"]))
+task.init_ctrl(ttk.Frame(main), run).grid(column=0, row=I.next(), columnspan=3)
 
 f = F[FlowR]
-I = 0
-util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
-I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
-I += 1
-util.add_entry(f, I, "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
-I += 1
-util.add_entry(f, I, "Targeted MS PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm))
-I += 1
-util.add_entry(f, I, "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=meta.filetype_ms))
-I += 1
-util.add_entry(f, I, "Max. MS1 Mass Error:", V["error"], "ppm")
-I += 1
-util.add_entry(f, I, "FDR Threshold:", V["fdr"], "%")
-I += 1
-util.add_entry(f, I, "MS Sim. Thres.:", V["ms_sim_thres"])
-I += 1
-ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
-ttk.Label(f, text="Optional").grid(column=0, row=I)
-I += 1
-util.add_entry(f, I, "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=meta.filetype_prec))
-I += 1
-ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
+I = util.Counter()
+util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
+util.add_entry(f, I.next(), "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
+util.add_entry(f, I.next(), "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "Targeted MS PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm))
+util.add_entry(f, I.next(), "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "Max. MS1 Mass Error:", V["error"], "ppm")
+util.add_entry(f, I.next(), "FDR Threshold:", V["fdr"], "%")
+util.add_entry(f, I.next(), "MS Sim. Thres.:", V["ms_sim_thres"])
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
+ttk.Label(f, text="Optional").grid(column=0, row=I.next())
+util.add_entry(f, I.next(), "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=meta.filetype_prec))
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
 
 f = F[FlowXL]
-I = 0
-util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
-I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
-I += 1
-util.add_entry(f, I, "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
-I += 1
-util.add_entry(f, I, "Targeted MS PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], filetypes=meta.filetype_psm_xl))
-I += 1
-util.add_entry(f, I, "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=meta.filetype_ms))
-I += 1
-util.add_entry(f, I, "Default Linker:", V["linker"])
-I += 1
-util.add_entry(f, I, "Max. MS1 Mass Error:", V["error"], "ppm")
-I += 1
-util.add_entry(f, I, "FDR Threshold:", V["fdr"], "%")
-I += 1
-util.add_entry(f, I, "MS Sim. Thres.:", V["ms_sim_thres"])
-I += 1
-ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
-ttk.Label(f, text="Optional").grid(column=0, row=I)
-I += 1
-util.add_entry(f, I, "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=meta.filetype_xl))
-I += 1
-util.add_entry(f, I, "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=meta.filetype_prec))
-I += 1
-util.add_entry(f, I, "Linear PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm))
-I += 1
-ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
+I = util.Counter()
+util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
+util.add_entry(f, I.next(), "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
+util.add_entry(f, I.next(), "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "Targeted MS PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], filetypes=meta.filetype_psm_xl))
+util.add_entry(f, I.next(), "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "Default Linker:", V["linker"])
+util.add_entry(f, I.next(), "Max. MS1 Mass Error:", V["error"], "ppm")
+util.add_entry(f, I.next(), "FDR Threshold:", V["fdr"], "%")
+util.add_entry(f, I.next(), "MS Sim. Thres.:", V["ms_sim_thres"])
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
+ttk.Label(f, text="Optional").grid(column=0, row=I.next())
+util.add_entry(f, I.next(), "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=meta.filetype_xl))
+util.add_entry(f, I.next(), "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=meta.filetype_prec))
+util.add_entry(f, I.next(), "Linear PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm))
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
 
 f = F[FlowDXL]
-I = 0
-util.add_entry(f, I, "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
-I += 1
-util.add_entry(f, I, "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
-I += 1
-util.add_entry(f, I, "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=meta.filetype_xl))
-I += 1
-ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
-ttk.Label(f, text="Data A").grid(column=0, row=I)
-I += 1
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
-I += 1
-util.add_entry(f, I, "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=meta.filetype_prec))
-I += 1
-util.add_entry(f, I, "XL PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], filetypes=meta.filetype_psm_xl))
-I += 1
-ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
-ttk.Label(f, text="Data B").grid(column=0, row=I)
-I += 1
-util.add_entry(f, I, "MS Data:", V["ms_"], "Select", util.askfile(V["ms_"], filetypes=meta.filetype_ms))
-I += 1
-util.add_entry(f, I, "Feature List:", V["ft_"], "Select", util.askfile(V["ft_"], filetypes=meta.filetype_prec))
-I += 1
-util.add_entry(f, I, "XL PSM:", V["psm_xl_"], "Select", util.askfile(V["psm_xl_"], filetypes=meta.filetype_psm_xl))
-I += 1
-ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I, sticky="EW", padx=12)
-I += 1
-util.add_entry(f, I, "Default Linker:", V["linker"])
-I += 1
-util.add_entry(f, I, "MS1 Mass Error:", V["error"], "ppm")
-I += 1
-util.add_entry(f, I, "FDR:", V["fdr"], "%")
+I = util.Counter()
+util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfiles(V["tg"], V["out"], filetypes=meta.filetype_tg))
+util.add_entry(f, I.next(), "List Format:", ttk.Combobox(f, textvariable=V["fmt_tg"], values=list(meta.fmts_tg.keys()), state="readonly", justify="center"))
+util.add_entry(f, I.next(), "Candidate XL List:", V["xl"], "Select", util.askfile(V["xl"], filetypes=meta.filetype_xl))
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
+ttk.Label(f, text="Data A").grid(column=0, row=I.next())
+util.add_entry(f, I.next(), "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "Feature List:", V["ft"], "Select", util.askfile(V["ft"], filetypes=meta.filetype_prec))
+util.add_entry(f, I.next(), "XL PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], filetypes=meta.filetype_psm_xl))
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
+ttk.Label(f, text="Data B").grid(column=0, row=I.next())
+util.add_entry(f, I.next(), "MS Data:", V["ms_"], "Select", util.askfile(V["ms_"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "Feature List:", V["ft_"], "Select", util.askfile(V["ft_"], filetypes=meta.filetype_prec))
+util.add_entry(f, I.next(), "XL PSM:", V["psm_xl_"], "Select", util.askfile(V["psm_xl_"], filetypes=meta.filetype_psm_xl))
+ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
+util.add_entry(f, I.next(), "Default Linker:", V["linker"])
+util.add_entry(f, I.next(), "MS1 Mass Error:", V["error"], "ppm")
+util.add_entry(f, I.next(), "FDR:", V["fdr"], "%")
 
 f = F[FlowXLS]
-I = 0
-util.add_entry(f, I, "XL PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], V["out"], filetypes=meta.filetype_psm_xl))
-I += 1
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
-I += 1
-util.add_entry(f, I, "Default Linker:", V["linker"])
-I += 1
-util.add_entry(f, I, "Max. Mass Error:", V["error"], "ppm")
-I += 1
-util.add_entry(f, I, "Intensity Thres.:", V["inten_thres"])
-I += 1
-util.add_entry(f, I, "Smooth Width:", V["smooth"])
+I = util.Counter()
+util.add_entry(f, I.next(), "XL PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], V["out"], filetypes=meta.filetype_psm_xl))
+util.add_entry(f, I.next(), "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "Default Linker:", V["linker"])
+util.add_entry(f, I.next(), "Max. Mass Error:", V["error"], "ppm")
+util.add_entry(f, I.next(), "Intensity Thres.:", V["inten_thres"])
+util.add_entry(f, I.next(), "Smooth Width:", V["smooth"])
 
 f = F[FlowESXL]
-I = 0
-util.add_entry(f, I, "Peptide List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
-I += 1
-util.add_entry(f, I, "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], filetypes=meta.filetype_ms))
-I += 1
-util.add_entry(f, I, "Default Linker:", V["linker"])
-I += 1
-util.add_entry(f, I, "Max. Mass Error:", V["error"], "ppm")
+I = util.Counter()
+util.add_entry(f, I.next(), "Peptide List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
+util.add_entry(f, I.next(), "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], filetypes=meta.filetype_ms))
+util.add_entry(f, I.next(), "Default Linker:", V["linker"])
+util.add_entry(f, I.next(), "Max. Mass Error:", V["error"], "ppm")
 
 select_flow(None, False)
