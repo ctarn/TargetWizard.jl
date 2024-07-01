@@ -250,3 +250,17 @@ def switch_widget(var, widgets, row):
         if verbose: print("selected:", var.get())
         widgets[var.get()].grid(column=0, row=row, columnspan=3, sticky="EW")
     return f
+
+class Counter:
+    n = 0
+
+    def __init__(self, n=0):
+        self.n = n
+
+    def next(self):
+        n_ = self.n
+        self.n += 1
+        return n_
+
+    def last(self):
+        return self.n
