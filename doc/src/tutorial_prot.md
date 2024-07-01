@@ -55,3 +55,49 @@ TargetWizard Support three formats:
 where output results are saved to.
 
 ![TargetWizard Target Selection UI](assets/TargetWizard_select.png)
+
+## Target Binding
+TargetWizard provides three strategies to bind targets and MS data acquired using the target list.
+The feature exports various MS formats including MS2, MGF, and PF2, which can be used for further analysis.
+You can use the exported data for further identification.
+The matched targets are used as precursor ions of these MS2 scans.
+
+The parameters are described as below:
+#### Targeted MS Data
+MS data acquired using the target list
+
+#### Target List
+previously generated list of interested targets.
+
+#### List Format
+Four options are available:
+- Auto Detect
+- TargetWizard
+- Thermo Q Exactive
+- Thermo Fusion
+
+#### Binding Mode
+Three options are available:
+- by isolation center: match targets and MS2 scans when targets are isolation centers of these MS2 scans.
+- by isolation window: match targets and MS2 scans when targets are in isolation windows of these MS2 scans.
+- by extended isolation window: similar to `by isolation window` but extend the windows to the left by 1 Th so that incompleted precursor isotope clusters can also be considered for identification.
+
+#### Max. RTime Error
+When setting the error to zero, only match targets and MS2 scans when scans are in the RT window of the targets.
+The RT window will be extended by setting the error to larger values.
+
+#### Max. Mass Error
+Mass Error for targets and MS2 scans.
+Used when the mode is set to `by isolation center` only.
+
+#### Output Format
+- CSV
+- TSV
+- MS2
+- MGF
+- PF2
+
+#### Output Directory
+where output results are saved to.
+
+![TargetWizard Target Binding UI](assets/TargetWizard_bind.png)
