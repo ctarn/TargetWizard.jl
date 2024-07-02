@@ -1,1 +1,1 @@
-# [TargetWizard Generated Report Manual](@id report)
+# [TargetWizard Analysis Report Manual](@id report)
