@@ -15,7 +15,7 @@ mass error used to match targets, PSMs, and MS scans.
 used to filter PSM list.
 
 #### MS Sim. Thres.
-used to match troditional and targeted MS scans.
+used to match traditional and targeted MS scans.
 
 ## Output Results
 Once finished, TargetWizard will save two reports to `Output Directroy`.
