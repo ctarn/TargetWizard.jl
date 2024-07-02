@@ -8,7 +8,7 @@ Once finished, TargetWizard will save a report to `Output Directroy`, and open t
 - `html` report, e.g., `TargetSelectionReport.html` ([example](../../assets/report/TargetSelectionReport.html)).
 
 ## Usage
-![Basic Acquisition Report](../../assets/report/TargetSelectionReport.png)
+![Target Selection Report](../../assets/report/TargetSelectionReport.png)
 
 ## Example
 The report will show statistics plots of the MS data, including:
