@@ -39,6 +39,7 @@ pages = [
             "manual/report/BasicAcquisitionReport.md"
             "manual/report/TargetSelectionReport.md"
             "manual/report/TargetAcquisitionReport.md"
+            "manual/report/PeptideCoverageReport.md"
         ],
         "Interactive Visualization Views" => [],
     ],
