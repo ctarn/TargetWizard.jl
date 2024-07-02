@@ -4,9 +4,9 @@ TargetWizard is a utility software to set targeted mass spectrometry experiments
 
 The documentations include the following parts:
 - [Start Guide](@ref guide)
- - [Installation](@ref install)
- - [Usages](@ref usage)
- - [Frequently Asked Questions](@ref faq)
+  - [Installation](@ref install)
+  - [Usages](@ref usage)
+  - [Frequently Asked Questions](@ref faq)
 - [Proteomics Analysis Tutorial](@ref tutorial_prot)
 - [Cross-linking Proteomics Analysis Tutorial](@ref tutorial_xl)
 - [TargetWizard Analysis Report Manual](@ref report)

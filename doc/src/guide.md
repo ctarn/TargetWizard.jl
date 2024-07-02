@@ -1,4 +1,5 @@
 # [Start Guide](@id guide)
+
 ## [Installation](@id install)
 ### Linux
 Please download the software from [https://targetwizard.ctarn.io](https://targetwizard.ctarn.io).
@@ -171,8 +172,8 @@ julia> methods(TargetWizard.TargetSelect.build_target)
 
 julia> 
 ```
-## [Frequently Asked Questions](@id faq)
 
+## [Frequently Asked Questions](@id faq)
 - macOS says: “TargetWizard.app” is damaged and can’t be opened. You should move it to the Trash.
 
 Please run `sudo xattr -r -d com.apple.quarantine [path/to/TargetWizard.app]` in terminal.

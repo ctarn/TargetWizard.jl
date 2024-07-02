@@ -19,6 +19,7 @@ TargetWizard provides the `TargetSelect` feature to generate a target list (a.k.
 As shown in the following GUI, you can filter the PSM list by FDR value, and/or Target-Decoy type.
 
 The parameters are described as below:
+
 #### Data
 MS Data
 
