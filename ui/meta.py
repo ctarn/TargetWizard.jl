@@ -37,7 +37,7 @@ vars = {k: v["type"](value=v["value"]) for k, v in vars_spec.items()}
 
 filetype_tg = (("Target List", "*.csv"), ("All", "*.*"))
 filetype_ms = (("UMZ file", "*.umz"), ("MS2 file", "*.ms2"), ("All", "*.*"))
-filetype_psm = (("PSM", "*.csv"), ("PSM", "*.spectra"), ("All", "*.*"))
+filetype_psm = (("PSM", "*.csv"), ("PSM", "*.tsv"), ("PSM", "*.spectra"), ("All", "*.*"))
 filetype_psm_xl = (("XL PSM", "*.csv"), ("All", "*.*"))
 filetype_prec = (("Peptide Precursor List", "*.csv"), ("All", "*.*"))
 filetype_xl = (("Candidate XL List", "*.csv"), ("All", "*.*"))
