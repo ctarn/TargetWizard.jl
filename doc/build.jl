@@ -35,7 +35,9 @@ pages = [
     "Tutorial" => ["tutorial/prot.md", "tutorial/xl.md"],
     "Manual" => [
         "manual/index.md",
-        "Analysis Reports" => [],
+        "Analysis Reports" => [
+            "manual/report/BasicAcquisitionReport.md"
+        ],
         "Interactive Visualization Views" => [],
     ],
     "dev.md",
