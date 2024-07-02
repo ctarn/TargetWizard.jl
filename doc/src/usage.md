@@ -1,4 +1,4 @@
-# [Baisc Usages](@id usage)
+# [Basic Usages](@id usage)
 
 The software can be used in four ways:
 - Graphic User Interface
