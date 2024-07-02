@@ -1,16 +1,53 @@
 # [Basic Usages](@id usage)
+## Download
+Please download the software from [https://targetwizard.ctarn.io](https://targetwizard.ctarn.io).
 
+## Install
+### Linux
+Please unzip the downloaded `.zip` file, and TargetWizard can be used directly without installation.
+
+### macOS
+For macOS users, we provide both `.pkg` and `.zip` files.
+
+We would recommend to use the `.pkg` file which can be installed by simply double clicking it.
+The software would be installed at `/Applications/TargetWizard.app` by default.
+
+The `.zip` file contains the `.app` package software and can be used directly without installation.
+If the macOS says:
+
+```
+“TargetWizard.app” is damaged and can’t be opened. You should move it to the Trash.
+```
+
+Please run 
+```sh
+sudo xattr -r -d com.apple.quarantine [path/to/TargetWizard.app]
+```
+in terminal to remove the quarantine attributions.
+
+### Windows
+Please unzip the downloaded `.zip` file, and TargetWizard can be used directly without installation.
+
+The software is packaged using PyInstaller,
+and can be detected as virus by mistake on Windows (see [the issue](https://github.com/pyinstaller/pyinstaller/issues/5932)).
+Please restore the deleted file from `Protection History`,
+and Windows Security should not stop or delete it again.
+Otherwise,
+please add the software to white list.
+You can also package the software from source yourself.
+
+## Run
 The software can be used in four ways:
 - Graphic User Interface
 - Command Line
 - Source Code
 - Julia Package
 
-## Graphic User Interface
+### Graphic User Interface
 The software provides an easy-to-use graphic user interface, as shown below:
 ![TargetWizard GUI](assets/TargetWizard_gui.png)
 
-## Command Line
+### Command Line
 In addition to the GUI, the software provides executables that can be called directly from the command line to facilitate large-scale use.
 
 For macOS, the executables are located at `path/to/TargetWizard.app/Contents/MacOS/content/TargetWizard/bin/`, and for Linux and Windows, they are located at `path/to/TargetWizard/content/TargetWizard/bin/`
@@ -49,7 +86,7 @@ optional arguments:
   -h, --help          show this help message and exit
 ```
 
-## Source Code
+### Source Code
 You can also use or modify the source code directly. The source code can also be download from [http://targetwizard.ctarn.io](http://targetwizard.ctarn.io). You need to set up the Julia environment to run the source code. Please see the [guide](@ref dev).
 
 The source code can be called using:
@@ -86,7 +123,7 @@ optional arguments:
   -h, --help          show this help message and exit
 ```
 
-## Julia Package
+### Julia Package
 The source code can also be imported as a Julia package. You should first set up the Julia environment, download the source code, and then register the package:
 ```sh
 $ julia
