@@ -23,4 +23,4 @@ Once finished, TargetWizard will save two reports to `Output Directroy`.
 - `csv` report of all PSMs, e.g., `TMS.psm.TargetAcquisitionReport.csv`.
 
 ## Usage
-![Target Acquisition Report](../../assets/report/TargetAquisitionReport.png)
+![Target Acquisition Report](../../assets/report/TargetAcquisitionReport.png)
