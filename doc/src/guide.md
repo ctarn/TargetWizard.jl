@@ -1,12 +1,13 @@
-# [Basic Usages](@id usage)
-## Download
+# [Start Guide](@id guide)
+## [Installation](@id install)
+### Linux
 Please download the software from [https://targetwizard.ctarn.io](https://targetwizard.ctarn.io).
 
-## Install
-### Linux
 Please unzip the downloaded `.zip` file, and TargetWizard can be used directly without installation.
 
 ### macOS
+Please download the software from [https://targetwizard.ctarn.io](https://targetwizard.ctarn.io).
+
 For macOS users, we provide both `.pkg` and `.zip` files.
 
 We would recommend to use the `.pkg` file which can be installed by simply double clicking it.
@@ -26,6 +27,8 @@ sudo xattr -r -d com.apple.quarantine [path/to/TargetWizard.app]
 in terminal to remove the quarantine attributions.
 
 ### Windows
+Please download the software from [https://targetwizard.ctarn.io](https://targetwizard.ctarn.io).
+
 Please unzip the downloaded `.zip` file, and TargetWizard can be used directly without installation.
 
 The software is packaged using PyInstaller,
@@ -36,7 +39,7 @@ Otherwise,
 please add the software to white list.
 You can also package the software from source yourself.
 
-## Run
+## [Usages](@id usage)
 The software can be used in four ways:
 - Graphic User Interface
 - Command Line
