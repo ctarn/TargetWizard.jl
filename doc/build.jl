@@ -37,6 +37,7 @@ pages = [
         "manual/index.md",
         "Analysis Reports" => [
             "manual/report/BasicAcquisitionReport.md"
+            "manual/report/TargetSelectionReport.md"
         ],
         "Interactive Visualization Views" => [],
     ],
