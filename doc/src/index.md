@@ -8,5 +8,4 @@ The documentations include the following parts:
 - [Cross-linking Proteomics Analysis Tutorial](@ref tutorial_xl)
 - [TargetWizard Analysis Report Manual](@ref report)
 - [TargetWizard Visualization Manual](@ref view)
-- [Frequently Asked Questions](@ref faq)
 - [Development](@ref dev)
