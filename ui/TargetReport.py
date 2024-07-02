@@ -87,7 +87,7 @@ def run_peptide_coverage_report():
         "--out", V["out"].get(),
         "--error", V["error"].get(),
         "--ion", ",".join([t for t in ion_types if V[f"ion_{t}"].get()]),
-        "--cfg", V["cfg_pl"].get(),
+        "--cfg", V["cfg_pf"].get(),
     )
 
 def run_peptide_coverage_xl_report():
