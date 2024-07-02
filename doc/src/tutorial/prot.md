@@ -59,7 +59,7 @@ TargetWizard Support three formats:
 #### Output Directory
 where output results are saved to.
 
-![TargetWizard Target Selection UI](assets/TargetWizard_select.png)
+![TargetWizard Target Selection UI](../assets/TargetWizard_select.png)
 
 ## Target Binding
 TargetWizard provides three strategies to bind targets and MS data acquired using the target list.
@@ -105,7 +105,7 @@ Used when the mode is set to `by isolation center` only.
 #### Output Directory
 where output results are saved to.
 
-![TargetWizard Target Binding UI](assets/TargetWizard_bind.png)
+![TargetWizard Target Binding UI](../assets/TargetWizard_bind.png)
 
 ## Analysis Reports
 TargetWizard can generate various reports automatically to assist with targeted proteomics analysis.

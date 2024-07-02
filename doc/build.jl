@@ -30,13 +30,11 @@ end
 Documenter.deploydocs(repo=repo, target=joinpath("..", out), versions=nothing)
 
 pages = [
-    "intro.md",
+    "index.md",
     "install.md",
     "usage.md",
-    "tutorial_prot.md",
-    "tutorial_xl.md",
-    "report.md",
-    "view.md",
+    "Tutorial" => ["tutorial/prot.md", "tutorial/xl.md"],
+    "Manual" => ["manual/report.md", "manual/view.md"],
     "faq.md",
     "dev.md",
 ]
