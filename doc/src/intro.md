@@ -11,4 +11,3 @@ The documentations include the following parts:
 - [TargetWizard Visualization Manual](@ref view)
 - [Frequently Asked Questions](@ref faq)
 - [Development](@ref dev)
-
