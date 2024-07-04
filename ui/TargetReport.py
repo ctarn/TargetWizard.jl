@@ -28,7 +28,8 @@ vars_spec = {
     "xl": {"type": tk.StringVar, "value": ""},
     "fmt_tg": {"type": tk.StringVar, "value": "Auto Detect"},
     "psm": {"type": tk.StringVar, "value": ""},
-    "psm_": {"type": tk.StringVar, "value": ""},
+    "psm_xl": {"type": tk.StringVar, "value": ""},
+    "psm_xl_": {"type": tk.StringVar, "value": ""},
     "linker": {"type": tk.StringVar, "value": "DSSO"},
     "error": {"type": tk.StringVar, "value": "20.0"},
     "fdr": {"type": tk.StringVar, "value": "5.0"},
@@ -67,11 +68,11 @@ def run_target_acquisition_xl_report():
         V["tg"].get(),
         "--ms", V["ms"].get(),
         "--ms_old", *(V["ms_"].get().split(";")),
-        "--psm", V["psm"].get(),
+        "--psm", V["psm_xl"].get(),
         "--out", V["out"].get(),
         "--xl", V["xl"].get(),
         "--ft", V["ft"].get(),
-        "--psm_pf", V["psm_"].get(),
+        "--psm_pf", V["psm"].get(),
         "--fmt", meta.fmts_tg[V["fmt_tg"].get()],
         "--linker", V["linker"].get(),
         "--error", V["error"].get(),
@@ -91,7 +92,7 @@ def run_peptide_coverage_report():
     )
 
 def run_peptide_coverage_xl_report():
-    task.call(os.path.join(V["generators"].get(), "PeptideCoverageXLReport"), V["psm"].get(),
+    task.call(os.path.join(V["generators"].get(), "PeptideCoverageXLReport"), V["psm_xl"].get(),
         "--ms", *(V["ms"].get().split(";")),
         "--out", V["out"].get(),
         "--linker", V["linker"].get(),
@@ -103,7 +104,7 @@ def run_peptide_coverage_xl_report():
 def run_noise_ratio_dual_xl():
     task.call(os.path.join(V["generators"].get(), "NoiseRatioDualXLReport"), V["tg"].get(),
         "--ms", V["ms"].get(), V["ms_"].get(),
-        "--psm", V["psm"].get(), V["psm_"].get(),
+        "--psm", V["psm_xl"].get(), V["psm_xl_"].get(),
         "--out", V["out"].get(),
         "--fmt", meta.fmts_tg[V["fmt_tg"].get()],
         "--linker", V["linker"].get(),
@@ -167,7 +168,7 @@ I = util.Counter()
 util.add_entry(f, I.next(), "Target List:", V["tg"], "Select", util.askfile(V["tg"], V["out"], filetypes=meta.filetype_tg))
 util.add_combobox(f, I.next(), "List Format:", V["fmt_tg"], list(meta.fmts_tg.keys()))
 util.add_entry(f, I.next(), "Targeted MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
-util.add_entry(f, I.next(), "Targeted MS PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm_xl))
+util.add_entry(f, I.next(), "Targeted MS PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], filetypes=meta.filetype_psm_xl))
 util.add_entry(f, I.next(), "Original MS Data:", V["ms_"], "Select", util.askfiles(V["ms_"], filetypes=meta.filetype_ms))
 util.add_entry(f, I.next(), "Default Linker:", V["linker"])
 util.add_entry(f, I.next(), "Max. MS1 Mass Error:", V["error"], "ppm")
@@ -195,7 +196,7 @@ util.add_entry(f, I.next(), "Fragment Mass Error:", V["error"], "ppm")
 
 f = F[FlowPCXL]
 I = util.Counter()
-util.add_entry(f, I.next(), "PSM:", V["psm"], "Select", util.askfile(V["psm"], V["out"], filetypes=meta.filetype_psm_xl))
+util.add_entry(f, I.next(), "PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], V["out"], filetypes=meta.filetype_psm_xl))
 util.add_entry(f, I.next(), "MS Data:", V["ms"], "Select", util.askfiles(V["ms"], V["out"], filetypes=meta.filetype_ms))
 _, f_ion, _ = util.add_entry(f, I.next(), "Ion Type:", ttk.Frame(f, height=24))
 f_ion1 = ttk.Frame(f_ion)
@@ -214,11 +215,11 @@ util.add_combobox(f, I.next(), "List Format:", V["fmt_tg"], list(meta.fmts_tg.ke
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
 ttk.Label(f, text="Data A").grid(column=0, row=I.next())
 util.add_entry(f, I.next(), "MS Data:", V["ms"], "Select", util.askfile(V["ms"], filetypes=meta.filetype_ms))
-util.add_entry(f, I.next(), "XL PSM:", V["psm"], "Select", util.askfile(V["psm"], filetypes=meta.filetype_psm_xl))
+util.add_entry(f, I.next(), "XL PSM:", V["psm_xl"], "Select", util.askfile(V["psm_xl"], filetypes=meta.filetype_psm_xl))
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
 ttk.Label(f, text="Data B").grid(column=0, row=I.next())
 util.add_entry(f, I.next(), "MS Data:", V["ms_"], "Select", util.askfile(V["ms_"], filetypes=meta.filetype_ms))
-util.add_entry(f, I.next(), "XL PSM:", V["psm_"], "Select", util.askfile(V["psm_"], filetypes=meta.filetype_psm_xl))
+util.add_entry(f, I.next(), "XL PSM:", V["psm_xl_"], "Select", util.askfile(V["psm_xl_"], filetypes=meta.filetype_psm_xl))
 ttk.Separator(f, orient=tk.HORIZONTAL).grid(column=0, row=I.next(), sticky="EW", padx=12)
 util.add_entry(f, I.next(), "Default Linker:", V["linker"])
 util.add_entry(f, I.next(), "FDR:", V["fdr"], "%")
