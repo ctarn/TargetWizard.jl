@@ -15,21 +15,21 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_PAT }}
           path: doc/tmp
           ref: gh-pages
+          token: ${{ secrets.GH_PAT }}
       - uses: actions/checkout@v4
         with:
           repository: UniMZ/UniMZ.jl
-          token: ${{ secrets.GH_PAT }}
           path: tmp/UniMZ.jl
           ref: dev
+          token: ${{ secrets.GH_PAT }}
       - uses: actions/checkout@v4
         with:
           repository: UniMZ/UniMZUtil.jl
-          token: ${{ secrets.GH_PAT }}
           path: tmp/UniMZUtil.jl
           ref: dev
+          token: ${{ secrets.GH_PAT }}
       - uses: julia-actions/setup-julia@v1
       - name: Instantiate
         run: julia --project=doc doc/instantiate.jl . tmp/UniMZ.jl tmp/UniMZUtil.jl
