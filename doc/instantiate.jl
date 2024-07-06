@@ -1,3 +1,5 @@
-using Pkg
+import Pkg
 
-Pkg.instantiate()
+rm("Manifest.toml", force=true)
+Pkg.develop([Pkg.PackageSpec(path=dep) for dep in ARGS])
+Pkg.resolve()

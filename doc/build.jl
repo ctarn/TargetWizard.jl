@@ -2,6 +2,8 @@ import LibGit2
 
 import Documenter
 
+import TargetWizard
+
 repo = "github.com/ctarn/TargetWizard.jl.git"
 
 root = "doc"

@@ -1,3 +1,6 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 LibGit2 = "76f85450-5226-5b5a-8eaa-529ad045b433"
+TargetWizard = "faeafb7a-9c63-434d-a421-60faebbaa9cf"
+UniMZ = "cb255a47-4a9c-4271-a8f2-fc559662c0c4"
+UniMZUtil = "beb61379-ef9a-4938-8712-98d9ca74a137"
