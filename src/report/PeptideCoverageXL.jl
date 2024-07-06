@@ -1,4 +1,22 @@
+"""
+"""
 module PeptideCoverageXLReport
+
+"""
+"""
+require = true
+
+"""
+"""
+output = true
+
+"""
+"""
+usage = true
+
+"""
+"""
+example = true
 
 import ArgParse
 import UniMZ

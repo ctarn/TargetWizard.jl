@@ -1,4 +1,22 @@
+"""
+"""
 module NoiseRatioDualXLReport
+
+"""
+"""
+require = true
+
+"""
+"""
+output = true
+
+"""
+"""
+usage = true
+
+"""
+"""
+example = true
 
 using Printf
 using Statistics

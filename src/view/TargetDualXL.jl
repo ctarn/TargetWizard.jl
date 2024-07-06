@@ -1,4 +1,22 @@
+"""
+"""
 module TargetDualXLView
+
+"""
+"""
+require = true
+
+"""
+"""
+output = true
+
+"""
+"""
+usage = true
+
+"""
+"""
+example = true
 
 using Sockets
 

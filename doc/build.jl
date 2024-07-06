@@ -35,16 +35,7 @@ pages = [
     "index.md",
     "guide.md",
     "Tutorial" => ["tutorial/prot.md", "tutorial/xl.md"],
-    "Manual" => [
-        "manual/index.md",
-        "Analysis Reports" => [
-            "manual/report/BasicAcquisitionReport.md"
-            "manual/report/TargetSelectionReport.md"
-            "manual/report/TargetAcquisitionReport.md"
-            "manual/report/PeptideCoverageReport.md"
-        ],
-        "Interactive Visualization Views" => [],
-    ],
+    "Manual" => ["manual/index.md", "manual/report.md", "manual/view.md"],
     "dev.md",
 ]
 
