@@ -1,5 +1,3 @@
-import LibGit2
-
 import Documenter
 
 import TargetWizard
@@ -8,18 +6,8 @@ repo = "github.com/ctarn/TargetWizard.jl.git"
 
 root = "doc"
 tmp = "tmp"
-out = joinpath(root, tmp)
+out = joinpath(root, tmp) |> mkpath
 dst = "doc"
-
-@info "cleaning $(out)"
-rm(out; force=true, recursive=true)
-mkpath(out)
-try
-    LibGit2.clone("https://$(repo)", out, branch="gh-pages")
-catch e
-    @warn e
-end
-rm(joinpath(out, ".git"); force=true, recursive=true)
 
 vs = readdir(joinpath(root, "log")) .|> splitext .|> first .|> VersionNumber
 sort!(vs; rev=true)

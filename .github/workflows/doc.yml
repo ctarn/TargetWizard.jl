@@ -12,10 +12,27 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          path: doc/tmp
+          ref: gh-pages
+      - uses: actions/checkout@v4
+        with:
+          repository: UniMZ/UniMZ.jl
+          token: ${{ secrets.GH_PAT }}
+          path: tmp/UniMZ.jl
+          ref: dev
+      - uses: actions/checkout@v4
+        with:
+          repository: UniMZ/UniMZUtil.jl
+          token: ${{ secrets.GH_PAT }}
+          path: tmp/UniMZUtil.jl
+          ref: dev
       - uses: julia-actions/setup-julia@v1
       - name: Instantiate
-        run: julia --project=doc doc/instantiate.jl
+        run: julia --project=doc doc/instantiate.jl . tmp/UniMZ.jl tmp/UniMZUtil.jl
       - name: Build and deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
