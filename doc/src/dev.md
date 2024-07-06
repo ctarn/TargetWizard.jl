@@ -1,5 +1,10 @@
 # [Development](@id dev)
 
+```@contents
+Pages = ["dev.md"]
+Depth = 2:2
+```
+
 ## Install Julia
 Please install Julia (version 1.9 or newer) from [https://julialang.org](https://julialang.org).
 

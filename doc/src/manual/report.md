@@ -1,5 +1,10 @@
 # [Analysis Reports](@id report)
 
+```@contents
+Pages = ["report.md"]
+Depth = 2:2
+```
+
 ## [Basic Acquisition Report](@id report_ba)
 ```@docs
 TargetWizard.BasicAcquisitionReport

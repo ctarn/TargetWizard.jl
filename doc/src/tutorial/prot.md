@@ -1,5 +1,10 @@
 # [Proteomics Analysis Tutorial](@id tutorial_prot)
 
+```@contents
+Pages = ["prot.md"]
+Depth = 2:2
+```
+
 ## Requirements
 - traditional mass spectrometry data, e.g., DDA.raw
 - PSM search results of pFind, e.g., DDA.psm.csv or pFind-filtered.spectra

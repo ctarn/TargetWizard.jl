@@ -1,5 +1,10 @@
 # [Cross-linking Proteomics Analysis Tutorial](@id tutorial_xl)
 
+```@contents
+Pages = ["xl.md"]
+Depth = 2:2
+```
+
 ## Requirements
 - traditional mass spectrometry data, e.g., DDA.raw
 - PSM search results of pLink, e.g., DDA.psm.csv

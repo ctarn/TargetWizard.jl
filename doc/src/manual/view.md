@@ -1,5 +1,10 @@
 # [Interactive Visualization Views](@id view)
 
+```@contents
+Pages = ["view.md"]
+Depth = 2:2
+```
+
 ## [Target View](@id view_t)
 ```@docs
 TargetWizard.TargetView

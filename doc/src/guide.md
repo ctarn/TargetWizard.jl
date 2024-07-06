@@ -1,5 +1,10 @@
 # [Start Guide](@id guide)
 
+```@contents
+Pages = ["guide.md"]
+Depth = 2:3
+```
+
 ## [Installation](@id install)
 ### Linux
 Please download the software from [https://targetwizard.ctarn.io](https://targetwizard.ctarn.io).
