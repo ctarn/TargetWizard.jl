@@ -1,16 +1,25 @@
 """
+Comparative Signal-to-Noise Ratio Report for Crosslink
 """
 module NoiseRatioDualXLReport
 
 """
+- target list (multiple formats supported), e.g., `TargetWizard.all.TW.target.csv`.
+- two sets of traditional or targeted mass spectrometry data, e.g., `DDA.raw` and `TMS.raw`.
+  - The raw data should be converted into an open-source format such as MS1/MS2. [ThermoRawRead](http://thermorawread.ctarn.io) is recommended.
+- two sets of (filtered) crosslink identification results of targeted mass spectrometry data, e.g., `DDA.plink.csv` and `TMS.plink.csv`.
 """
 require = true
 
 """
+Once finished, TargetWizard will save two reports to `Output Directroy`.
+- `csv` report of all targets, e.g., `TargetWizard.all.TW.target.NoiseRatioDualXLReport.csv`.
+- `csv` reports for each set of crosslink identifications, e.g., `DDA.plink.NoiseRatioDualXLReport.csv` and `TMS.plink.NoiseRatioDualXLReport.csv`.
 """
 output = true
 
 """
+![Comparative Signal-to-Noise Ratio Report for Crosslink](../assets/report/NoiseRatioDualXLReport.png)
 """
 usage = true
 

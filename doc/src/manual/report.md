@@ -110,7 +110,7 @@ TargetWizard.TargetAcquisitionXLReport.usage
 TargetWizard.TargetAcquisitionXLReport.example
 ```
 
-## [Peptide Coverage Report for Crosslink](@id report_taxl)
+## [Peptide Coverage Report for Crosslink](@id report_pcxl)
 ```@docs
 TargetWizard.PeptideCoverageXLReport
 ```
@@ -131,7 +131,7 @@ TargetWizard.PeptideCoverageXLReport.usage
 TargetWizard.PeptideCoverageXLReport.example
 ```
 
-## [Signal-Noise-Ratio Dual Report for Crosslink](@id report_taxl)
+## [Comparative Signal-to-Noise Ratio Report for Crosslink](@id report_snrxl)
 ```@docs
 TargetWizard.NoiseRatioDualXLReport
 ```
