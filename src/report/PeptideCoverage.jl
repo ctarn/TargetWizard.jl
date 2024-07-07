@@ -18,12 +18,12 @@ Once finished, TargetWizard will save reports to `Output Directroy`, and open a 
 output = true
 
 """
-![Basic Acquisition Report](../assets/report/PeptideCoverageReport.png)
+![Peptide Coverage Report](../assets/report/PeptideCoverageReport.png)
 """
 usage = true
 
 """
-The report will show statistics plots of the MS data, including:
+The report will show statistics plots of fragment ion coverage of peptides, including:
 - Overall Peptide Coverage Distribution
 - Peptide Coverage Distribution of Specific Ion Types
 - …
