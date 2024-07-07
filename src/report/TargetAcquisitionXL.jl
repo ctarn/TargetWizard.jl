@@ -1,16 +1,40 @@
 """
+Target Acquisition Report for Crosslink
 """
 module TargetAcquisitionXLReport
 
 """
+- target list (multiple formats supported), e.g., `TargetWizard.all.TW.target.csv`.
+- traditional and targeted mass spectrometry data, e.g., `DDA.raw` and `TMS.raw`.
+  - The raw data should be converted into an open-source format such as MS1/MS2. [ThermoRawRead](http://thermorawread.ctarn.io) is recommended.
+- (filtered) crosslink identification results of targeted mass spectrometry data, e.g., `TMS.plink.csv`.
+- optional: (filtered) linear peptide identification results of targeted mass spectrometry data, e.g., `TMS_fdr.pfind.csv`.
+- optional: precursor list detected by [`PepPre`](http://peppre.ctarn.io)
+- optional: candidate crosslink list
 """
 require = true
 
 """
+Once finished, TargetWizard will save two reports to `Output Directroy`.
+- `csv` report of all targets, e.g., `TMS.target.TargetAcquisitionXLReport.csv`.
+- `csv` report of all crosslink PSMs, e.g., `TMS.crosslink.TargetAcquisitionXLReport.csv`.
+- `csv` report of all linear peptide PSMs, e.g., `TMS.linear.TargetAcquisitionXLReport.csv`.
+- `csv` report of all monolink PSMs, e.g., `TMS.monolink.TargetAcquisitionXLReport.csv`.
+- `csv` report of all looplink PSMs, e.g., `TMS.looplink.TargetAcquisitionXLReport.csv`.
 """
 output = true
 
 """
+# Max. MS1 Mass Error
+mass error used to match targets, PSMs, and MS scans.
+
+# FDR Threshold
+used to filter PSM list.
+
+# MS Sim. Thres.
+used to match traditional and targeted MS scans.
+
+![Target Acquisition Report for Crosslink](../assets/report/TargetAcquisitionXLReport.png)
 """
 usage = true
 
