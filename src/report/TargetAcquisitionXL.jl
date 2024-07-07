@@ -34,7 +34,7 @@ used to filter PSM list.
 # MS Sim. Thres.
 used to match traditional and targeted MS scans.
 
-![Target Acquisition Report for Crosslink](../assets/report/TargetAcquisitionXLReport.png)
+![Target Acquisition Report for Crosslink](../assets/manual/TargetAcquisitionXLReport.png)
 """
 usage = true
 

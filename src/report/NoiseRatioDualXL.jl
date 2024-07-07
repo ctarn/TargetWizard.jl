@@ -19,7 +19,7 @@ Once finished, TargetWizard will save two reports to `Output Directroy`.
 output = true
 
 """
-![Comparative Signal-to-Noise Ratio Report for Crosslink](../assets/report/NoiseRatioDualXLReport.png)
+![Comparative Signal-to-Noise Ratio Report for Crosslink](../assets/manual/NoiseRatioDualXLReport.png)
 """
 usage = true
 

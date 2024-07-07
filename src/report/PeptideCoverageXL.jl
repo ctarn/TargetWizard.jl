@@ -12,14 +12,14 @@ require = true
 
 """
 Once finished, TargetWizard will save reports to `Output Directroy`, and open a `html` report automatically in a web browser.
-- `html` report for linear peptides, e.g., `PeptideCoverageReport.html` ([example](../assets/report/PeptideCoverageReport.html)).
-- `html` report for crosslinks, e.g., `PeptideCoverageXLReport.html` ([example](../assets/report/PeptideCoverageXLReport.html)).
+- `html` report for linear peptides, e.g., `PeptideCoverageReport.html` ([example](../assets/manual/PeptideCoverageReport.html)).
+- `html` report for crosslinks, e.g., `PeptideCoverageXLReport.html` ([example](../assets/manual/PeptideCoverageXLReport.html)).
 - `csv` report including detailed fragment information for linear, monolink, looplink, and crosslink peptides.
 """
 output = true
 
 """
-![Peptide Coverage Report for Crosslink](../assets/report/PeptideCoverageReport.png)
+![Peptide Coverage Report for Crosslink](../assets/manual/PeptideCoverageReport.png)
 """
 usage = true
 
@@ -34,7 +34,7 @@ The plot will be updated automatically.
 
 You can also click the legend of a plot to hide or display some items.
 
-![Cross-linked Peptide Fragment Ion Coverage of b Ions](../assets/report/PeptideCoverageXLReport_b.png)
+![Cross-linked Peptide Fragment Ion Coverage of b Ions](../assets/manual/PeptideCoverageXLReport_b.png)
 """
 example = true
 

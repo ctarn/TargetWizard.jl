@@ -11,12 +11,12 @@ require = true
 
 """
 Once finished, TargetWizard will save a report to `Output Directroy`, and open the report automatically in a web browser.
-- `html` report, e.g., `BasicAcquisitionReport.html` ([example](../assets/report/BasicAcquisitionReport.html)).
+- `html` report, e.g., `BasicAcquisitionReport.html` ([example](../assets/manual/BasicAcquisitionReport.html)).
 """
 output = true
 
 """
-![Basic Acquisition Report](../assets/report/BasicAcquisitionReport.png)
+![Basic Acquisition Report](../assets/manual/BasicAcquisitionReport.png)
 """
 usage = true
 
@@ -33,8 +33,8 @@ The plot will be updated automatically.
 
 You can also click the legend of a plot to hide or display some items.
 
-![Acquisition Speed](../assets/report/BasicAcquisitionReport_AS.png)
-![Ion Injection Time](../assets/report/BasicAcquisitionReport_IT.png)
+![Acquisition Speed](../assets/manual/BasicAcquisitionReport_AS.png)
+![Ion Injection Time](../assets/manual/BasicAcquisitionReport_IT.png)
 """
 example = true
 

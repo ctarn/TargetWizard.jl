@@ -29,7 +29,7 @@ used to filter PSM list.
 # MS Sim. Thres.
 used to match traditional and targeted MS scans.
 
-![Target Acquisition Report](../assets/report/TargetAcquisitionReport.png)
+![Target Acquisition Report](../assets/manual/TargetAcquisitionReport.png)
 """
 usage = true
 

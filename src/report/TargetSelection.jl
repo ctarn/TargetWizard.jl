@@ -10,12 +10,12 @@ require = true
 
 """
 Once finished, TargetWizard will save a report to `Output Directroy`, and open the report automatically in a web browser.
-- `html` report, e.g., `TargetSelectionReport.html` ([example](../assets/report/TargetSelectionReport.html)).
+- `html` report, e.g., `TargetSelectionReport.html` ([example](../assets/manual/TargetSelectionReport.html)).
 """
 output = true
 
 """
-![Target Selection Report](../assets/report/TargetSelectionReport.png)
+![Target Selection Report](../assets/manual/TargetSelectionReport.png)
 """
 usage = true
 
@@ -31,8 +31,8 @@ The plot will be updated automatically.
 
 You can also click the legend of a plot to hide or display some items.
 
-![Acquisition Load](../assets/report/TargetSelectionReport_AL.png)
-![Mass Distribution](../assets/report/TargetSelectionReport_MD.png)
+![Acquisition Load](../assets/manual/TargetSelectionReport_AL.png)
+![Mass Distribution](../assets/manual/TargetSelectionReport_MD.png)
 """
 example = true
 

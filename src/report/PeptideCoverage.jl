@@ -12,13 +12,13 @@ require = true
 
 """
 Once finished, TargetWizard will save reports to `Output Directroy`, and open a `html` report automatically in a web browser.
-- `html` report, e.g., `PeptideCoverageReport.html` ([example](../assets/report/PeptideCoverageReport.html)).
+- `html` report, e.g., `PeptideCoverageReport.html` ([example](../assets/manual/PeptideCoverageReport.html)).
 - `csv` report including detailed fragment information.
 """
 output = true
 
 """
-![Peptide Coverage Report](../assets/report/PeptideCoverageReport.png)
+![Peptide Coverage Report](../assets/manual/PeptideCoverageReport.png)
 """
 usage = true
 
@@ -33,7 +33,7 @@ The plot will be updated automatically.
 
 You can also click the legend of a plot to hide or display some items.
 
-![Peptide Fragment Ion Coverage of b Ions](../assets/report/PeptideCoverageReport_b.png)
+![Peptide Fragment Ion Coverage of b Ions](../assets/manual/PeptideCoverageReport_b.png)
 """
 example = true
 
