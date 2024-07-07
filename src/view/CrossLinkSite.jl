@@ -1,20 +1,49 @@
 """
+Crosslink Site View
 """
 module CrossLinkSiteView
 
 """
+- filtered crosslink identification results of targeted mass spectrometry data, e.g., `TMS_fdr.plink.csv`.
+- traditional or targeted mass spectrometry data, e.g., `DDA.raw` or `TMS.raw`.
+  - The raw data should be converted into an open-source format such as MS1/MS2. [ThermoRawRead](http://thermorawread.ctarn.io) is recommended.
 """
 require = true
 
 """
+Once finished, TargetWizard will start a web server for user to review each target.
+([example](../assets/manual/CrossLinkSiteView.pdf))
+
+Additional detailed `csv` reports are also saved to output directory.
 """
 output = true
 
 """
+# Max. Mass Error
+mass error used to match PSMs, and MS scans.
+
+# Intensity Thres.
+threshold used to split XIC curves.
+
+# Smooth Width
+used to smooth XIC curves.
+
+![Crosslink Site View](../assets/manual/CrossLinkSiteView.png)
 """
 usage = true
 
 """
+# Select Crosslink Pair
+![Crosslink Pair List](../assets/manual/CrossLinkSiteView_target.png)
+
+# View MS Acquisition
+![MS Acquisition](../assets/manual/CrossLinkSiteView_ms.png)
+
+# View PSM
+![PSM](../assets/manual/CrossLinkSiteView_psm.png)
+
+# View Fragment Ion
+![Fragment Ion](../assets/manual/CrossLinkSiteView_frag.png)
 """
 example = true
 
