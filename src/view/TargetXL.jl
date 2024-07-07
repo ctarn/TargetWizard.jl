@@ -1,20 +1,51 @@
 """
+Target View for Crosslink
 """
 module TargetXLView
 
 """
+- target list (multiple formats supported), e.g., `TargetWizard.all.TW.target.csv`.
+- traditional and targeted mass spectrometry data, e.g., `DDA.raw` and `TMS.raw`.
+  - The raw data should be converted into an open-source format such as MS1/MS2. [ThermoRawRead](http://thermorawread.ctarn.io) is recommended.
+- (filtered) crosslink identification results of targeted mass spectrometry data, e.g., `TMS.plink.csv`.
+- optional: (filtered) linear peptide identification results of targeted mass spectrometry data, e.g., `TMS_fdr.pfind.csv`.
+- optional: precursor list detected by [`PepPre`](http://peppre.ctarn.io)
+- optional: candidate crosslink list
 """
 require = true
 
 """
+Once finished, TargetWizard will start a web server for user to review each target.
+([example](../assets/manual/TargetXLView.pdf))
 """
 output = true
 
 """
+# Max. MS1 Mass Error
+mass error used to match targets, PSMs, and MS scans.
+
+# FDR Threshold
+used to filter PSM list.
+
+# MS Sim. Thres.
+used to match traditional and targeted MS scans.
+
+![Target View for Crosslink](../assets/manual/TargetXLView.png)
 """
 usage = true
 
 """
+# Select Target
+![Target List](../assets/manual/TargetXLView_target.png)
+
+# View MS Acquisition
+![MS Acquisition](../assets/manual/TargetXLView_ms.png)
+
+# Select PSM
+![PSM List](../assets/manual/TargetXLView_psm_list.png)
+
+# View PSM
+![PSM](../assets/manual/TargetXLView_psm.png)
 """
 example = true
 
