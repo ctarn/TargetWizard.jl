@@ -13,6 +13,13 @@ module TargetAcquisitionReport
 require = true
 
 """
+Once finished, TargetWizard will save two reports to `Output Directroy`.
+- `csv` report of all targets, e.g., `TMS.target.TargetAcquisitionReport.csv`.
+- `csv` report of all PSMs, e.g., `TMS.psm.TargetAcquisitionReport.csv`.
+"""
+output = true
+
+"""
 # Max. MS1 Mass Error
 mass error used to match targets, PSMs, and MS scans.
 
@@ -21,18 +28,12 @@ used to filter PSM list.
 
 # MS Sim. Thres.
 used to match traditional and targeted MS scans.
-"""
-output = true
 
-"""
-Once finished, TargetWizard will save two reports to `Output Directroy`.
-- `csv` report of all targets, e.g., `TMS.target.TargetAcquisitionReport.csv`.
-- `csv` report of all PSMs, e.g., `TMS.psm.TargetAcquisitionReport.csv`.
+![Target Acquisition Report](../assets/report/TargetAcquisitionReport.png)
 """
 usage = true
 
 """
-![Target Acquisition Report](../assets/report/TargetAcquisitionReport.png)
 """
 example = true
 
