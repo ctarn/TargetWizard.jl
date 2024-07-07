@@ -1,20 +1,48 @@
 """
+Comparative Target View for Crosslink
 """
 module TargetDualXLView
 
 """
+- target list (multiple formats supported), e.g., `TargetWizard.all.TW.target.csv`.
+- two sets of traditional or targeted mass spectrometry data, e.g., `DDA.raw` and `TMS.raw`.
+  - The raw data should be converted into an open-source format such as MS1/MS2. [ThermoRawRead](http://thermorawread.ctarn.io) is recommended.
+- two sets of (filtered) crosslink identification results of targeted mass spectrometry data, e.g., `DDA.plink.csv` and `TMS.plink.csv`.
+- optional: two sets of precursor list detected by [`PepPre`](http://peppre.ctarn.io)
+- optional: candidate crosslink list
 """
 require = true
 
 """
+Once finished, TargetWizard will start a web server for user to review each target.
+([example](../assets/manual/TargetDualXLView.pdf))
 """
 output = true
 
 """
+# Max. MS1 Mass Error
+mass error used to match targets, PSMs, and MS scans.
+
+# FDR Threshold
+used to filter PSM list.
+
+![Comparative Target View for Crosslink](../assets/manual/TargetDualXLView.png)
 """
 usage = true
 
 """
+# Select Target
+![Target List](../assets/manual/TargetDualXLView_target.png)
+
+# View MS Acquisition
+![MS Acquisition](../assets/manual/TargetDualXLView_ms.png)
+
+# Select PSM
+![PSM List](../assets/manual/TargetDualXLView_psm_list.png)
+
+# View PSM
+![PSM (Sequence)](../assets/manual/TargetDualXLView_psm_seq.png)
+![PSM (Spectrum)](../assets/manual/TargetDualXLView_psm_spec.png)
 """
 example = true
 
