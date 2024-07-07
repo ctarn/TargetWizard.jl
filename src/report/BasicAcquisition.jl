@@ -1,5 +1,5 @@
 """
-report basic data acquisition information
+Basic Data Acquisition Report
 """
 module BasicAcquisitionReport
 

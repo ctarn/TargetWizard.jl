@@ -1,5 +1,5 @@
 """
-Peptide Coverage Report
+Peptide Fragment Ion Coverage Report
 """
 module PeptideCoverageReport
 
