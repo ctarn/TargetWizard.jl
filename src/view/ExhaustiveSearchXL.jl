@@ -1,20 +1,44 @@
 """
+Exhaustive Search View for Crosslink
 """
 module ExhaustiveSearchXLView
 
 """
+- candidate crosslink pair list
+- (multiple) mass spectrometry data, e.g., `TMS.raw`.
+  - The raw data should be converted into an open-source format such as MS1/MS2. [ThermoRawRead](http://thermorawread.ctarn.io) is recommended.
 """
 require = true
 
 """
+Once finished, TargetWizard will start a web server for user to review each target.
+([example](../assets/manual/ExhaustiveSearchXLView.pdf))
 """
 output = true
 
 """
+# Max. MS1 Mass Error
+mass error used to match targets, PSMs, and MS scans.
+
+![Exhaustive Search View for Crosslink](../assets/manual/ExhaustiveSearchXLView.png)
 """
 usage = true
 
 """
+# Select Crosslink Pair
+![Crosslink Pair List](../assets/manual/ExhaustiveSearchXLView_target.png)
+
+# Select MS File
+![MS File List](../assets/manual/ExhaustiveSearchXLView_file.png)
+
+# View MS Acquisition
+![MS Acquisition](../assets/manual/ExhaustiveSearchXLView_ms.png)
+
+# View Candidate MS List
+![MS List](../assets/manual/ExhaustiveSearchXLView_ms_list.png)
+
+# View Candidate PSM
+![Candidate PSM](../assets/manual/ExhaustiveSearchXLView_psm.png)
 """
 example = true
 
