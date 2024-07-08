@@ -18,6 +18,8 @@ jobs:
           path: doc/tmp
           ref: gh-pages
           token: ${{ secrets.GH_PAT }}
+      - name: Clean workspace
+        run: rm -rf doc/tmp/.git
       - uses: actions/checkout@v4
         with:
           repository: UniMZ/UniMZ.jl
