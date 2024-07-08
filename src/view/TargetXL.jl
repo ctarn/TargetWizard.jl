@@ -46,9 +46,13 @@ usage = true
 
 # View PSM
 ![PSM](../assets/manual/TargetXLView_psm.png)
+
+# View XIC of Fragment Ions and Precursor Ion
+![XIC](../assets/manual/TargetXLView_xic.png)
 """
 example = true
 
+using Printf
 using Sockets
 using Statistics
 
@@ -143,7 +147,8 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, tab_ele_pl, tab_aa_pl,
             export_headers="display",
         ),
         dcc_graph(id="seq_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXLView_SEQ"))),
-        dcc_graph(id="psm_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXLView_PSM")))
+        dcc_graph(id="psm_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXLView_PSM"))),
+        dcc_graph(id="xic_graph", config=PlotConfig(toImageButtonOptions=Dict(:format=>"svg", :filename=>"TargetXLView_XIC")))
     end
 
     p_hit = plot_hit(df_m2)
@@ -173,10 +178,15 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, tab_ele_pl, tab_aa_pl,
     callback!(app,
         Output("seq_graph", "figure"),
         Output("psm_graph", "figure"),
+        Output("xic_graph", "figure"),
+        Input("tg_table", "derived_virtual_data"),
+        Input("tg_table", "derived_virtual_selected_rows"),
         Input("psm_table", "derived_virtual_data"),
         Input("psm_table", "derived_virtual_selected_rows"),
-    ) do v1, v2
+    ) do v1, v2, v3, v4
         id = parse(Int, v1[v2[begin] + 1].id)
+        ms2s = [df_m2[i, :] for i in df_tg[id, :m2_all_] |> sort]
+        id = parse(Int, v3[v4[begin] + 1].id)
         r = df_psm[id, :]
         m2 = df_m2[M2I[r.scan], :]
         if r.engine == :pLink
@@ -186,13 +196,29 @@ build_app(df_tg, df_xl, df_ft, df_m1, df_m2, df_psm, M2I, tab_ele_pl, tab_aa_pl,
             sites = (r.site_a, r.site_b)
             ionss = UniMZ.build_ions_crosslink(m2.peaks, seqs, modss, linker, sites, ε, tab_ele_pl, tab_aa_pl, tab_mod_pl)
             p_seq = UniMZ.Plotly.seq_crosslink(seqs, modss, sites, ionss)
-            p_psm = UniMZ.Plotly.spec(m2.peaks, filter(i -> i.peak > 0, vcat(ionss...)))
+            ions = vcat(ionss...)
         elseif r.engine == :pFind
             ions = UniMZ.build_ions(m2.peaks, r.pep_a, r.mod_a, ε, tab_ele_pf, tab_aa_pf, tab_mod_pf)
             p_seq = UniMZ.Plotly.seq(r.pep_a, r.mod_a, ions)
-            p_psm = UniMZ.Plotly.spec(m2.peaks, filter(i -> i.peak > 0, ions))
         end
-        return p_seq, p_psm
+        p_psm = UniMZ.Plotly.spec(m2.peaks, filter(i -> i.peak > 0, ions))
+        xs = map(s -> s.rt, ms2s)
+        ls = AbstractTrace[]
+        for ion in ions
+            ys = map(s -> UniMZ.max_inten_ε(s.peaks, ion.mz, ε), values(ms2s))
+            push!(ls, scatter(x=xs, y=ys, mode="lines+markers", name=@sprintf("%s (%.4f Th)", ion.text, ion.mz)))
+        end
+        p_xic = Plot(ls, Layout(; yaxis_title="abundance"))
+        xs = df_m1.rt
+        ys = map(n -> map(p -> UniMZ.max_inten_ε(p, r.mz + n * Δ / r.z, ε), df_m1.peaks), -1:2)
+        ls = [scatter(x=xs, y=ys[2], mode="lines", name="M")]
+        push!(ls, scatter(x=xs, y=ys[3], mode="lines", name="M + 1 Da"))
+        push!(ls, scatter(x=xs, y=ys[4], mode="lines", name="M + 2 Da"))
+        push!(ls, scatter(x=xs, y=ys[1], mode="lines", name="M - 1 Da"))
+        p_m = Plot(ls, Layout(; xaxis_title="retention time (s)", yaxis_title="abundance"))
+        p_xic = [p_xic; p_m]
+        relayout!(p_xic, Layout(Subplots(rows=2, cols=1, row_heights=[1, 3], shared_xaxes=true)))
+        return p_seq, p_psm, p_xic
     end
     return app
 end
