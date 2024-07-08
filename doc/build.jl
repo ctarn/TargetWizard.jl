@@ -14,6 +14,9 @@ logs = map((VersionNumber∘first∘splitext).(readdir(joinpath(root, "log"))) |
 end |> reverse |> join
 html = replace(html, "{{ release }}" => "<div class=\"release\">$(logs)</div>")
 open(io -> write(io, html), joinpath(out, "index.html"); write=true)
+for file in ["fig"]
+    cp(joinpath(root, file), joinpath(out, file); force=true)
+end
 Documenter.deploydocs(; repo, target=tmp, versions=nothing, cname="targetwizard.ctarn.io")
 
 pages = [
