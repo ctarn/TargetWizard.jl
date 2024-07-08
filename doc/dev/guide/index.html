@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Start Guide · TargetWizard</title><meta name="title" content="Start Guide · TargetWizard"/><meta property="og:title" content="Start Guide · TargetWizard"/><meta property="twitter:title" content="Start Guide · TargetWizard"/><meta name="description" content="Documentation for TargetWizard."/><meta property="og:description" content="Documentation for TargetWizard."/><meta property="twitter:description" content="Documentation for TargetWizard."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.svg" alt="TargetWizard logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">TargetWizard</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li class="is-active"><a class="tocitem" href>Start Guide</a><ul class="internal"><li><a class="tocitem" href="#install"><span>Installation</span></a></li><li><a class="tocitem" href="#usage"><span>Usages</span></a></li><li><a class="tocitem" href="#faq"><span>Frequently Asked Questions</span></a></li></ul></li><li><span class="tocitem">Tutorial</span><ul><li><a class="tocitem" href="../tutorial/prot/">Proteomics Analysis Tutorial</a></li><li><a class="tocitem" href="../tutorial/xl/">Cross-linking Proteomics Analysis Tutorial</a></li></ul></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../manual/">Introduction</a></li><li><a class="tocitem" href="../manual/report/">Analysis Reports</a></li><li><a class="tocitem" href="../manual/view/">Interactive Visualization Views</a></li></ul></li><li><a class="tocitem" href="../dev/">Development</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Start Guide</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Start Guide</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/ctarn/TargetWizard.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/ctarn/TargetWizard.jl/blob/main/doc/src/guide.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="guide"><a class="docs-heading-anchor" href="#guide">Start Guide</a><a id="guide-1"></a><a class="docs-heading-anchor-permalink" href="#guide" title="Permalink"></a></h1><ul><li><a href="#install">Installation</a></li><li class="no-marker"><ul><li><a href="#Linux">Linux</a></li><li><a href="#macOS">macOS</a></li><li><a href="#Windows">Windows</a></li></ul></li><li><a href="#usage">Usages</a></li><li class="no-marker"><ul><li><a href="#Graphic-User-Interface">Graphic User Interface</a></li><li><a href="#Command-Line">Command Line</a></li><li><a href="#Source-Code">Source Code</a></li><li><a href="#Julia-Package">Julia Package</a></li></ul></li><li><a href="#faq">Frequently Asked Questions</a></li></ul><h2 id="install"><a class="docs-heading-anchor" href="#install">Installation</a><a id="install-1"></a><a class="docs-heading-anchor-permalink" href="#install" title="Permalink"></a></h2><h3 id="Linux"><a class="docs-heading-anchor" href="#Linux">Linux</a><a id="Linux-1"></a><a class="docs-heading-anchor-permalink" href="#Linux" title="Permalink"></a></h3><p>Please download the software from <a href="https://targetwizard.ctarn.io">https://targetwizard.ctarn.io</a>.</p><p>Please unzip the downloaded <code>.zip</code> file, and TargetWizard can be used directly without installation.</p><h3 id="macOS"><a class="docs-heading-anchor" href="#macOS">macOS</a><a id="macOS-1"></a><a class="docs-heading-anchor-permalink" href="#macOS" title="Permalink"></a></h3><p>Please download the software from <a href="https://targetwizard.ctarn.io">https://targetwizard.ctarn.io</a>.</p><p>For macOS users, we provide both <code>.pkg</code> and <code>.zip</code> files.</p><p>We would recommend to use the <code>.pkg</code> file which can be installed by simply double clicking it. The software would be installed at <code>/Applications/TargetWizard.app</code> by default.</p><p>The <code>.zip</code> file contains the <code>.app</code> package software and can be used directly without installation. If the macOS says:</p><pre><code class="nohighlight hljs">“TargetWizard.app” is damaged and can’t be opened. You should move it to the Trash.</code></pre><p>Please run </p><pre><code class="language-sh hljs">sudo xattr -r -d com.apple.quarantine [path/to/TargetWizard.app]</code></pre><p>in terminal to remove the quarantine attributions.</p><h3 id="Windows"><a class="docs-heading-anchor" href="#Windows">Windows</a><a id="Windows-1"></a><a class="docs-heading-anchor-permalink" href="#Windows" title="Permalink"></a></h3><p>Please download the software from <a href="https://targetwizard.ctarn.io">https://targetwizard.ctarn.io</a>.</p><p>Please unzip the downloaded <code>.zip</code> file, and TargetWizard can be used directly without installation.</p><p>The software is packaged using PyInstaller, and can be detected as virus by mistake on Windows (see <a href="https://github.com/pyinstaller/pyinstaller/issues/5932">the issue</a>). Please restore the deleted file from <code>Protection History</code>, and Windows Security should not stop or delete it again. Otherwise, please add the software to white list. You can also package the software from source yourself.</p><h2 id="usage"><a class="docs-heading-anchor" href="#usage">Usages</a><a id="usage-1"></a><a class="docs-heading-anchor-permalink" href="#usage" title="Permalink"></a></h2><p>The software can be used in four ways:</p><ul><li>Graphic User Interface</li><li>Command Line</li><li>Source Code</li><li>Julia Package</li></ul><h3 id="Graphic-User-Interface"><a class="docs-heading-anchor" href="#Graphic-User-Interface">Graphic User Interface</a><a id="Graphic-User-Interface-1"></a><a class="docs-heading-anchor-permalink" href="#Graphic-User-Interface" title="Permalink"></a></h3><p>The software provides an easy-to-use graphic user interface, as shown below: <img src="../assets/TargetWizard_gui.png" alt="TargetWizard GUI"/></p><h3 id="Command-Line"><a class="docs-heading-anchor" href="#Command-Line">Command Line</a><a id="Command-Line-1"></a><a class="docs-heading-anchor-permalink" href="#Command-Line" title="Permalink"></a></h3><p>In addition to the GUI, the software provides executables that can be called directly from the command line to facilitate large-scale use.</p><p>For macOS, the executables are located at <code>path/to/TargetWizard.app/Contents/MacOS/content/TargetWizard/bin/</code>, and for Linux and Windows, they are located at <code>path/to/TargetWizard/content/TargetWizard/bin/</code></p><p>For each executable, use <code>--help</code> for respective usage.</p><pre><code class="language-sh hljs">$ ./TargetSelect --help
+usage: TargetSelect --psm PSM [-o ./out/] [--name name] [--error ppm]
+                    [--fdr_min min] [--fdr_max max] [--fdr_ge]
+                    [--fdr_le] [--td T,D] [--batch num] [--rtime sec]
+                    [--lc min] [--fmt TW,TmQE,TmFu] [-h] data...
+
+positional arguments:
+  data                list of .umz or .ms1/2 files; .ms2/1 files
+                      should be in the same directory for .ms1/2
+
+optional arguments:
+  --psm PSM           pFind PSM file (full list)
+  -o, --out ./out/    output directory (default: &quot;./out/&quot;)
+  --name name         task name (default: &quot;TargetWizard&quot;)
+  --error ppm         m/z error (default: &quot;20.0&quot;)
+  --fdr_min min       min. FDR (%) (default: &quot;-Inf&quot;)
+  --fdr_max max       max. FDR (%) (default: &quot;Inf&quot;)
+  --fdr_ge            include min. FDR (compared with `≥ min` instead
+                      of `&gt; min`)
+  --fdr_le            include max. FDR (compared with `≤ max` instead
+                      of `&lt; max`)
+  --td T,D            target/decoy types (split by `,`) (default:
+                      &quot;T,D&quot;)
+  --batch num         batch size (default: &quot;Inf&quot;)
+  --rtime sec         retention time window (sec) (default: &quot;240&quot;)
+  --lc min            LC gradient length (min) (default: &quot;Inf&quot;)
+  --fmt TW,TmQE,TmFu  format(s) of target list (split by `,`)
+                      TW: TargetWizard, TmQE: Thermo Q Exactive, TmFu:
+                      Thermo Fusion (default: &quot;TW,TmQE,TmFu&quot;)
+  -h, --help          show this help message and exit</code></pre><h3 id="Source-Code"><a class="docs-heading-anchor" href="#Source-Code">Source Code</a><a id="Source-Code-1"></a><a class="docs-heading-anchor-permalink" href="#Source-Code" title="Permalink"></a></h3><p>You can also use or modify the source code directly. The source code can also be download from <a href="http://targetwizard.ctarn.io">http://targetwizard.ctarn.io</a>. You need to set up the Julia environment to run the source code. Please see the <a href="../dev/#dev">guide</a>.</p><p>The source code can be called using:</p><pre><code class="language-sh hljs">$ julia src/TargetSelect.jl --help
+usage: TargetSelect --psm PSM [-o ./out/] [--name name] [--error ppm]
+                    [--fdr_min min] [--fdr_max max] [--fdr_ge]
+                    [--fdr_le] [--td T,D] [--batch num] [--rtime sec]
+                    [--lc min] [--fmt TW,TmQE,TmFu] [-h] data...
+
+positional arguments:
+  data                list of .umz or .ms1/2 files; .ms2/1 files
+                      should be in the same directory for .ms1/2
+
+optional arguments:
+  --psm PSM           pFind PSM file (full list)
+  -o, --out ./out/    output directory (default: &quot;./out/&quot;)
+  --name name         task name (default: &quot;TargetWizard&quot;)
+  --error ppm         m/z error (default: &quot;20.0&quot;)
+  --fdr_min min       min. FDR (%) (default: &quot;-Inf&quot;)
+  --fdr_max max       max. FDR (%) (default: &quot;Inf&quot;)
+  --fdr_ge            include min. FDR (compared with `≥ min` instead
+                      of `&gt; min`)
+  --fdr_le            include max. FDR (compared with `≤ max` instead
+                      of `&lt; max`)
+  --td T,D            target/decoy types (split by `,`) (default:
+                      &quot;T,D&quot;)
+  --batch num         batch size (default: &quot;Inf&quot;)
+  --rtime sec         retention time window (sec) (default: &quot;240&quot;)
+  --lc min            LC gradient length (min) (default: &quot;Inf&quot;)
+  --fmt TW,TmQE,TmFu  format(s) of target list (split by `,`)
+                      TW: TargetWizard, TmQE: Thermo Q Exactive, TmFu:
+                      Thermo Fusion (default: &quot;TW,TmQE,TmFu&quot;)
+  -h, --help          show this help message and exit</code></pre><h3 id="Julia-Package"><a class="docs-heading-anchor" href="#Julia-Package">Julia Package</a><a id="Julia-Package-1"></a><a class="docs-heading-anchor-permalink" href="#Julia-Package" title="Permalink"></a></h3><p>The source code can also be imported as a Julia package. You should first set up the Julia environment, download the source code, and then register the package:</p><pre><code class="language-sh hljs">$ julia
+               _
+   _       _ _(_)_     |  Documentation: https://docs.julialang.org
+  (_)     | (_) (_)    |
+   _ _   _| |_  __ _   |  Type &quot;?&quot; for help, &quot;]?&quot; for Pkg help.
+  | | | | | | |/ _` |  |
+  | | |_| | | | (_| |  |  Version 1.10.4 (2024-06-04)
+ _/ |\__&#39;_|_|_|\__&#39;_|  |  Official https://julialang.org/ release
+|__/                   |
+
+(@v1.10) pkg&gt; dev path/to/TargetWizard.jl
+   Resolving package versions...
+    Updating `~/.julia/environments/v1.10/Project.toml`
+  [faeafb7a] + TargetWizard v1.0.0 `path/to/TargetWizard.jl`
+    Updating `~/.julia/environments/v1.10/Manifest.toml`
+  [faeafb7a] + TargetWizard v1.0.0 `path/to/TargetWizard.jl`</code></pre><p>Then the package can be imported through:</p><pre><code class="language-sh hljs">$ julia
+               _
+   _       _ _(_)_     |  Documentation: https://docs.julialang.org
+  (_)     | (_) (_)    |
+   _ _   _| |_  __ _   |  Type &quot;?&quot; for help, &quot;]?&quot; for Pkg help.
+  | | | | | | |/ _` |  |
+  | | |_| | | | (_| |  |  Version 1.10.4 (2024-06-04)
+ _/ |\__&#39;_|_|_|\__&#39;_|  |  Official https://julialang.org/ release
+|__/                   |
+
+julia&gt; import TargetWizard
+
+julia&gt; TargetWizard.TargetSelect.build_target
+build_target (generic function with 1 method)
+
+julia&gt; methods(TargetWizard.TargetSelect.build_target)
+# 1 method for generic function &quot;build_target&quot; from TargetWizard.TargetSelect:
+ [1] build_target(df, Ms, paths, out, name, ε, batch_size, rt, lc, fmt)
+     @ path/to/TargetWizard.jl/src/util.jl:36
+
+julia&gt; </code></pre><h2 id="faq"><a class="docs-heading-anchor" href="#faq">Frequently Asked Questions</a><a id="faq-1"></a><a class="docs-heading-anchor-permalink" href="#faq" title="Permalink"></a></h2><ul><li>macOS says: “TargetWizard.app” is damaged and can’t be opened. You should move it to the Trash.</li></ul><p>Please run <code>sudo xattr -r -d com.apple.quarantine [path/to/TargetWizard.app]</code> in terminal.</p><ul><li>Windows Security stops the software and deletes the .exe file. </li></ul><p>The software is packaged using PyInstaller, and can be detected as virus by mistake on Windows (see <a href="https://github.com/pyinstaller/pyinstaller/issues/5932">the issue</a>). Please restore the deleted file from <code>Protection History</code>, and Windows Security should not stop or delete it again. Otherwise, please add the software to white list. You can also package the software from source yourself.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Introduction</a><a class="docs-footer-nextpage" href="../tutorial/prot/">Proteomics Analysis Tutorial »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.5.0 on <span class="colophon-date" title="Monday 8 July 2024 13:28">Monday 8 July 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
