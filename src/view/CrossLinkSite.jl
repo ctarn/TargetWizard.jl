@@ -104,8 +104,6 @@ seq_crosslink(seqs, modss, site_pairs, ionss; font=18) = begin
     return Plot(ls, Layout(; showlegend=false, yaxis=attr(showticklabels=false, range=(-8, 8)), xaxis=attr(showticklabels=false), height=300))
 end
 
-get_inten(mz, ps, ε) = maximum(p -> p.inten, UniMZ.query_ε(ps, mz, ε); init=0.0)
-
 smooth(x, k) = begin
     n = length(k)
     x_ = vcat(zeros(eltype(x), n ÷ 2), x, zeros(eltype(x), n - n ÷ 2 - 1))
@@ -144,7 +142,7 @@ calc_range(df, M1, τ, ε, k) = begin
     ms1s = M1[df.file[end]]
 
     x = map(s -> s.retention_time, values(ms1s))
-    ys = map(n -> smooth(map(s -> get_inten(mz + n * Δ / z, s.peaks, ε), values(ms1s)), k), 0:2)
+    ys = map(n -> smooth(map(s -> UniMZ.max_inten_ε(s.peaks, mz + n * Δ / z, ε), values(ms1s)), k), 0:2)
     y = ys[1] .* (ys[1] .> τ) .* (ys[2] .> τ) .* (ys[3] .> τ)
     df_range = DataFrames.DataFrame([(; id, start=x[r[1]], stop=x[r[2]], start_i=r[1], stop_i=r[2]) for (id, r) in enumerate(split_lc(y, τ))])
     return x, ys, y, df_range
@@ -314,7 +312,7 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
             s, name, mz, z = ion
             for (sym, δ, sty) in zip(["", "'", "''"], [0, linker.masses...], ["solid", "dot", "dash"])
                 mz_ = mz + δ / z
-                ys = map(s -> get_inten(mz_, s.peaks, ε), values(ms2s))
+                ys = map(s -> UniMZ.max_inten_ε(s.peaks, mz_, ε), values(ms2s))
                 push!(ls, scatter(x=xs, y=ys, mode="lines+markers", line_dash=sty, name=@sprintf("%s (%.4f Th)", s * sym * name, mz_)))
             end
         end
@@ -323,7 +321,7 @@ build_app(gd_grp, df_grp, df_psm, M1, M2D, τ, ε, smooth_k, tab_ele, tab_aa, ta
         mz = df.mz[end]
         ms1s = M1[df.file[end]]
         xs = map(s -> s.retention_time, values(ms1s))
-        ys = map(s -> get_inten(mz, s.peaks, ε), values(ms1s))
+        ys = map(s -> UniMZ.max_inten_ε(s.peaks, mz, ε), values(ms1s))
         ls = [scatter(x=xs, y=ys, mode="lines", name=@sprintf("%s (%.4f Th)", "M", mz), line_color="grey")]
         p_m = Plot(ls, Layout(; xaxis_title="retention time (s)", yaxis_title="abundance"))
         p = [p_ion; p_m]
