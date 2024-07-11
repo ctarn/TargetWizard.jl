@@ -104,12 +104,6 @@ seq_crosslink(seqs, modss, site_pairs, ionss; font=18) = begin
     return Plot(ls, Layout(; showlegend=false, yaxis=attr(showticklabels=false, range=(-8, 8)), xaxis=attr(showticklabels=false), height=300))
 end
 
-smooth(x, k) = begin
-    n = length(k)
-    x_ = vcat(zeros(eltype(x), n ÷ 2), x, zeros(eltype(x), n - n ÷ 2 - 1))
-    return map(i -> sum(x_[i:i+n-1] .* k), eachindex(x)) ./ sum(k)
-end
-
 split_lc(x, τ, ext=true) = begin
     started = false
     a, b = 0, 0
@@ -142,7 +136,7 @@ calc_range(df, M1, τ, ε, k) = begin
     ms1s = M1[df.file[end]]
 
     x = map(s -> s.retention_time, values(ms1s))
-    ys = map(n -> smooth(map(s -> UniMZ.max_inten_ε(s.peaks, mz + n * Δ / z, ε), values(ms1s)), k), 0:2)
+    ys = map(n -> UniMZ.smooth(map(s -> UniMZ.max_inten_ε(s.peaks, mz + n * Δ / z, ε), values(ms1s)), k), 0:2)
     y = ys[1] .* (ys[1] .> τ) .* (ys[2] .> τ) .* (ys[3] .> τ)
     df_range = DataFrames.DataFrame([(; id, start=x[r[1]], stop=x[r[2]], start_i=r[1], stop_i=r[2]) for (id, r) in enumerate(split_lc(y, τ))])
     return x, ys, y, df_range
