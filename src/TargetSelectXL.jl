@@ -9,7 +9,7 @@ import UniMZUtil: TMS, pLink
 include("util.jl")
 
 prepare(args) = begin
-    df = pLink.read_psm_full(args["psm"]).xl
+    df = pLink.read_psm_full(args["psm"]).crosslink
     out = mkpath(args["out"])
     name = args["name"]
     ε = parse(Float64, args["error"]) * 1.0e-6
