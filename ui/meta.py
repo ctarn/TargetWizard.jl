@@ -17,7 +17,6 @@ os.makedirs(homedir, exist_ok=True)
 win = tk.Tk()
 win.title(name)
 win.iconphoto(True, tk.PhotoImage(file=util.get_content(f"{name}.png", shared=True)))
-win.resizable(False, False)
 
 if util.is_darwin:
     path_mono = "/Library/Frameworks/Mono.framework/Versions/Current/Commands/mono"
