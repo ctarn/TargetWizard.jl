@@ -36,7 +36,7 @@ process(paths; df, out, name, ε, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batc
 
     gd = DataFrames.groupby(df, [:pep_a, :pep_b, :site_a, :site_b, :mod_a, :mod_b, :z])
     df = DataFrames.combine(gd,
-        [:td, :prot_type, :fdr, :score, :mz, :mz_calc, :scan, :file] .=> first,
+        [:td, :prot_type, :fdr, :score, :mz, :mz_calc, :scan, :file, :title] .=> first,
         renamecols=false,
     )
     Ms = map(p -> UniMZ.read_ms(p), paths)
