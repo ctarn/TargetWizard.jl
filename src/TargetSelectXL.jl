@@ -9,7 +9,13 @@ import UniMZUtil: TMS, pLink
 include("util.jl")
 
 prepare(args) = begin
-    df = pLink.read_psm_full(args["psm"]).crosslink
+    if args["psm_fmt"] == "pLinkFull"
+        df = pLink.read_psm_full(args["psm"]).crosslink
+    elseif args["psm_fmt"] == "pLinkFiltered"
+        df = pLink.read_psm(args["psm"])
+    else
+        error("unknown PSM format: $(args["psm_fmt"])")
+    end
     out = mkpath(args["out"])
     name = args["name"]
     ε = parse(Float64, args["error"]) * 1.0e-6
@@ -27,6 +33,8 @@ prepare(args) = begin
 end
 
 process(paths; df, out, name, ε, fdr_min, fdr_max, fdr_ge, fdr_le, td, pt, batch_size, rt, lc, fmt) = begin
+    ("fdr" ∉ names(df)) && (df.fdr .= 0.0)
+    ("td" ∉ names(df)) && (df.td .= :TT)
     s = trues(size(df, 1))
     s .&= fdr_ge ? (df.fdr .≥ fdr_min) : (df.fdr .> fdr_min)
     s .&= fdr_le ? (df.fdr .≤ fdr_max) : (df.fdr .< fdr_max)
@@ -66,6 +74,10 @@ main() = begin
             help = "m/z error"
             metavar = "ppm"
             default = "20.0"
+        "--psm_fmt"
+            help = "PSM format"
+            metavar = "pLinkFull|pLinkFiltered"
+            default = "pLinkFull"
         "--fdr_min"
             help = "min. FDR (%)"
             metavar = "min"
