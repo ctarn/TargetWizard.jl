@@ -9,6 +9,8 @@ import UniMZUtil: TMS
 
 include("util.jl")
 
+Δ = 1.0033
+
 prepare(args) = begin
     @info "reading from " * args["target"]
     df = args["target"] |> CSV.File |> DataFrames.DataFrame
@@ -27,6 +29,7 @@ process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
     M = UniMZ.read_ms(path; MS1=false).MS2
     name = basename(path) |> splitext |> first
     df = TMS.parse_target_list!(copy(df), fmt_target)
+    @info "MS2 matching..."
     I = @showprogress map(M) do ms
         if mode == :extended_window
             s = ((ms.activation_center - ms.isolation_width / 2 - 1) .< df.mz .< (ms.activation_center + ms.isolation_width / 2))
@@ -37,6 +40,16 @@ process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
         end
         s = s .& ((df.start .- εt) .≤ ms.retention_time .≤ (df.stop .+ εt))
         return map(r -> UniMZ.Ion(r.mz, r.z), eachrow(df[s, :]))
+    end
+    @info "MS2 preprocessing using isotopic pattern..."
+    S1 = @showprogress map(M) do ms
+        map(ms.peaks) do p
+            !any(z -> UniMZ.query_ε(ms.peaks, p.mz - Δ / z, εm) |> !isempty, 1:3)
+        end
+    end
+    @info "MS2 filtering..."
+    M = @showprogress map(M, S1) do ms, s1
+        UniMZ.fork(ms; peaks=ms.peaks[s1])
     end
     for fmt in fmts
         ext = fmt ∈ [:csv, :tsv] ? "scan_precursor.$(fmt)" : fmt
