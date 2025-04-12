@@ -70,17 +70,19 @@ process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
         s = s .& ((df.start .- εt) .≤ ms.retention_time .≤ (df.stop .+ εt))
         return map(r -> UniMZ.Ion(r.mz, r.z), eachrow(df[s, :]))
     end
-    @info "MS2 preprocessing using isotopic pattern..."
-    M2 = @showprogress map(M2) do ms
-        ps = map(ms.peaks) do p
-            if any(z -> UniMZ.query_ε(ms.peaks, p.mz - Δ / z, εm) |> !isempty, 1:3)
-                return UniMZ.Peak[]
+    if false
+        @info "MS2 preprocessing using isotopic pattern..."
+        M2 = @showprogress map(M2) do ms
+            ps = map(ms.peaks) do p
+                if any(z -> UniMZ.query_ε(ms.peaks, p.mz - Δ / z, εm) |> !isempty, 1:3)
+                    return UniMZ.Peak[]
+                end
+                zs = filter(z -> UniMZ.query_ε(ms.peaks, p.mz + Δ / z, εm) |> !isempty, 1:3)
+                zs = isempty(zs) ? [1] : zs
+                return map(z -> UniMZ.Peak(UniMZ.mz_to_mh(p.mz, z), p.inten), zs)
             end
-            zs = filter(z -> UniMZ.query_ε(ms.peaks, p.mz + Δ / z, εm) |> !isempty, 1:3)
-            zs = isempty(zs) ? [1] : zs
-            return map(z -> UniMZ.Peak(UniMZ.mz_to_mh(p.mz, z), p.inten), zs)
+            return UniMZ.fork(ms; peaks=reduce(vcat, ps)|>sort)
         end
-        return UniMZ.fork(ms; peaks=reduce(vcat, ps)|>sort)
     end
     @info "MS2 preprocessing using xic pattern..."
     S = @showprogress map(eachindex(M2), M2, I) do idx_ms, ms, ions
