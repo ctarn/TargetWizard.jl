@@ -53,13 +53,13 @@ prepare(args) = begin
 end
 
 process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
-    MS = UniMZ.read_ms(path)
-    M = MS.MS2
-    M1 = MS.MS1 |> UniMZ.dict_by_id
+    M = UniMZ.read_ms(path)
+    M1 = M.MS1 |> UniMZ.dict_by_id
+    M2 = M.MS2
     name = basename(path) |> splitext |> first
     df = TMS.parse_target_list!(copy(df), fmt_target)
     @info "MS2 matching..."
-    I = @showprogress map(M) do ms
+    I = @showprogress map(M2) do ms
         if mode == :extended_window
             s = ((ms.activation_center - ms.isolation_width / 2 - 1) .< df.mz .< (ms.activation_center + ms.isolation_width / 2))
         elseif mode == :window
@@ -71,15 +71,15 @@ process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
         return map(r -> UniMZ.Ion(r.mz, r.z), eachrow(df[s, :]))
     end
     @info "MS2 preprocessing using isotopic pattern..."
-    S1 = @showprogress map(M) do ms
+    S1 = @showprogress map(M2) do ms
         map(ms.peaks) do p
             !any(z -> UniMZ.query_ε(ms.peaks, p.mz - Δ / z, εm) |> !isempty, 1:3)
         end
     end
     @info "MS2 preprocessing using xic pattern..."
-    S2 = @showprogress map(eachindex(M), M, I) do idx_ms, ms, ions
+    S2 = @showprogress map(eachindex(M2), M2, I) do idx_ms, ms, ions
         ss = map(ions) do ion
-            ms2s = getms2s(M, ion, idx_ms, εt, εm)
+            ms2s = getms2s(M2, ion, idx_ms, εt, εm)
             ms1s = map(ms2 ->M1[ms2.pre], ms2s)
             xic1 = map(ms1 -> UniMZ.max_inten_ε(ms1.peaks, ion.mz, εm), ms1s)
             return map(ms.peaks) do p
@@ -90,12 +90,12 @@ process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
         return isempty(ions) ? trues(length(ms.peaks)) : reduce(.|, ss)
     end
     @info "MS2 filtering..."
-    M = @showprogress map(M, S1, S2) do ms, s1, s2
+    M2 = @showprogress map(M2, S1, S2) do ms, s1, s2
         UniMZ.fork(ms; peaks=ms.peaks[s1.&s2])
     end
     for fmt in fmts
         ext = fmt ∈ [:csv, :tsv] ? "scan_precursor.$(fmt)" : fmt
-        UniMZ.safe_save(p -> UniMZ.write_ms_with_precursor(p, M, I; fmt, name), joinpath(out, "$(name).$(ext)"))
+        UniMZ.safe_save(p -> UniMZ.write_ms_with_precursor(p, M2, I; fmt, name), joinpath(out, "$(name).$(ext)"))
     end
 end
 
