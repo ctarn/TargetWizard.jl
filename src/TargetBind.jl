@@ -71,13 +71,19 @@ process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
         return map(r -> UniMZ.Ion(r.mz, r.z), eachrow(df[s, :]))
     end
     @info "MS2 preprocessing using isotopic pattern..."
-    S1 = @showprogress map(M2) do ms
-        map(ms.peaks) do p
-            !any(z -> UniMZ.query_ε(ms.peaks, p.mz - Δ / z, εm) |> !isempty, 1:3)
+    M2 = @showprogress map(M2) do ms
+        ps = map(ms.peaks) do p
+            if any(z -> UniMZ.query_ε(ms.peaks, p.mz - Δ / z, εm) |> !isempty, 1:3)
+                return UniMZ.Peak[]
+            end
+            zs = filter(z -> UniMZ.query_ε(ms.peaks, p.mz + Δ / z, εm) |> !isempty, 1:3)
+            zs = isempty(zs) ? [1] : zs
+            return map(z -> UniMZ.Peak(UniMZ.mz_to_mh(p.mz, z), p.inten), zs)
         end
+        return UniMZ.fork(ms; peaks=reduce(vcat, ps)|>sort)
     end
     @info "MS2 preprocessing using xic pattern..."
-    S2 = @showprogress map(eachindex(M2), M2, I) do idx_ms, ms, ions
+    S = @showprogress map(eachindex(M2), M2, I) do idx_ms, ms, ions
         ss = map(ions) do ion
             ms2s = getms2s(M2, ion, idx_ms, εt, εm)
             ms1s = map(ms2 ->M1[ms2.pre], ms2s)
@@ -89,9 +95,8 @@ process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
         end
         return isempty(ions) ? trues(length(ms.peaks)) : reduce(.|, ss)
     end
-    @info "MS2 filtering..."
-    M2 = @showprogress map(M2, S1, S2) do ms, s1, s2
-        UniMZ.fork(ms; peaks=ms.peaks[s1.&s2])
+    M2 = @showprogress map(M2, S) do ms, s
+        UniMZ.fork(ms; peaks=ms.peaks[s])
     end
     for fmt in fmts
         ext = fmt ∈ [:csv, :tsv] ? "scan_precursor.$(fmt)" : fmt
