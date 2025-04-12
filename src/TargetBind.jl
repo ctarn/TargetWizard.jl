@@ -11,6 +11,33 @@ include("util.jl")
 
 Δ = 1.0033
 
+cosine_sim(xs, ys) = sum(abs.(xs .* ys)) / (sqrt(sum(xs .^ 2) * sum(ys .^2)))
+
+getms2s(M, ion, i, Δrt, ε) = begin
+    ms2s = [i]
+    id = i
+    n = 2
+    while id > 1 && n > 0
+        id = id - 1
+        m = M[id]
+        abs(M[i].retention_time - m.retention_time) > Δrt && break
+        !UniMZ.in_moe(m.activation_center, ion.mz, ε) && continue
+        push!(ms2s, id)
+        n -= 1
+    end
+    id = i
+    n = 2
+    while id < length(M) && n > 0
+        id = id + 1
+        m = M[id]
+        abs(M[i].retention_time - m.retention_time) > Δrt && break
+        !UniMZ.in_moe(m.activation_center, ion.mz, ε) && continue
+        push!(ms2s, id)
+        n -= 1
+    end
+    return M[sort!(ms2s)]
+end
+
 prepare(args) = begin
     @info "reading from " * args["target"]
     df = args["target"] |> CSV.File |> DataFrames.DataFrame
@@ -26,7 +53,9 @@ prepare(args) = begin
 end
 
 process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
-    M = UniMZ.read_ms(path; MS1=false).MS2
+    MS = UniMZ.read_ms(path)
+    M = MS.MS2
+    M1 = MS.MS1 |> UniMZ.dict_by_id
     name = basename(path) |> splitext |> first
     df = TMS.parse_target_list!(copy(df), fmt_target)
     @info "MS2 matching..."
@@ -47,9 +76,22 @@ process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
             !any(z -> UniMZ.query_ε(ms.peaks, p.mz - Δ / z, εm) |> !isempty, 1:3)
         end
     end
+    @info "MS2 preprocessing using xic pattern..."
+    S2 = @showprogress map(eachindex(M), M, I) do idx_ms, ms, ions
+        ss = map(ions) do ion
+            ms2s = getms2s(M, ion, idx_ms, εt, εm)
+            ms1s = map(ms2 ->M1[ms2.pre], ms2s)
+            xic1 = map(ms1 -> UniMZ.max_inten_ε(ms1.peaks, ion.mz, εm), ms1s)
+            return map(ms.peaks) do p
+                xic2 = map(ms2 -> UniMZ.max_inten_ε(ms2.peaks, p.mz, εm), ms2s)
+                return (1 - acos(cosine_sim(xic1, xic2)) / π * 2) ≥ 0.5
+            end
+        end
+        return isempty(ions) ? trues(length(ms.peaks)) : reduce(.|, ss)
+    end
     @info "MS2 filtering..."
-    M = @showprogress map(M, S1) do ms, s1
-        UniMZ.fork(ms; peaks=ms.peaks[s1])
+    M = @showprogress map(M, S1, S2) do ms, s1, s2
+        UniMZ.fork(ms; peaks=ms.peaks[s1.&s2])
     end
     for fmt in fmts
         ext = fmt ∈ [:csv, :tsv] ? "scan_precursor.$(fmt)" : fmt
