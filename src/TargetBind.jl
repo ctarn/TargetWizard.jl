@@ -16,7 +16,7 @@ cosine_sim(xs, ys) = sum(abs.(xs .* ys)) / (sqrt(sum(xs .^ 2) * sum(ys .^2)))
 getms2s(M, ion, i, Δrt, ε) = begin
     ms2s = [i]
     id = i
-    n = 2
+    n = 1
     while id > 1 && n > 0
         id = id - 1
         m = M[id]
@@ -26,7 +26,7 @@ getms2s(M, ion, i, Δrt, ε) = begin
         n -= 1
     end
     id = i
-    n = 2
+    n = 1
     while id < length(M) && n > 0
         id = id + 1
         m = M[id]
@@ -87,9 +87,9 @@ process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
     @info "MS2 preprocessing using xic pattern..."
     S = @showprogress map(eachindex(M2), M2, I) do idx_ms, ms, ions
         ss = map(ions) do ion
-            ms2s = getms2s(M2, ion, idx_ms, 30, εm)
+            ms2s = getms2s(M2, ion, idx_ms, 10, εm)
             ms1s = map(ms2 ->M1[ms2.pre], ms2s)
-            xic1 = map(ms1 -> UniMZ.max_inten_ε(ms1.peaks, ion.mz, εm), ms1s)
+            xic1 = map(ms1 -> max(1, UniMZ.max_inten_ε(ms1.peaks, ion.mz, εm)), ms1s)
             return map(ms.peaks) do p
                 xic2 = map(ms2 -> UniMZ.max_inten_ε(ms2.peaks, p.mz, εm), ms2s)
                 return (1 - acos(cosine_sim(xic1, xic2)) / π * 2) ≥ 0.5
