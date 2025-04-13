@@ -87,7 +87,7 @@ process(path; df, out, mode, εt, εm, fmt_target, fmts) = begin
     @info "MS2 preprocessing using xic pattern..."
     S = @showprogress map(eachindex(M2), M2, I) do idx_ms, ms, ions
         ss = map(ions) do ion
-            ms2s = getms2s(M2, ion, idx_ms, εt, εm)
+            ms2s = getms2s(M2, ion, idx_ms, 30, εm)
             ms1s = map(ms2 ->M1[ms2.pre], ms2s)
             xic1 = map(ms1 -> UniMZ.max_inten_ε(ms1.peaks, ion.mz, εm), ms1s)
             return map(ms.peaks) do p
