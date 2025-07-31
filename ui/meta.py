@@ -5,7 +5,7 @@ import tkinter as tk
 import util
 
 name = "TargetWizard"
-version = "0.0.0"
+version = "1.0.0"
 author = "Tarn Yeong Ching"
 url = f"http://{name.lower()}.ctarn.io"
 server = f"http://api.ctarn.io/{name}/{version}"
