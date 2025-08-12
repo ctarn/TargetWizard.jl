@@ -11,7 +11,7 @@
 ## Release
 Please download the release from [targetwizard.ctarn.io](https://targetwizard.ctarn.io).
 
-![UI](targetwizard.ctarn.io/fig/TargetWizard_ui.png)
+![UI](https://targetwizard.ctarn.io/fig/TargetWizard_ui.png)
 
 ## Usage
 
